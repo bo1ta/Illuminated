@@ -101,7 +101,6 @@
     BFTaskCompletionSource *source = [BFTaskCompletionSource taskCompletionSource];
     
     [[self viewContext] performBlock:^{
-        NSLog(@"Performing...");
         id result = readBlock([self viewContext]);
         [source setResult:result];
     }];
@@ -196,20 +195,21 @@
 - (BFTask<NSArray<Album *> *> *)albumsWithTitle:(nonnull NSString *)title artist:(nullable NSString *)artistName {
     NSPredicate *predicate = [NSPredicate predicateWithFormat:@"title LIKE %@", title];
     NSSortDescriptor *sort = [NSSortDescriptor sortDescriptorWithKey:@"year" ascending:NO];
-    return [self allObjectsForEntity:@"Album" matching:predicate sortDescriptors:@[sort]];
+    return [self allObjectsForEntity:EntityNameAlbum matching:predicate sortDescriptors:@[sort]];
 }
 
 - (BFTask<NSNumber *> *)albumsCount {
-    return [self countForEntity:@"Album"];
+    return [self countForEntity:EntityNameAlbum];
 }
 
 - (BFTask<NSArray<Album *> *> *)allAlbums {
-    return [self allObjectsForEntity:@"Album" matching:nil sortDescriptors:nil];
+    return [self allObjectsForEntity:EntityNameAlbum matching:nil sortDescriptors:nil];
 }
 
 - (BFTask<NSManagedObjectID *> *)createAlbumWithTitle:(nonnull NSString *)title year:(nullable NSNumber *)year artworkPath:(nullable NSString *)artworkPath duration:(double)duration genre:(nullable NSString *)genre {
     return [self performWrite:^id _Nullable(NSManagedObjectContext * _Nonnull context, NSError *__autoreleasing  _Nullable * _Nullable _) {
-        Album *album = [context insertNewObjectForEntityName:@"Album"];
+        Album *album = [context insertNewObjectForEntityName:EntityNameAlbum];
+        [album setUniqueID:[NSUUID new]];
         [album setTitle:title];
         [album setYear:[year intValue]];
         [album setArtworkPath:artworkPath];
@@ -223,7 +223,7 @@
 #pragma mark - Artist
 
 - (BFTask<NSArray<Artist *> *> *)allArtists {
-    return [self allObjectsForEntity:@"Artist" matching:nil sortDescriptors:nil];
+    return [self allObjectsForEntity:EntityNameArtist matching:nil sortDescriptors:nil];
 }
 
 - (BFTask<Artist *> *)artistWithID:(nonnull NSManagedObjectID *)objectID {
@@ -231,17 +231,18 @@
 }
 
 - (BFTask<Artist *> *)artistWithName:(nonnull NSString *)name {
-    return [self firstObjectForEntity:@"Artist"
+    return [self firstObjectForEntity:EntityNameArtist
                             predicate:[NSPredicate predicateWithFormat:@"name == %@", name]];
 }
 
 - (BFTask<NSNumber *> *)artistsCount {
-    return [self countForEntity:@"Artist"];
+    return [self countForEntity:EntityNameArtist];
 }
 
 - (BFTask<NSManagedObjectID *> *)createArtistWithName:(nonnull NSString *)name {
     return [self performWrite:^id _Nullable(NSManagedObjectContext * _Nonnull context, NSError *__autoreleasing  _Nullable * _Nullable _) {
-        Artist *artist = [context insertNewObjectForEntityName:@"Artist"];
+        Artist *artist = [context insertNewObjectForEntityName:EntityNameArtist];
+        [artist setUniqueID:[NSUUID new]];
         [artist setName:name];
         
         return artist;
@@ -251,7 +252,7 @@
 #pragma mark - Playlist
 
 - (BFTask<NSArray<Playlist *> *> *)allPlaylists {
-    return [self allObjectsForEntity:@"Playlist" matching:nil sortDescriptors:nil];
+    return [self allObjectsForEntity:EntityNamePlaylist matching:nil sortDescriptors:nil];
 }
 
 - (BFTask<Playlist *> *)playlistWithID:(nonnull NSManagedObjectID *)objectID {
@@ -259,18 +260,18 @@
 }
 
 - (BFTask<Playlist *> *)playlistWithName:(nonnull NSString *)name {
-    return [self firstObjectForEntity:@"Playlist"
+    return [self firstObjectForEntity:EntityNamePlaylist
                             predicate:[NSPredicate predicateWithFormat:@"name LIKE %@", name]];
 }
 
 #pragma mark - Track
 
 - (BFTask<NSArray<Track *> *> *)allTracks {
-    return [self allObjectsForEntity:@"Track" matching:nil sortDescriptors:nil];
+    return [self allObjectsForEntity:EntityNameTrack matching:nil sortDescriptors:nil];
 }
 
 - (BFTask<NSArray<Track *> *> *)searchTracks:(nonnull NSString *)query {
-    return [self allObjectsForEntity:@"Track"
+    return [self allObjectsForEntity:EntityNameTrack
                             matching:[NSPredicate predicateWithFormat:@"title LIKE %@", query]
                      sortDescriptors:nil];
 }
@@ -280,7 +281,7 @@
 }
 
 - (BFTask<NSNumber *> *)tracksCount {
-    return [self countForEntity:@"Track"];
+    return [self countForEntity:EntityNameTrack];
 }
 
 - (BFTask<NSManagedObjectID *> *)createTrackWithTitle:(nullable NSString *)title
@@ -291,7 +292,8 @@
                                            sampleRate:(int16_t)sampleRate
                                              duration:(double)duration {
     return [self performWrite:^id _Nullable(NSManagedObjectContext * _Nonnull context, NSError *__autoreleasing  _Nullable * _Nullable _) {
-        Track *track = [context insertNewObjectForEntityName:@"Track"];
+        Track *track = [context insertNewObjectForEntityName:EntityNameTrack];
+        [track setUniqueID:[NSUUID new]];
         [track setTitle:title];
         [track setTrackNumber:trackNumber];
         [track setFileURL:fileURL];
