@@ -1,13 +1,13 @@
 //
 //  Album.h
-//  
+//
 //
 //  Created by Alexandru Solomon on 18.01.2026.
 //
 //
 
-#import <Foundation/Foundation.h>
 #import <CoreData/CoreData.h>
+#import <Foundation/Foundation.h>
 
 @class Artist, Track;
 
@@ -17,14 +17,14 @@ NS_ASSUME_NONNULL_BEGIN
 
 + (NSFetchRequest<Album *> *)fetchRequest NS_SWIFT_NAME(fetchRequest());
 
-@property (nullable, nonatomic, copy) NSUUID *uniqueID;
-@property (nullable, nonatomic, copy) NSString *title;
-@property (nonatomic) int16_t year;
-@property (nullable, nonatomic, copy) NSString *artworkPath;
-@property (nonatomic) double duration;
-@property (nullable, nonatomic, copy) NSString *genre;
-@property (nullable, nonatomic, retain) NSSet<Track *> *tracks;
-@property (nullable, nonatomic, retain) Artist *artist;
+@property(nullable, nonatomic, copy) NSUUID *uniqueID;
+@property(nullable, nonatomic, copy) NSString *title;
+@property(nonatomic) int16_t year;
+@property(nullable, nonatomic, copy) NSString *artworkPath;
+@property(nonatomic) double duration;
+@property(nullable, nonatomic, copy) NSString *genre;
+@property(nullable, nonatomic, retain) NSSet<Track *> *tracks;
+@property(nullable, nonatomic, retain) Artist *artist;
 
 @end
 

@@ -1,13 +1,13 @@
 //
 //  Playlist.h
-//  
+//
 //
 //  Created by Alexandru Solomon on 18.01.2026.
 //
 //
 
-#import <Foundation/Foundation.h>
 #import <CoreData/CoreData.h>
+#import <Foundation/Foundation.h>
 
 @class Track;
 
@@ -17,11 +17,11 @@ NS_ASSUME_NONNULL_BEGIN
 
 + (NSFetchRequest<Playlist *> *)fetchRequest NS_SWIFT_NAME(fetchRequest());
 
-@property (nullable, nonatomic, copy) NSUUID *uniqueID;
-@property (nullable, nonatomic, copy) NSString *name;
-@property (nonatomic) BOOL isSmart;
-@property (nullable, nonatomic, copy) NSString *iconName;
-@property (nullable, nonatomic, retain) NSSet<Track *> *tracks;
+@property(nullable, nonatomic, copy) NSUUID *uniqueID;
+@property(nullable, nonatomic, copy) NSString *name;
+@property(nonatomic) BOOL isSmart;
+@property(nullable, nonatomic, copy) NSString *iconName;
+@property(nullable, nonatomic, retain) NSSet<Track *> *tracks;
 
 @end
 

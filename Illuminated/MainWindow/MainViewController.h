@@ -11,8 +11,8 @@
 NS_ASSUME_NONNULL_BEGIN
 
 @interface MainViewController : NSViewController <NSTableViewDataSource, NSTableViewDelegate>
-@property (weak) IBOutlet NSTableView *tableView;
-@property (strong) NSArray<Artist *> *artists;
+@property(weak) IBOutlet NSTableView *tableView;
+@property(strong) NSArray<Artist *> *artists;
 
 @end
 

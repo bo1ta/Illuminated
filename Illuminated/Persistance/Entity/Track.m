@@ -1,6 +1,6 @@
 //
 //  Track.m
-//  
+//
 //
 //  Created by Alexandru Solomon on 18.01.2026.
 //
@@ -11,7 +11,7 @@
 @implementation Track
 
 + (NSFetchRequest<Track *> *)fetchRequest {
-    return [NSFetchRequest fetchRequestWithEntityName:@"Track"];
+  return [NSFetchRequest fetchRequestWithEntityName:@"Track"];
 }
 
 @dynamic uniqueID;

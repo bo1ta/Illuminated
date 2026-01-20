@@ -29,34 +29,34 @@ NS_ASSUME_NONNULL_BEGIN
 #pragma mark - Initializer
 
 - (instancetype)init {
-    self = [super init];
-    if (!self) return self;
+  self = [super init];
+  if (!self) return self;
 
-    _token = [BFCancellationToken new];
+  _token = [BFCancellationToken new];
 
-    return self;
+  return self;
 }
 
 + (instancetype)cancellationTokenSource {
-    return [BFCancellationTokenSource new];
+  return [BFCancellationTokenSource new];
 }
 
 #pragma mark - Custom Setters/Getters
 
 - (BOOL)isCancellationRequested {
-    return _token.isCancellationRequested;
+  return _token.isCancellationRequested;
 }
 
 - (void)cancel {
-    [_token cancel];
+  [_token cancel];
 }
 
 - (void)cancelAfterDelay:(int)millis {
-    [_token cancelAfterDelay:millis];
+  [_token cancelAfterDelay:millis];
 }
 
 - (void)dispose {
-    [_token dispose];
+  [_token dispose];
 }
 
 @end

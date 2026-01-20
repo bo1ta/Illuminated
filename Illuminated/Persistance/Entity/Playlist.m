@@ -1,6 +1,6 @@
 //
 //  Playlist.m
-//  
+//
 //
 //  Created by Alexandru Solomon on 18.01.2026.
 //
@@ -11,7 +11,7 @@
 @implementation Playlist
 
 + (NSFetchRequest<Playlist *> *)fetchRequest {
-    return [NSFetchRequest fetchRequestWithEntityName:@"Playlist"];
+  return [NSFetchRequest fetchRequestWithEntityName:@"Playlist"];
 }
 
 @dynamic uniqueID;

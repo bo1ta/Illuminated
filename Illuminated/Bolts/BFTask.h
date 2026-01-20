@@ -44,7 +44,7 @@ extern NSString *const BFTaskMultipleErrorsUserInfoKey;
 /*!
  A block that can act as a continuation for a task.
  */
-typedef __nullable id(^BFContinuationBlock)(BFTask<ResultType> *t);
+typedef __nullable id (^BFContinuationBlock)(BFTask<ResultType> *t);
 
 /*!
  Creates a task that is already completed with the given result.
@@ -99,7 +99,8 @@ typedef __nullable id(^BFContinuationBlock)(BFTask<ResultType> *t);
  task will be finished (with result == nil).
  @param token The cancellation token (optional).
  */
-+ (BFTask<BFVoid> *)taskWithDelay:(int)millis cancellationToken:(nullable BFCancellationToken *)token;
++ (BFTask<BFVoid> *)taskWithDelay:(int)millis
+                cancellationToken:(nullable BFCancellationToken *)token;
 
 /*!
  Returns a task that will be completed after the given block completes with
@@ -118,27 +119,27 @@ typedef __nullable id(^BFContinuationBlock)(BFTask<ResultType> *t);
 /*!
  The result of a successful task.
  */
-@property (nullable, nonatomic, strong, readonly) ResultType result;
+@property(nullable, nonatomic, strong, readonly) ResultType result;
 
 /*!
  The error of a failed task.
  */
-@property (nullable, nonatomic, strong, readonly) NSError *error;
+@property(nullable, nonatomic, strong, readonly) NSError *error;
 
 /*!
  Whether this task has been cancelled.
  */
-@property (nonatomic, assign, readonly, getter=isCancelled) BOOL cancelled;
+@property(nonatomic, assign, readonly, getter=isCancelled) BOOL cancelled;
 
 /*!
  Whether this task has completed due to an error.
  */
-@property (nonatomic, assign, readonly, getter=isFaulted) BOOL faulted;
+@property(nonatomic, assign, readonly, getter=isFaulted) BOOL faulted;
 
 /*!
  Whether this task has completed.
  */
-@property (nonatomic, assign, readonly, getter=isCompleted) BOOL completed;
+@property(nonatomic, assign, readonly, getter=isCompleted) BOOL completed;
 
 /*!
  Enqueues the given block to be run once this task is complete.
@@ -166,7 +167,8 @@ typedef __nullable id(^BFContinuationBlock)(BFTask<ResultType> *t);
  this method will not be completed until that task is completed.
  */
 - (BFTask *)continueWithBlock:(BFContinuationBlock)block
-            cancellationToken:(nullable BFCancellationToken *)cancellationToken NS_SWIFT_NAME(continueWith(block:cancellationToken:));
+            cancellationToken:(nullable BFCancellationToken *)cancellationToken
+    NS_SWIFT_NAME(continueWith(block:cancellationToken:));
 
 /*!
  Enqueues the given block to be run once this task is complete.
@@ -178,7 +180,8 @@ typedef __nullable id(^BFContinuationBlock)(BFTask<ResultType> *t);
  this method will not be completed until that task is completed.
  */
 - (BFTask *)continueWithExecutor:(BFExecutor *)executor
-                       withBlock:(BFContinuationBlock)block NS_SWIFT_NAME(continueWith(executor:block:));
+                       withBlock:(BFContinuationBlock)block
+    NS_SWIFT_NAME(continueWith(executor:block:));
 
 /*!
  Enqueues the given block to be run once this task is complete.
@@ -193,7 +196,7 @@ typedef __nullable id(^BFContinuationBlock)(BFTask<ResultType> *t);
 - (BFTask *)continueWithExecutor:(BFExecutor *)executor
                            block:(BFContinuationBlock)block
                cancellationToken:(nullable BFCancellationToken *)cancellationToken
-NS_SWIFT_NAME(continueWith(executor:block:cancellationToken:));
+    NS_SWIFT_NAME(continueWith(executor:block:cancellationToken:));
 
 /*!
  Identical to continueWithBlock:, except that the block is only run
@@ -205,7 +208,8 @@ NS_SWIFT_NAME(continueWith(executor:block:cancellationToken:));
  If block returns a BFTask, then the task returned from
  this method will not be completed until that task is completed.
  */
-- (BFTask *)continueWithSuccessBlock:(BFContinuationBlock)block NS_SWIFT_NAME(continueOnSuccessWith(block:));
+- (BFTask *)continueWithSuccessBlock:(BFContinuationBlock)block
+    NS_SWIFT_NAME(continueOnSuccessWith(block:));
 
 /*!
  Identical to continueWithBlock:, except that the block is only run
@@ -220,7 +224,7 @@ NS_SWIFT_NAME(continueWith(executor:block:cancellationToken:));
  */
 - (BFTask *)continueWithSuccessBlock:(BFContinuationBlock)block
                    cancellationToken:(nullable BFCancellationToken *)cancellationToken
-NS_SWIFT_NAME(continueOnSuccessWith(block:cancellationToken:));
+    NS_SWIFT_NAME(continueOnSuccessWith(block:cancellationToken:));
 
 /*!
  Identical to continueWithExecutor:withBlock:, except that the block
@@ -234,7 +238,8 @@ NS_SWIFT_NAME(continueOnSuccessWith(block:cancellationToken:));
  this method will not be completed until that task is completed.
  */
 - (BFTask *)continueWithExecutor:(BFExecutor *)executor
-                withSuccessBlock:(BFContinuationBlock)block NS_SWIFT_NAME(continueOnSuccessWith(executor:block:));
+                withSuccessBlock:(BFContinuationBlock)block
+    NS_SWIFT_NAME(continueOnSuccessWith(executor:block:));
 
 /*!
  Identical to continueWithExecutor:withBlock:, except that the block
@@ -251,7 +256,7 @@ NS_SWIFT_NAME(continueOnSuccessWith(block:cancellationToken:));
 - (BFTask *)continueWithExecutor:(BFExecutor *)executor
                     successBlock:(BFContinuationBlock)block
                cancellationToken:(nullable BFCancellationToken *)cancellationToken
-NS_SWIFT_NAME(continueOnSuccessWith(executor:block:cancellationToken:));
+    NS_SWIFT_NAME(continueOnSuccessWith(executor:block:cancellationToken:));
 
 /*!
  Waits until this operation is completed.

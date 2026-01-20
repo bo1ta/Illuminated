@@ -27,51 +27,50 @@ NS_ASSUME_NONNULL_BEGIN
 #pragma mark - Initializer
 
 + (instancetype)taskCompletionSource {
-    return [[self alloc] init];
+  return [[self alloc] init];
 }
 
 - (instancetype)init {
-    self = [super init];
-    if (!self) return self;
+  self = [super init];
+  if (!self) return self;
 
-    _task = [[BFTask alloc] init];
+  _task = [[BFTask alloc] init];
 
-    return self;
+  return self;
 }
 
 #pragma mark - Custom Setters/Getters
 
 - (void)setResult:(nullable id)result {
-    if (![self.task trySetResult:result]) {
-        [NSException raise:NSInternalInconsistencyException
-                    format:@"Cannot set the result on a completed task."];
-    }
+  if (![self.task trySetResult:result]) {
+    [NSException raise:NSInternalInconsistencyException
+                format:@"Cannot set the result on a completed task."];
+  }
 }
 
 - (void)setError:(NSError *)error {
-    if (![self.task trySetError:error]) {
-        [NSException raise:NSInternalInconsistencyException
-                    format:@"Cannot set the error on a completed task."];
-    }
+  if (![self.task trySetError:error]) {
+    [NSException raise:NSInternalInconsistencyException
+                format:@"Cannot set the error on a completed task."];
+  }
 }
 
 - (void)cancel {
-    if (![self.task trySetCancelled]) {
-        [NSException raise:NSInternalInconsistencyException
-                    format:@"Cannot cancel a completed task."];
-    }
+  if (![self.task trySetCancelled]) {
+    [NSException raise:NSInternalInconsistencyException format:@"Cannot cancel a completed task."];
+  }
 }
 
 - (BOOL)trySetResult:(nullable id)result {
-    return [self.task trySetResult:result];
+  return [self.task trySetResult:result];
 }
 
 - (BOOL)trySetError:(NSError *)error {
-    return [self.task trySetError:error];
+  return [self.task trySetError:error];
 }
 
 - (BOOL)trySetCancelled {
-    return [self.task trySetCancelled];
+  return [self.task trySetCancelled];
 }
 
 @end

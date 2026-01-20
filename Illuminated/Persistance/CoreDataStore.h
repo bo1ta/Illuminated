@@ -6,15 +6,15 @@
 //
 
 #import <CoreData/CoreData.h>
+#import "BFTaskCompletionSource.h"
 #import "ReadOnlyStore.h"
 #import "WriteOnlyStore.h"
-#import "BFTaskCompletionSource.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
 #pragma mark - EntityName
 
-typedef NSString * EntityName NS_STRING_ENUM;
+typedef NSString *EntityName NS_STRING_ENUM;
 static EntityName const EntityNameAlbum = @"Album";
 static EntityName const EntityNameArtist = @"Artist";
 static EntityName const EntityNameTrack = @"Track";
@@ -24,9 +24,9 @@ static EntityName const EntityNamePlaylist = @"Playlist";
 
 @interface CoreDataStore : NSObject <ReadOnlyStore, WriteOnlyStore>
 
-@property (readonly, strong) NSPersistentContainer *persistentContainer;
-@property (readonly) NSManagedObjectContext *viewContext;
-@property (readonly) NSManagedObjectContext *writerDerivedStorage;
+@property(readonly, strong) NSPersistentContainer *persistentContainer;
+@property(readonly) NSManagedObjectContext *viewContext;
+@property(readonly) NSManagedObjectContext *writerDerivedStorage;
 
 + (instancetype)shared;
 + (id<ReadOnlyStore>)readOnlyStore;

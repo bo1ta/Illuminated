@@ -29,7 +29,7 @@ NS_ASSUME_NONNULL_BEGIN
 /*!
  The task associated with this TaskCompletionSource.
  */
-@property (nonatomic, strong, readonly) BFTask<ResultType> *task;
+@property(nonatomic, strong, readonly) BFTask<ResultType> *task;
 
 /*!
  Completes the task by setting the result.

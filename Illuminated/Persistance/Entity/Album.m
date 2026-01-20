@@ -1,6 +1,6 @@
 //
 //  Album.m
-//  
+//
 //
 //  Created by Alexandru Solomon on 18.01.2026.
 //
@@ -11,7 +11,7 @@
 @implementation Album
 
 + (NSFetchRequest<Album *> *)fetchRequest {
-	return [NSFetchRequest fetchRequestWithEntityName:@"Album"];
+  return [NSFetchRequest fetchRequestWithEntityName:@"Album"];
 }
 
 @dynamic uniqueID;

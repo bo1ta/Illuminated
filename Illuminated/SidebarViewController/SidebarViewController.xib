@@ -48,7 +48,7 @@
                                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                                 <subviews>
                                                     <textField focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="0vT-RH-FrX">
-                                                        <rect key="frame" x="0.0" y="4" width="178" height="16"/>
+                                                        <rect key="frame" x="34" y="1" width="144" height="16"/>
                                                         <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMinY="YES" flexibleMaxY="YES"/>
                                                         <textFieldCell key="cell" lineBreakMode="truncatingTail" sendsActionOnEndEditing="YES" title="Table View Cell" id="ZdF-P3-zSb">
                                                             <font key="font" usesAppearanceFont="YES"/>
@@ -67,7 +67,7 @@
                             </outlineView>
                         </subviews>
                     </clipView>
-                    <scroller key="horizontalScroller" wantsLayer="YES" verticalHuggingPriority="750" horizontal="YES" id="0Hr-rc-oAs">
+                    <scroller key="horizontalScroller" wantsLayer="YES" verticalHuggingPriority="750" doubleValue="0.5" horizontal="YES" id="0Hr-rc-oAs">
                         <rect key="frame" x="1" y="323" width="193" height="16"/>
                         <autoresizingMask key="autoresizingMask"/>
                     </scroller>

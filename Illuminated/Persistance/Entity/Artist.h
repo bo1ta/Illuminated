@@ -1,13 +1,13 @@
 //
 //  Artist.h
-//  
+//
 //
 //  Created by Alexandru Solomon on 18.01.2026.
 //
 //
 
-#import <Foundation/Foundation.h>
 #import <CoreData/CoreData.h>
+#import <Foundation/Foundation.h>
 
 @class Album, Track;
 
@@ -17,10 +17,10 @@ NS_ASSUME_NONNULL_BEGIN
 
 + (NSFetchRequest<Artist *> *)fetchRequest NS_SWIFT_NAME(fetchRequest());
 
-@property (nullable, nonatomic, copy) NSUUID *uniqueID;
-@property (nullable, nonatomic, copy) NSString *name;
-@property (nullable, nonatomic, retain) NSSet<Album *> *albums;
-@property (nullable, nonatomic, retain) NSSet<Track *> *tracks;
+@property(nullable, nonatomic, copy) NSUUID *uniqueID;
+@property(nullable, nonatomic, copy) NSString *name;
+@property(nullable, nonatomic, retain) NSSet<Album *> *albums;
+@property(nullable, nonatomic, retain) NSSet<Track *> *tracks;
 
 @end
 

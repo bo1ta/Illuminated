@@ -12,14 +12,13 @@ NS_ASSUME_NONNULL_BEGIN
 @interface NSManagedObjectContext (Helpers)
 
 - (NSArray *)allObjectsForEntityName:(NSString *)entityName
-                            predicate:(nullable NSPredicate *)predicate
+                           predicate:(nullable NSPredicate *)predicate
                      sortDescriptors:(nullable NSArray<NSSortDescriptor *> *)sortDescriptors;
 
 - (nullable id)firstObjectForEntityName:(NSString *)entityName
                               predicate:(nullable NSPredicate *)predicate;
 
-- (NSNumber *)countForEntityName:(NSString *)entityName
-                      predicate:(nullable NSPredicate *)predicate;
+- (NSNumber *)countForEntityName:(NSString *)entityName predicate:(nullable NSPredicate *)predicate;
 
 - (id)insertNewObjectForEntityName:(NSString *)entityName;
 
@@ -28,8 +27,7 @@ NS_ASSUME_NONNULL_BEGIN
 - (BOOL)objectExistsForEntityName:(NSString *)entityName
                         predicate:(nullable NSPredicate *)predicate;
 
-- (id)findOrInsertObjectForEntityName:(NSString *)entityName
-                            predicate:(NSPredicate *)predicate;
+- (id)findOrInsertObjectForEntityName:(NSString *)entityName predicate:(NSPredicate *)predicate;
 
 - (void)saveIfNeeded;
 

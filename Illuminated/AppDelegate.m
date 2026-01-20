@@ -11,40 +11,40 @@
 
 @interface AppDelegate ()
 
-@property (strong) IBOutlet NSWindow *window;
-@property (strong) MainWindowController *mainWindowController;
+@property(strong) IBOutlet NSWindow *window;
+@property(strong) MainWindowController *mainWindowController;
 
 @end
 
 @implementation AppDelegate
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
-    [self.window close];
-    self.window = nil;
-    
-    self.mainWindowController = [[MainWindowController alloc] initWithWindowNibName:@"MainWindowController"];
-    [self.mainWindowController.window center];
-    [self.mainWindowController showWindow:nil];
-    [self.mainWindowController.window makeKeyAndOrderFront:nil];
-}
+  [self.window close];
+  self.window = nil;
 
+  self.mainWindowController =
+      [[MainWindowController alloc] initWithWindowNibName:@"MainWindowController"];
+  [self.mainWindowController.window center];
+  [self.mainWindowController showWindow:nil];
+  [self.mainWindowController.window makeKeyAndOrderFront:nil];
+}
 
 - (void)applicationWillTerminate:(NSNotification *)aNotification {
   // Insert code here to tear down your application
 }
-
 
 - (BOOL)applicationSupportsSecureRestorableState:(NSApplication *)app {
   return YES;
 }
 
 - (NSUndoManager *)windowWillReturnUndoManager:(NSWindow *)window {
-    // Returns the NSUndoManager for the application. In this case, the manager returned is that of the managed object context for the application.
-    return [[[CoreDataStore shared] viewContext] undoManager];
+  // Returns the NSUndoManager for the application. In this case, the manager returned is that of
+  // the managed object context for the application.
+  return [[[CoreDataStore shared] viewContext] undoManager];
 }
 
 - (NSApplicationTerminateReply)applicationShouldTerminate:(NSApplication *)sender {
-    return NSTerminateNow;
+  return NSTerminateNow;
 }
 
 @end

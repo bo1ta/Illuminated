@@ -1,6 +1,6 @@
 //
 //  Artist.m
-//  
+//
 //
 //  Created by Alexandru Solomon on 18.01.2026.
 //
@@ -11,7 +11,7 @@
 @implementation Artist
 
 + (NSFetchRequest<Artist *> *)fetchRequest {
-    return [NSFetchRequest fetchRequestWithEntityName:@"Artist"];
+  return [NSFetchRequest fetchRequestWithEntityName:@"Artist"];
 }
 
 @dynamic uniqueID;

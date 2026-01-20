@@ -30,12 +30,12 @@ NS_ASSUME_NONNULL_BEGIN
 /*!
  The cancellation token associated with this CancellationTokenSource.
  */
-@property (nonatomic, strong, readonly) BFCancellationToken *token;
+@property(nonatomic, strong, readonly) BFCancellationToken *token;
 
 /*!
  Whether cancellation has been requested for this token source.
  */
-@property (nonatomic, assign, readonly, getter=isCancellationRequested) BOOL cancellationRequested;
+@property(nonatomic, assign, readonly, getter=isCancellationRequested) BOOL cancellationRequested;
 
 /*!
  Cancels the token if it has not already been cancelled.
@@ -43,9 +43,11 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)cancel;
 
 /*!
- Schedules a cancel operation on this CancellationTokenSource after the specified number of milliseconds.
+ Schedules a cancel operation on this CancellationTokenSource after the specified number of
+ milliseconds.
  @param millis The number of milliseconds to wait before completing the returned task.
- If delay is `0` the cancel is executed immediately. If delay is `-1` any scheduled cancellation is stopped.
+ If delay is `0` the cancel is executed immediately. If delay is `-1` any scheduled cancellation is
+ stopped.
  */
 - (void)cancelAfterDelay:(int)millis;
 

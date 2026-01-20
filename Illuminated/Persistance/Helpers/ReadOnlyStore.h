@@ -6,11 +6,11 @@
 //
 
 #import <Foundation/Foundation.h>
-#import "BFTask.h"
 #import "Album.h"
 #import "Artist.h"
-#import "Track.h"
+#import "BFTask.h"
 #import "Playlist.h"
+#import "Track.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -29,14 +29,14 @@ typedef id _Nullable (^ReadBlockWithError)(NSManagedObjectContext *context, NSEr
                                   matching:(nullable NSPredicate *)predicate
                            sortDescriptors:(nullable NSArray<NSSortDescriptor *> *)sortDescriptors;
 
-- (BFTask *)firstObjectForEntity:(NSString *)entityName
-                       predicate:(NSPredicate *)predicate;
+- (BFTask *)firstObjectForEntity:(NSString *)entityName predicate:(NSPredicate *)predicate;
 
 #pragma mark - Albums
 
 - (BFTask<Album *> *)albumWithID:(NSManagedObjectID *)objectID;
-- (BFTask<NSArray<Album *> *>  *)allAlbums;
-- (BFTask<NSArray<Album *> *> *)albumsWithTitle:(NSString *)title artist:(nullable NSString *)artistName;
+- (BFTask<NSArray<Album *> *> *)allAlbums;
+- (BFTask<NSArray<Album *> *> *)albumsWithTitle:(NSString *)title
+                                         artist:(nullable NSString *)artistName;
 - (BFTask<NSNumber *> *)albumsCount;
 
 #pragma mark - Tracks
