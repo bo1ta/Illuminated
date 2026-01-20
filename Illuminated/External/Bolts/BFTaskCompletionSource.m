@@ -32,7 +32,8 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (instancetype)init {
   self = [super init];
-  if (!self) return self;
+  if (!self)
+    return self;
 
   _task = [[BFTask alloc] init];
 
@@ -43,15 +44,13 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (void)setResult:(nullable id)result {
   if (![self.task trySetResult:result]) {
-    [NSException raise:NSInternalInconsistencyException
-                format:@"Cannot set the result on a completed task."];
+    [NSException raise:NSInternalInconsistencyException format:@"Cannot set the result on a completed task."];
   }
 }
 
 - (void)setError:(NSError *)error {
   if (![self.task trySetError:error]) {
-    [NSException raise:NSInternalInconsistencyException
-                format:@"Cannot set the error on a completed task."];
+    [NSException raise:NSInternalInconsistencyException format:@"Cannot set the error on a completed task."];
   }
 }
 

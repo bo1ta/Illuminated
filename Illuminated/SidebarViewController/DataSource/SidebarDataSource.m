@@ -31,18 +31,20 @@
 
 - (NSArray<SidebarItem *> *)buildDefaultItems {
   return @[
-    [SidebarItem groupWithTitle:@"Library" children:@[
-      [SidebarItem itemWithTitle:@"Music" iconName:@"music.note"],
-      [SidebarItem itemWithTitle:@"Movies" iconName:@"film"],
-      [SidebarItem itemWithTitle:@"TV Shows" iconName:@"tv"]
-    ]],
-    
-    [SidebarItem groupWithTitle:@"Playlists" children:@[
-      [SidebarItem itemWithTitle:@"My Top Played" iconName:@"star.fill"],
-      [SidebarItem itemWithTitle:@"Recently Added" iconName:@"clock"],
-      [SidebarItem itemWithTitle:@"Chill Vibes" iconName:@"music.note.list"],
-      [SidebarItem itemWithTitle:@"Classic Rock" iconName:@"guitars"]
-    ]],
+    [SidebarItem groupWithTitle:@"Library"
+                       children:@[
+                         [SidebarItem itemWithTitle:@"Music" iconName:@"music.note"],
+                         [SidebarItem itemWithTitle:@"Movies" iconName:@"film"],
+                         [SidebarItem itemWithTitle:@"TV Shows" iconName:@"tv"]
+                       ]],
+
+    [SidebarItem groupWithTitle:@"Playlists"
+                       children:@[
+                         [SidebarItem itemWithTitle:@"My Top Played" iconName:@"star.fill"],
+                         [SidebarItem itemWithTitle:@"Recently Added" iconName:@"clock"],
+                         [SidebarItem itemWithTitle:@"Chill Vibes" iconName:@"music.note.list"],
+                         [SidebarItem itemWithTitle:@"Classic Rock" iconName:@"guitars"]
+                       ]],
   ];
 }
 

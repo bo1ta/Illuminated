@@ -99,8 +99,7 @@ typedef __nullable id (^BFContinuationBlock)(BFTask<ResultType> *t);
  task will be finished (with result == nil).
  @param token The cancellation token (optional).
  */
-+ (BFTask<BFVoid> *)taskWithDelay:(int)millis
-                cancellationToken:(nullable BFCancellationToken *)token;
++ (BFTask<BFVoid> *)taskWithDelay:(int)millis cancellationToken:(nullable BFCancellationToken *)token;
 
 /*!
  Returns a task that will be completed after the given block completes with
@@ -180,8 +179,7 @@ typedef __nullable id (^BFContinuationBlock)(BFTask<ResultType> *t);
  this method will not be completed until that task is completed.
  */
 - (BFTask *)continueWithExecutor:(BFExecutor *)executor
-                       withBlock:(BFContinuationBlock)block
-    NS_SWIFT_NAME(continueWith(executor:block:));
+                       withBlock:(BFContinuationBlock)block NS_SWIFT_NAME(continueWith(executor:block:));
 
 /*!
  Enqueues the given block to be run once this task is complete.
@@ -208,8 +206,7 @@ typedef __nullable id (^BFContinuationBlock)(BFTask<ResultType> *t);
  If block returns a BFTask, then the task returned from
  this method will not be completed until that task is completed.
  */
-- (BFTask *)continueWithSuccessBlock:(BFContinuationBlock)block
-    NS_SWIFT_NAME(continueOnSuccessWith(block:));
+- (BFTask *)continueWithSuccessBlock:(BFContinuationBlock)block NS_SWIFT_NAME(continueOnSuccessWith(block:));
 
 /*!
  Identical to continueWithBlock:, except that the block is only run
@@ -238,8 +235,7 @@ typedef __nullable id (^BFContinuationBlock)(BFTask<ResultType> *t);
  this method will not be completed until that task is completed.
  */
 - (BFTask *)continueWithExecutor:(BFExecutor *)executor
-                withSuccessBlock:(BFContinuationBlock)block
-    NS_SWIFT_NAME(continueOnSuccessWith(executor:block:));
+                withSuccessBlock:(BFContinuationBlock)block NS_SWIFT_NAME(continueOnSuccessWith(executor:block:));
 
 /*!
  Identical to continueWithExecutor:withBlock:, except that the block

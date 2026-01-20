@@ -43,7 +43,8 @@ NSString *const BFTaskMultipleErrorsUserInfoKey = @"errors";
 
 - (instancetype)init {
   self = [super init];
-  if (!self) return self;
+  if (!self)
+    return self;
 
   _lock = [[NSObject alloc] init];
   _condition = [[NSCondition alloc] init];
@@ -54,7 +55,8 @@ NSString *const BFTaskMultipleErrorsUserInfoKey = @"errors";
 
 - (instancetype)initWithResult:(nullable id)result {
   self = [super init];
-  if (!self) return self;
+  if (!self)
+    return self;
 
   [self trySetResult:result];
 
@@ -63,7 +65,8 @@ NSString *const BFTaskMultipleErrorsUserInfoKey = @"errors";
 
 - (instancetype)initWithError:(NSError *)error {
   self = [super init];
-  if (!self) return self;
+  if (!self)
+    return self;
 
   [self trySetError:error];
 
@@ -72,7 +75,8 @@ NSString *const BFTaskMultipleErrorsUserInfoKey = @"errors";
 
 - (instancetype)initCancelled {
   self = [super init];
-  if (!self) return self;
+  if (!self)
+    return self;
 
   [self trySetCancelled];
 
@@ -99,7 +103,7 @@ NSString *const BFTaskMultipleErrorsUserInfoKey = @"errors";
     return [self taskWithResult:nil];
   }
 
-  __block _Atomic(int32_t) cancelled = 0;  // Initialize to 0
+  __block _Atomic(int32_t) cancelled = 0; // Initialize to 0
   NSObject *lock = [[NSObject alloc] init];
   NSMutableArray *errors = [NSMutableArray array];
   BFTaskCompletionSource *tcs = [BFTaskCompletionSource taskCompletionSource];
@@ -140,10 +144,9 @@ NSString *const BFTaskMultipleErrorsUserInfoKey = @"errors";
 }
 
 + (instancetype)taskForCompletionOfAllTasksWithResults:(nullable NSArray<BFTask *> *)tasks {
-  return [[self taskForCompletionOfAllTasks:tasks]
-      continueWithSuccessBlock:^id(BFTask *__unused task) {
-        return [tasks valueForKey:@"result"];
-      }];
+  return [[self taskForCompletionOfAllTasks:tasks] continueWithSuccessBlock:^id(BFTask *__unused task) {
+    return [tasks valueForKey:@"result"];
+  }];
 }
 
 + (instancetype)taskForCompletionOfAnyTask:(nullable NSArray<BFTask *> *)tasks {
@@ -212,8 +215,7 @@ NSString *const BFTaskMultipleErrorsUserInfoKey = @"errors";
   return tcs.task;
 }
 
-+ (BFTask<BFVoid> *)taskWithDelay:(int)millis
-                cancellationToken:(nullable BFCancellationToken *)token {
++ (BFTask<BFVoid> *)taskWithDelay:(int)millis cancellationToken:(nullable BFCancellationToken *)token {
   if (token.cancellationRequested) {
     return [BFTask cancelledTask];
   }
@@ -384,13 +386,10 @@ NSString *const BFTaskMultipleErrorsUserInfoKey = @"errors";
 
 - (BFTask *)continueWithBlock:(BFContinuationBlock)block
             cancellationToken:(nullable BFCancellationToken *)cancellationToken {
-  return [self continueWithExecutor:[BFExecutor defaultExecutor]
-                              block:block
-                  cancellationToken:cancellationToken];
+  return [self continueWithExecutor:[BFExecutor defaultExecutor] block:block cancellationToken:cancellationToken];
 }
 
-- (BFTask *)continueWithExecutor:(BFExecutor *)executor
-                withSuccessBlock:(BFContinuationBlock)block {
+- (BFTask *)continueWithExecutor:(BFExecutor *)executor withSuccessBlock:(BFContinuationBlock)block {
   return [self continueWithExecutor:executor successBlock:block cancellationToken:nil];
 }
 
@@ -413,9 +412,7 @@ NSString *const BFTaskMultipleErrorsUserInfoKey = @"errors";
 }
 
 - (BFTask *)continueWithSuccessBlock:(BFContinuationBlock)block {
-  return [self continueWithExecutor:[BFExecutor defaultExecutor]
-                       successBlock:block
-                  cancellationToken:nil];
+  return [self continueWithExecutor:[BFExecutor defaultExecutor] successBlock:block cancellationToken:nil];
 }
 
 - (BFTask *)continueWithSuccessBlock:(BFContinuationBlock)block
@@ -469,9 +466,8 @@ NSString *const BFTaskMultipleErrorsUserInfoKey = @"errors";
   // Description string includes status information and, if available, the
   // result since in some ways this is what a promise actually "is".
   return [NSString stringWithFormat:@"<%@: %p; completed = %@; cancelled = %@; faulted = %@;%@>",
-                                    NSStringFromClass([self class]), self,
-                                    completed ? @"YES" : @"NO", cancelled ? @"YES" : @"NO",
-                                    faulted ? @"YES" : @"NO", resultDescription];
+                                    NSStringFromClass([self class]), self, completed ? @"YES" : @"NO",
+                                    cancelled ? @"YES" : @"NO", faulted ? @"YES" : @"NO", resultDescription];
 }
 
 @end

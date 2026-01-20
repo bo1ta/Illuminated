@@ -1,0 +1,22 @@
+//
+//  TrackImportService.h
+//  Illuminated
+//
+//  Created by Alexandru Solomon on 20.01.2026.
+//
+
+#import "BFExecutor.h"
+#import "BFTaskCompletionSource.h"
+#import "CoreDataStore.h"
+#import "NSManagedObjectContext+Helpers.h"
+#import <Foundation/Foundation.h>
+
+NS_ASSUME_NONNULL_BEGIN
+
+@interface TrackImportService : NSObject
+
+- (BFTask *)importAudioFileAtURL:(NSURL *)fileURL;
+
+@end
+
+NS_ASSUME_NONNULL_END

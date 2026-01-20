@@ -1,4 +1,15 @@
 ---
-BasedOnStyle: Google
+BasedOnStyle: LLVM
+ColumnLimit: 120
+IndentWidth: 2
+ContinuationIndentWidth: 4
+ObjCSpaceBeforeProtocolList: false
+AllowShortBlocksOnASingleLine: Never
+AllowShortIfStatementsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: None
+AlwaysBreakBeforeMultilineStrings: false
+BreakBeforeBraces: Attach
 PointerAlignment: Right
+ObjCBlockIndentWidth: 2
+SpacesBeforeTrailingComments: 1
 ---

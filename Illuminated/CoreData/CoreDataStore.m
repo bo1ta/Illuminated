@@ -6,8 +6,8 @@
 //
 
 #import "CoreDataStore.h"
-#import <Foundation/Foundation.h>
 #import "NSManagedObjectContext+Helpers.h"
+#import <Foundation/Foundation.h>
 
 @implementation CoreDataStore
 
@@ -36,15 +36,15 @@
   @synchronized(self) {
     if (_persistentContainer == nil) {
       _persistentContainer = [[NSPersistentContainer alloc] initWithName:@"Illuminated"];
-      [_persistentContainer loadPersistentStoresWithCompletionHandler:^(
-                                NSPersistentStoreDescription *_, NSError *error) {
-        if (error != nil) {
-          NSLog(@"Unresolved error %@, %@", error, error.userInfo);
-          abort();
-        }
+      [_persistentContainer
+          loadPersistentStoresWithCompletionHandler:^(NSPersistentStoreDescription *_, NSError *error) {
+            if (error != nil) {
+              NSLog(@"Unresolved error %@, %@", error, error.userInfo);
+              abort();
+            }
 
-        [self setupNotifications];
-      }];
+            [self setupNotifications];
+          }];
     }
   }
 
@@ -52,17 +52,14 @@
 }
 
 - (void)setupNotifications {
-  [[NSNotificationCenter defaultCenter]
-      addObserver:self
-         selector:@selector(handleNotification)
-             name:NSManagedObjectContextObjectsDidChangeNotification
-           object:[self writerDerivedStorage]];
+  [[NSNotificationCenter defaultCenter] addObserver:self
+                                           selector:@selector(handleNotification)
+                                               name:NSManagedObjectContextObjectsDidChangeNotification
+                                             object:[self writerDerivedStorage]];
 }
 
 - (void)handleNotificationCoalesced {
-  [NSObject cancelPreviousPerformRequestsWithTarget:self
-                                           selector:@selector(handleNotificationCoalesced)
-                                             object:nil];
+  [NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(handleNotificationCoalesced) object:nil];
 
   [self performSelector:@selector(handleNotification) withObject:nil afterDelay:0.3];
 }
@@ -86,8 +83,7 @@
 - (NSManagedObjectContext *)writerDerivedStorage {
   @synchronized(self) {
     if (_writerDerivedStorage == nil) {
-      _writerDerivedStorage =
-          [[NSManagedObjectContext alloc] initWithConcurrencyType:NSPrivateQueueConcurrencyType];
+      _writerDerivedStorage = [[NSManagedObjectContext alloc] initWithConcurrencyType:NSPrivateQueueConcurrencyType];
       _writerDerivedStorage.parentContext = [[self persistentContainer] viewContext];
       _writerDerivedStorage.mergePolicy = NSMergeByPropertyStoreTrumpMergePolicy;
     }
@@ -142,44 +138,54 @@
                                   matching:(nullable NSPredicate *)predicate
                            sortDescriptors:(nullable NSArray<NSSortDescriptor *> *)sortDescriptors {
   return [self performRead:^id _Nullable(NSManagedObjectContext *_Nonnull context) {
-    return [context allObjectsForEntityName:entityName
-                                  predicate:predicate
-                            sortDescriptors:sortDescriptors ?: @[]];
+    return [context allObjectsForEntityName:entityName predicate:predicate sortDescriptors:sortDescriptors ?: @[]];
   }];
 }
 
-- (BFTask *)firstObjectForEntity:(nonnull NSString *)entityName
-                       predicate:(nonnull NSPredicate *)predicate {
+- (BFTask *)firstObjectForEntity:(nonnull NSString *)entityName predicate:(nonnull NSPredicate *)predicate {
   return [self performRead:^id _Nullable(NSManagedObjectContext *_Nonnull context) {
     return [context firstObjectForEntityName:entityName predicate:predicate];
   }];
 }
 
+- (BFTask *)objectForEntityName:(NSString *)entityName uniqueID:(NSUUID *)uniqueID {
+  return [self firstObjectForEntity:entityName predicate:[NSPredicate predicateWithFormat:@"uniqueID == %@", uniqueID]];
+}
+
+- (NSFetchedResultsController *)fetchedResultsControllerForEntity:(NSString *)entityName
+                                                        predicate:(nullable NSPredicate *)predicate
+                                                  sortDescriptors:
+                                                      (nullable NSArray<NSSortDescriptor *> *)sortDescriptors {
+  NSFetchRequest *fetchRequest = [NSFetchRequest fetchRequestWithEntityName:entityName];
+  fetchRequest.sortDescriptors = sortDescriptors ?: @[];
+  fetchRequest.predicate = predicate;
+
+  return [[NSFetchedResultsController alloc] initWithFetchRequest:fetchRequest
+                                             managedObjectContext:self.viewContext
+                                               sectionNameKeyPath:nil
+                                                        cacheName:nil];
+}
+
 #pragma mark - WriteOnlyStore
 
-- (BFTask<NSManagedObjectID *> *)performWrite:(WriteBlock)writeBlock {
-  BFTaskCompletionSource<NSManagedObjectID *> *source =
-      [BFTaskCompletionSource taskCompletionSource];
+- (BFTask *)performWrite:(WriteBlock)writeBlock {
+  BFTaskCompletionSource *source = [BFTaskCompletionSource taskCompletionSource];
 
   NSManagedObjectContext *writerContext = [self writerDerivedStorage];
 
   [writerContext performBlock:^{
     NSError *error = nil;
-    NSManagedObject *object = writeBlock(writerContext, &error);
+    id result = writeBlock(writerContext, &error);
 
-    if (error || !object) {
-      [source
-          setError:error
-                       ?: [NSError errorWithDomain:@"CoreDataStore"
-                                              code:-1
-                                          userInfo:@{
-                                            NSLocalizedDescriptionKey : @"Write block returned nil"
-                                          }]];
+    if (error) {
+      [source setError:error
+                           ?: [NSError errorWithDomain:@"CoreDataStore"
+                                                  code:-1
+                                              userInfo:@{NSLocalizedDescriptionKey : @"Write block returned nil"}]];
       return;
     }
 
-    if (![writerContext obtainPermanentIDsForObjects:[[writerContext insertedObjects] allObjects]
-                                               error:&error]) {
+    if (![writerContext obtainPermanentIDsForObjects:[[writerContext insertedObjects] allObjects] error:&error]) {
       [source setError:error];
       return;
     }
@@ -189,7 +195,7 @@
       return;
     }
 
-    [source setResult:object.objectID];
+    [source setResult:result];
   }];
 
   return source.task;
@@ -197,12 +203,11 @@
 
 #pragma mark - Album
 
-- (BFTask<Album *> *)albumWithID:(nonnull NSManagedObjectID *)objectID {
-  return [self fetchObjectWithID:objectID];
+- (BFTask<Album *> *)albumWithUniqueID:(NSUUID *)uniqueID {
+  return [self objectForEntityName:EntityNameAlbum uniqueID:uniqueID];
 }
 
-- (BFTask<NSArray<Album *> *> *)albumsWithTitle:(nonnull NSString *)title
-                                         artist:(nullable NSString *)artistName {
+- (BFTask<NSArray<Album *> *> *)albumsWithTitle:(nonnull NSString *)title artist:(nullable NSString *)artistName {
   NSPredicate *predicate = [NSPredicate predicateWithFormat:@"title LIKE %@", title];
   NSSortDescriptor *sort = [NSSortDescriptor sortDescriptorWithKey:@"year" ascending:NO];
   return [self allObjectsForEntity:EntityNameAlbum matching:predicate sortDescriptors:@[ sort ]];
@@ -241,25 +246,28 @@
   return [self allObjectsForEntity:EntityNameArtist matching:nil sortDescriptors:nil];
 }
 
-- (BFTask<Artist *> *)artistWithID:(nonnull NSManagedObjectID *)objectID {
-  return [self fetchObjectWithID:objectID];
+- (BFTask<Artist *> *)artistWithUniqueID:(NSUUID *)uniqueID {
+  return [self objectForEntityName:EntityNameArtist uniqueID:uniqueID];
 }
 
 - (BFTask<Artist *> *)artistWithName:(nonnull NSString *)name {
-  return [self firstObjectForEntity:EntityNameArtist
-                          predicate:[NSPredicate predicateWithFormat:@"name == %@", name]];
+  return [self firstObjectForEntity:EntityNameArtist predicate:[NSPredicate predicateWithFormat:@"name == %@", name]];
 }
 
 - (BFTask<NSNumber *> *)artistsCount {
   return [self countForEntity:EntityNameArtist];
 }
 
-- (BFTask<NSManagedObjectID *> *)createArtistWithName:(nonnull NSString *)name {
+- (BFTask *)createArtistWithName:(nonnull NSString *)name {
   return [self performWrite:^id _Nullable(NSManagedObjectContext *_Nonnull context,
                                           NSError *__autoreleasing _Nullable *_Nullable _) {
-    Artist *artist = [context insertNewObjectForEntityName:EntityNameArtist];
-    [artist setUniqueID:[NSUUID new]];
-    [artist setName:name];
+    Artist *artist = [context firstObjectForEntityName:EntityNameArtist
+                                             predicate:[NSPredicate predicateWithFormat:@"name == %@", name]];
+    if (!artist) {
+      artist = [context insertNewObjectForEntityName:EntityNameArtist];
+      [artist setUniqueID:[NSUUID new]];
+      [artist setName:name];
+    }
 
     return artist;
   }];
@@ -271,8 +279,8 @@
   return [self allObjectsForEntity:EntityNamePlaylist matching:nil sortDescriptors:nil];
 }
 
-- (BFTask<Playlist *> *)playlistWithID:(nonnull NSManagedObjectID *)objectID {
-  return [self fetchObjectWithID:objectID];
+- (BFTask<Playlist *> *)playlistWithUniqueID:(NSUUID *)uniqueID {
+  return [self objectForEntityName:EntityNamePlaylist uniqueID:uniqueID];
 }
 
 - (BFTask<Playlist *> *)playlistWithName:(nonnull NSString *)name {
@@ -286,14 +294,14 @@
   return [self allObjectsForEntity:EntityNameTrack matching:nil sortDescriptors:nil];
 }
 
+- (BFTask<Track *> *)trackWithUniqueID:(NSUUID *)uniqueID {
+  return [self objectForEntityName:EntityNameTrack uniqueID:uniqueID];
+}
+
 - (BFTask<NSArray<Track *> *> *)searchTracks:(nonnull NSString *)query {
   return [self allObjectsForEntity:EntityNameTrack
                           matching:[NSPredicate predicateWithFormat:@"title LIKE %@", query]
                    sortDescriptors:nil];
-}
-
-- (BFTask<Track *> *)trackWithID:(nonnull NSManagedObjectID *)objectID {
-  return [self fetchObjectWithID:objectID];
 }
 
 - (BFTask<NSNumber *> *)tracksCount {

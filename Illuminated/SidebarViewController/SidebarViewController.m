@@ -58,13 +58,11 @@
 
 #pragma mark - NSOutlineViewDelegate
 
-- (NSView *)outlineView:(NSOutlineView *)outlineView
-     viewForTableColumn:(NSTableColumn *)tableColumn
-                   item:(id)item {
+- (NSView *)outlineView:(NSOutlineView *)outlineView viewForTableColumn:(NSTableColumn *)tableColumn item:(id)item {
   BOOL isGroupItem = [self outlineView:outlineView isGroupItem:item];
 
   SidebarItem *sidebarItem = (SidebarItem *)item;
-  
+
   if (isGroupItem) {
     return [SidebarCellFactory headerCellForOutlineView:self.outlineView title:sidebarItem.title];
   } else {
@@ -84,8 +82,7 @@
   SidebarItem *sidebarItem = (SidebarItem *)[self.outlineView itemAtRow:selectedRow];
 
   if (![self outlineView:self.outlineView isGroupItem:sidebarItem]) {
-    [[NSNotificationCenter defaultCenter] postNotificationName:@"SidebarSelectionChanged"
-                                                        object:sidebarItem];
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"SidebarSelectionChanged" object:sidebarItem];
   }
 }
 

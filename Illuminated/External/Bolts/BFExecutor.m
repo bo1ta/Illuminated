@@ -118,7 +118,8 @@ __attribute__((noinline)) static size_t remaining_stack_size(size_t *restrict to
 
 - (instancetype)initWithBlock:(void (^)(void (^block)(void)))block {
   self = [super init];
-  if (!self) return self;
+  if (!self)
+    return self;
 
   _block = block;
 

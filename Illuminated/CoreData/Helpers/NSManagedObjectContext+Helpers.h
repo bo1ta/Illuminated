@@ -15,8 +15,7 @@ NS_ASSUME_NONNULL_BEGIN
                            predicate:(nullable NSPredicate *)predicate
                      sortDescriptors:(nullable NSArray<NSSortDescriptor *> *)sortDescriptors;
 
-- (nullable id)firstObjectForEntityName:(NSString *)entityName
-                              predicate:(nullable NSPredicate *)predicate;
+- (nullable id)firstObjectForEntityName:(NSString *)entityName predicate:(nullable NSPredicate *)predicate;
 
 - (NSNumber *)countForEntityName:(NSString *)entityName predicate:(nullable NSPredicate *)predicate;
 
@@ -24,8 +23,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (void)deleteAllObjectsForEntityName:(NSString *)entityName;
 
-- (BOOL)objectExistsForEntityName:(NSString *)entityName
-                        predicate:(nullable NSPredicate *)predicate;
+- (BOOL)objectExistsForEntityName:(NSString *)entityName predicate:(nullable NSPredicate *)predicate;
 
 - (id)findOrInsertObjectForEntityName:(NSString *)entityName predicate:(NSPredicate *)predicate;
 

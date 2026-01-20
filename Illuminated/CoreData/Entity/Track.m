@@ -32,5 +32,6 @@
 @dynamic album;
 @dynamic artist;
 @dynamic playlists;
+@dynamic urlBookmark;
 
 @end

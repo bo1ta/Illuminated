@@ -23,8 +23,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface BFCancellationTokenRegistration (BFCancellationToken)
 
-+ (instancetype)registrationWithToken:(BFCancellationToken *)token
-                             delegate:(BFCancellationBlock)delegate;
++ (instancetype)registrationWithToken:(BFCancellationToken *)token delegate:(BFCancellationBlock)delegate;
 
 - (void)notifyDelegate;
 
@@ -38,7 +37,8 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (instancetype)init {
   self = [super init];
-  if (!self) return self;
+  if (!self)
+    return self;
 
   _registrations = [NSMutableArray array];
   _lock = [NSObject new];
@@ -62,9 +62,7 @@ NS_ASSUME_NONNULL_BEGIN
     if (_cancellationRequested) {
       return;
     }
-    [NSObject cancelPreviousPerformRequestsWithTarget:self
-                                             selector:@selector(cancelPrivate)
-                                               object:nil];
+    [NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(cancelPrivate) object:nil];
     _cancellationRequested = YES;
     registrations = [self.registrations copy];
   }
@@ -78,8 +76,7 @@ NS_ASSUME_NONNULL_BEGIN
   }
 }
 
-- (BFCancellationTokenRegistration *)registerCancellationObserverWithBlock:
-    (BFCancellationBlock)block {
+- (BFCancellationTokenRegistration *)registerCancellationObserverWithBlock:(BFCancellationBlock)block {
   @synchronized(self.lock) {
     BFCancellationTokenRegistration *registration =
         [BFCancellationTokenRegistration registrationWithToken:self delegate:[block copy]];
@@ -115,9 +112,7 @@ NS_ASSUME_NONNULL_BEGIN
 
   @synchronized(self.lock) {
     [self throwIfDisposed];
-    [NSObject cancelPreviousPerformRequestsWithTarget:self
-                                             selector:@selector(cancelPrivate)
-                                               object:nil];
+    [NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(cancelPrivate) object:nil];
     if (self.cancellationRequested) {
       return;
     }

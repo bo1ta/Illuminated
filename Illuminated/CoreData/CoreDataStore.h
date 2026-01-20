@@ -5,10 +5,10 @@
 //  Created by Alexandru Solomon on 18.01.2026.
 //
 
-#import <CoreData/CoreData.h>
 #import "BFTaskCompletionSource.h"
 #import "ReadOnlyStore.h"
 #import "WriteOnlyStore.h"
+#import <CoreData/CoreData.h>
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -22,7 +22,7 @@ static EntityName const EntityNamePlaylist = @"Playlist";
 
 #pragma mark - CoreDataStore Interface
 
-@interface CoreDataStore : NSObject <ReadOnlyStore, WriteOnlyStore>
+@interface CoreDataStore : NSObject<ReadOnlyStore, WriteOnlyStore>
 
 @property(readonly, strong) NSPersistentContainer *persistentContainer;
 @property(readonly) NSManagedObjectContext *viewContext;

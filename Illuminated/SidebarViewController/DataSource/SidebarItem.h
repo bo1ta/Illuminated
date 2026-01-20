@@ -9,17 +9,14 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-typedef NS_ENUM(NSInteger, SidebarItemType) {
-    SidebarItemTypeGroup,
-    SidebarItemTypeItem
-};
+typedef NS_ENUM(NSInteger, SidebarItemType) { SidebarItemTypeGroup, SidebarItemTypeItem };
 
 @interface SidebarItem : NSObject
 
-@property (nonatomic, assign) SidebarItemType type;
-@property (nonatomic, copy) NSString *title;
-@property (nonatomic, copy, nullable) NSString *iconName;
-@property (nonatomic, copy, nullable) NSArray<SidebarItem *> *children;
+@property(nonatomic, assign) SidebarItemType type;
+@property(nonatomic, copy) NSString *title;
+@property(nonatomic, copy, nullable) NSString *iconName;
+@property(nonatomic, copy, nullable) NSArray<SidebarItem *> *children;
 
 - (instancetype)initWithType:(SidebarItemType)type
                        title:(NSString *)title

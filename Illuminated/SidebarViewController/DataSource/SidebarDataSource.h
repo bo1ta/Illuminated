@@ -13,7 +13,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface SidebarDataSource : NSObject
 
-@property (nonatomic, strong, readonly) NSArray<SidebarItem *> *items;
+@property(nonatomic, strong, readonly) NSArray<SidebarItem *> *items;
 
 + (instancetype)sharedDataSource;
 - (void)reloadData;

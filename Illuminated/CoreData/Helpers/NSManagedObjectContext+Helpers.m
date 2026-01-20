@@ -5,8 +5,8 @@
 //  Created by Alexandru Solomon on 18.01.2026.
 //
 
-#import <Foundation/Foundation.h>
 #import "NSManagedObjectContext+Helpers.h"
+#import <Foundation/Foundation.h>
 
 @implementation NSManagedObjectContext (Helpers)
 
@@ -28,8 +28,7 @@
   return results ?: @[];
 }
 
-- (nullable id)firstObjectForEntityName:(nonnull NSString *)entityName
-                              predicate:(nullable NSPredicate *)predicate {
+- (nullable id)firstObjectForEntityName:(nonnull NSString *)entityName predicate:(nullable NSPredicate *)predicate {
   NSFetchRequest *request = [NSFetchRequest fetchRequestWithEntityName:entityName];
   request.predicate = predicate;
   request.fetchLimit = 1;
@@ -45,8 +44,7 @@
   return results.firstObject;
 }
 
-- (NSNumber *)countForEntityName:(nonnull NSString *)entityName
-                       predicate:(nullable NSPredicate *)predicate {
+- (NSNumber *)countForEntityName:(nonnull NSString *)entityName predicate:(nullable NSPredicate *)predicate {
   NSFetchRequest *request = [NSFetchRequest fetchRequestWithEntityName:entityName];
   request.predicate = predicate;
 
@@ -62,8 +60,7 @@
 }
 
 - (id)insertNewObjectForEntityName:(NSString *)entityName {
-  return [NSEntityDescription insertNewObjectForEntityForName:entityName
-                                       inManagedObjectContext:self];
+  return [NSEntityDescription insertNewObjectForEntityForName:entityName inManagedObjectContext:self];
 }
 
 - (void)deleteAllObjectsForEntityName:(NSString *)entityName {
@@ -93,8 +90,7 @@
   return [self insertNewObjectForEntityName:entityName];
 }
 
-- (BOOL)objectExistsForEntityName:(nonnull NSString *)entityName
-                        predicate:(nullable NSPredicate *)predicate {
+- (BOOL)objectExistsForEntityName:(nonnull NSString *)entityName predicate:(nullable NSPredicate *)predicate {
   id existingObject = [self firstObjectForEntityName:entityName predicate:predicate];
   return existingObject != nil;
 }

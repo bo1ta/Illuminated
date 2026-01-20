@@ -35,8 +35,7 @@ typedef void (^BFCancellationBlock)(void);
  Register a block to be notified when the token is cancelled.
  If the token is already cancelled the delegate will be notified immediately.
  */
-- (BFCancellationTokenRegistration *)registerCancellationObserverWithBlock:
-    (BFCancellationBlock)block;
+- (BFCancellationTokenRegistration *)registerCancellationObserverWithBlock:(BFCancellationBlock)block;
 
 @end
 

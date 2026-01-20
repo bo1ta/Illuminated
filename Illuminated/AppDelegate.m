@@ -22,8 +22,7 @@
   [self.window close];
   self.window = nil;
 
-  self.mainWindowController =
-      [[MainWindowController alloc] initWithWindowNibName:@"MainWindowController"];
+  self.mainWindowController = [[MainWindowController alloc] initWithWindowNibName:@"MainWindowController"];
   [self.mainWindowController.window center];
   [self.mainWindowController showWindow:nil];
   [self.mainWindowController.window makeKeyAndOrderFront:nil];
