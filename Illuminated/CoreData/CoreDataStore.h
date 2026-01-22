@@ -6,6 +6,7 @@
 //
 
 #import "BFTaskCompletionSource.h"
+#import "NSManagedObjectContext+Helpers.h"
 #import "ReadOnlyStore.h"
 #import "WriteOnlyStore.h"
 #import <CoreData/CoreData.h>

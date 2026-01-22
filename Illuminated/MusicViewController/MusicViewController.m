@@ -6,8 +6,13 @@
 //
 
 #import "MusicViewController.h"
+#import "PlaybackManager.h"
 
 @interface MusicViewController ()
+
+@property(atomic, strong) NSArray<Track *> *tracks;
+@property(nonatomic, strong) NSFetchedResultsController *fetchedResultsController;
+@property(nonatomic, strong) TrackImportService *importService;
 
 @end
 
@@ -34,17 +39,11 @@
 }
 
 - (void)tableViewClicked:(id)sender {
-  // This will return -1 if the click did not land on a row
-  NSLog(@"tableView.clickedRow = %ld", self.tableView.clickedRow);
-
-  // This will return -1 if there is no row selected.
-  NSLog(@"tableView.selectedRow = %ld", self.tableView.selectedRow);
-
   if (self.tableView.selectedRow >= 0) {
-    Track *track = self.tracks[self.tableView.selectedRow];
-    if (track && [self.delegate respondsToSelector:@selector(musicViewController:didSelectTrack:)]) {
-      [self.delegate musicViewController:self didSelectTrack:track];
-    }
+    Track *selectedTrack = self.tracks[self.tableView.selectedRow];
+
+    [[PlaybackManager sharedManager] updateQueue:self.tracks];
+    [[PlaybackManager sharedManager] playTrack:selectedTrack];
   }
 }
 
@@ -102,16 +101,15 @@
 
 - (void)importURL:(NSURL *)url {
   [[[BFTask taskWithDelay:0] continueWithExecutor:[BFExecutor defaultExecutor]
-                                        withBlock:^id _Nullable(BFTask<BFVoid> *_Nonnull _) {
+                                        withBlock:^id(BFTask<BFVoid> *_) {
                                           return [self.importService importAudioFileAtURL:url];
                                         }] continueWithBlock:^id(BFTask<Track *> *task) {
     if (task.error) {
       NSLog(@"Final Task Error: %@", task.error);
     } else {
-      NSLog(@"Import Task Completed Successfully");
       Track *track = task.result;
-      if (track && [self.delegate respondsToSelector:@selector(musicViewController:didSelectTrack:)]) {
-        [self.delegate musicViewController:self didSelectTrack:track];
+      if (track) {
+        [[PlaybackManager sharedManager] playTrack:track];
       }
     }
     return nil;
@@ -122,7 +120,6 @@
 
 - (void)controllerDidChangeContent:(NSFetchedResultsController *)controller {
   self.tracks = (NSArray<Track *> *)[controller fetchedObjects];
-  NSLog(@"Did change data!");
   [self.tableView reloadData];
 }
 

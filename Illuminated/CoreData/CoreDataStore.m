@@ -6,7 +6,6 @@
 //
 
 #import "CoreDataStore.h"
-#import "NSManagedObjectContext+Helpers.h"
 #import <Foundation/Foundation.h>
 
 @implementation CoreDataStore
@@ -174,31 +173,36 @@
   NSManagedObjectContext *writerContext = [self writerDerivedStorage];
 
   [writerContext performBlock:^{
+    id result = writeBlock(writerContext);
+
     NSError *error = nil;
-    id result = writeBlock(writerContext, &error);
-
-    if (error) {
-      [source setError:error
-                           ?: [NSError errorWithDomain:@"CoreDataStore"
-                                                  code:-1
-                                              userInfo:@{NSLocalizedDescriptionKey : @"Write block returned nil"}]];
-      return;
-    }
-
     if (![writerContext obtainPermanentIDsForObjects:[[writerContext insertedObjects] allObjects] error:&error]) {
       [source setError:error];
       return;
     }
 
-    if (![writerContext save:&error]) {
+    if (writerContext.hasChanges && ![writerContext save:&error]) {
       [source setError:error];
       return;
     }
 
-    [source setResult:result];
+    [source setResult:result ?: [NSNull null]];
   }];
 
   return source.task;
+}
+
+- (BFTask *)deleteObjectWithEntityName:(NSString *)entityName uniqueID:(NSUUID *)uniqueID {
+  return [self performWrite:^id(NSManagedObjectContext *context) {
+    NSManagedObject *object =
+        [context firstObjectForEntityName:entityName
+                                predicate:[NSPredicate predicateWithFormat:@"uniqueID == %@", uniqueID]];
+    if (object) {
+      [context deleteObject:object];
+      return object;
+    }
+    return nil;
+  }];
 }
 
 #pragma mark - Album
@@ -226,8 +230,7 @@
                                           artworkPath:(nullable NSString *)artworkPath
                                              duration:(double)duration
                                                 genre:(nullable NSString *)genre {
-  return [self performWrite:^id _Nullable(NSManagedObjectContext *_Nonnull context,
-                                          NSError *__autoreleasing _Nullable *_Nullable _) {
+  return [self performWrite:^id(NSManagedObjectContext *context) {
     Album *album = [context insertNewObjectForEntityName:EntityNameAlbum];
     [album setUniqueID:[NSUUID new]];
     [album setTitle:title];
@@ -259,8 +262,7 @@
 }
 
 - (BFTask *)createArtistWithName:(nonnull NSString *)name {
-  return [self performWrite:^id _Nullable(NSManagedObjectContext *_Nonnull context,
-                                          NSError *__autoreleasing _Nullable *_Nullable _) {
+  return [self performWrite:^id(NSManagedObjectContext *context) {
     Artist *artist = [context firstObjectForEntityName:EntityNameArtist
                                              predicate:[NSPredicate predicateWithFormat:@"name == %@", name]];
     if (!artist) {
@@ -315,8 +317,7 @@
                                               bitrate:(int16_t)bitrate
                                            sampleRate:(int16_t)sampleRate
                                              duration:(double)duration {
-  return [self performWrite:^id _Nullable(NSManagedObjectContext *_Nonnull context,
-                                          NSError *__autoreleasing _Nullable *_Nullable _) {
+  return [self performWrite:^id(NSManagedObjectContext *context) {
     Track *track = [context insertNewObjectForEntityName:EntityNameTrack];
     [track setUniqueID:[NSUUID new]];
     [track setTitle:title];

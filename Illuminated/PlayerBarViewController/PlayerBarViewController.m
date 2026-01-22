@@ -7,6 +7,7 @@
 
 #import "PlayerBarViewController.h"
 #import "Artist.h"
+#import "PlaybackManager.h"
 #import "Track.h"
 #import <AVFoundation/AVFoundation.h>
 
@@ -15,263 +16,130 @@
 @end
 
 @implementation PlayerBarViewController {
-  NSImageView *_trackArtwork;
-  NSTextField *_trackTitle;
-  NSTextField *_artistName;
-  NSButton *_previousButton;
-  NSButton *_playPauseButton;
-  NSButton *_nextButton;
-  NSSlider *_progressSlider;
-  NSTextField *_currentTimeLabel;
-  NSTextField *_totalTimeLabel;
-  NSSlider *_volumeSlider;
+  __weak IBOutlet NSButton *previousButton;
+  __weak IBOutlet NSImageView *trackArtwork;
+  __weak IBOutlet NSButton *nextButton;
+  __weak IBOutlet NSButton *repeatButton;
+  __weak IBOutlet NSTextField *trackTitle;
+  __weak IBOutlet NSTextField *artistName;
+  __weak IBOutlet NSStackView *controlsStackView;
+  __weak IBOutlet NSButton *playPauseButton;
+  __weak IBOutlet NSTextField *currentTimeLabel;
+  __weak IBOutlet NSTextField *totalTimeLabel;
+  __weak IBOutlet NSSlider *progressSlider;
+  __weak IBOutlet NSSlider *volumeSlider;
 
-  AVAudioPlayer *_audioPlayer;
-  NSTimer *_progressTimer;
+  BOOL _isScrubbing;
 }
 
-- (void)loadView {
-  self.view = [[NSView alloc] initWithFrame:NSMakeRect(0, 0, 800, 80)];
-  self.view.wantsLayer = YES;
-  self.view.layer.backgroundColor = [[NSColor controlBackgroundColor] CGColor];
-
-  [self setupViews];
-  [self setupConstraints];
-}
-
-- (void)setupViews {
-  _trackArtwork = [[NSImageView alloc] init];
-  _trackArtwork.imageScaling = NSImageScaleProportionallyUpOrDown;
-  _trackArtwork.translatesAutoresizingMaskIntoConstraints = NO;
-  [self.view addSubview:_trackArtwork];
-
-  _trackTitle = [self labelWithFont:[NSFont systemFontOfSize:13 weight:NSFontWeightMedium]];
-  [self.view addSubview:_trackTitle];
-
-  _artistName = [self labelWithFont:[NSFont systemFontOfSize:11]];
-  _artistName.textColor = [NSColor secondaryLabelColor];
-  [self.view addSubview:_artistName];
-
-  _previousButton = [self buttonWithImageName:NSImageNameGoBackTemplate action:@selector(previousAction:)];
-  [self.view addSubview:_previousButton];
-
-  _playPauseButton = [self buttonWithImageName:NSImageNameTouchBarPlayTemplate
-                                        action:@selector(togglePlayPauseAction:)];
-  _playPauseButton.bezelStyle = NSBezelStyleCircular;
-  [self.view addSubview:_playPauseButton];
-
-  _nextButton = [self buttonWithImageName:NSImageNameGoForwardTemplate action:@selector(nextAction:)];
-  [self.view addSubview:_nextButton];
-
-  _currentTimeLabel = [self labelWithFont:[NSFont monospacedDigitSystemFontOfSize:11 weight:NSFontWeightRegular]];
-  [self.view addSubview:_currentTimeLabel];
-
-  _progressSlider = [[NSSlider alloc] init];
-  _progressSlider.minValue = 0;
-  _progressSlider.maxValue = 1;
-  _progressSlider.target = self;
-  _progressSlider.action = @selector(progressDidChange:);
-  _progressSlider.translatesAutoresizingMaskIntoConstraints = NO;
-  [self.view addSubview:_progressSlider];
-
-  _totalTimeLabel = [self labelWithFont:[NSFont monospacedDigitSystemFontOfSize:11 weight:NSFontWeightRegular]];
-  [self.view addSubview:_totalTimeLabel];
-
-  _volumeSlider = [[NSSlider alloc] init];
-  _volumeSlider.minValue = 0;
-  _volumeSlider.maxValue = 1;
-  _volumeSlider.floatValue = 0.5;
-  _volumeSlider.target = self;
-  _volumeSlider.action = @selector(volumeDidChange:);
-  _volumeSlider.translatesAutoresizingMaskIntoConstraints = NO;
-  [self.view addSubview:_volumeSlider];
-}
-
-- (void)setupConstraints {
-  NSDictionary *views = @{
-    @"artwork" : _trackArtwork,
-    @"title" : _trackTitle,
-    @"artist" : _artistName,
-    @"prev" : _previousButton,
-    @"play" : _playPauseButton,
-    @"next" : _nextButton,
-    @"currentTime" : _currentTimeLabel,
-    @"progress" : _progressSlider,
-    @"totalTime" : _totalTimeLabel,
-    @"volume" : _volumeSlider
-  };
-
-  NSDictionary *metrics = @{@"margin" : @20, @"spacing" : @8, @"artworkSize" : @60, @"buttonSize" : @32};
-
-  // Horizontal layout
-  [self.view addConstraints:[NSLayoutConstraint
-                                constraintsWithVisualFormat:
-                                    @"H:|-margin-[artwork(artworkSize)]-margin-[title]->=margin-[prev(buttonSize)]-"
-                                    @"spacing-[play(buttonSize)]-spacing-[next(buttonSize)]->=margin-[currentTime]-"
-                                    @"spacing-[progress(>=200)]-spacing-[totalTime]-margin-[volume(100)]-margin-|"
-                                                    options:0
-                                                    metrics:metrics
-                                                      views:views]];
-
-  // Vertical layout
-  [NSLayoutConstraint activateConstraints:@[
-    // Artwork - centered vertically
-    [_trackArtwork.centerYAnchor constraintEqualToAnchor:self.view.centerYAnchor],
-    [_trackArtwork.heightAnchor constraintEqualToConstant:60],
-
-    // Track info - stacked
-    [_trackTitle.centerYAnchor constraintEqualToAnchor:self.view.centerYAnchor constant:-8],
-    [_artistName.topAnchor constraintEqualToAnchor:_trackTitle.bottomAnchor constant:2],
-
-    // Buttons - centered
-    [_previousButton.centerYAnchor constraintEqualToAnchor:self.view.centerYAnchor],
-    [_playPauseButton.centerYAnchor constraintEqualToAnchor:self.view.centerYAnchor],
-    [_nextButton.centerYAnchor constraintEqualToAnchor:self.view.centerYAnchor],
-
-    // Progress - centered
-    [_currentTimeLabel.centerYAnchor constraintEqualToAnchor:self.view.centerYAnchor],
-    [_progressSlider.centerYAnchor constraintEqualToAnchor:self.view.centerYAnchor],
-    [_totalTimeLabel.centerYAnchor constraintEqualToAnchor:self.view.centerYAnchor],
-    [_volumeSlider.centerYAnchor constraintEqualToAnchor:self.view.centerYAnchor]
-  ]];
-}
+#pragma mark - View Setup
 
 - (void)viewDidLoad {
   [super viewDidLoad];
-  // Do view setup here.
+
+  [controlsStackView setCustomSpacing:30.0 afterView:nextButton];
+
+  NSNotificationCenter *nc = [NSNotificationCenter defaultCenter];
+  [nc addObserver:self selector:@selector(updateTrackUI) name:PlaybackManagerTrackDidChangeNotification object:nil];
+  [nc addObserver:self
+         selector:@selector(updatePlaybackState)
+             name:PlaybackManagerPlaybackStateDidChangeNotification
+           object:nil];
+  [nc addObserver:self
+         selector:@selector(updateProgress)
+             name:PlaybackManagerPlaybackProgressDidChangeNotification
+           object:nil];
+
+  [[PlaybackManager sharedManager] setVolume:50];
+
+  [self updateTrackUI];
 }
 
-#pragma mark - Helper Methods
-
-- (NSTextField *)labelWithFont:(NSFont *)font {
-  NSTextField *label = [[NSTextField alloc] init];
-  label.bordered = NO;
-  label.editable = NO;
-  label.backgroundColor = [NSColor clearColor];
-  label.font = font;
-  label.translatesAutoresizingMaskIntoConstraints = NO;
-  return label;
+- (void)dealloc {
+  [[NSNotificationCenter defaultCenter] removeObserver:self];
 }
 
-- (NSButton *)buttonWithImageName:(NSImageName)imageName action:(SEL)action {
-  NSButton *button = [NSButton buttonWithImage:[NSImage imageNamed:imageName] target:self action:action];
-  button.bordered = NO;
-  button.translatesAutoresizingMaskIntoConstraints = NO;
-  return button;
+#pragma mark - UI updates
+
+- (void)updateTrackUI {
+  Track *track = [PlaybackManager sharedManager].currentTrack;
+  if (!track) {
+    [trackTitle setHidden:YES];
+    [artistName setHidden:YES];
+    [totalTimeLabel setHidden:YES];
+    [currentTimeLabel setHidden:YES];
+    return;
+  }
+
+  [trackTitle setHidden:NO];
+  [artistName setHidden:NO];
+  [totalTimeLabel setHidden:NO];
+  [currentTimeLabel setHidden:NO];
+
+  trackTitle.stringValue = track.title ?: @"Not playing";
+  artistName.stringValue = track.artist.name ?: @"";
+  totalTimeLabel.stringValue = [self formatTime:track.duration];
+
+  [self updatePlaybackState];
 }
 
-#pragma mark - Public API
+- (void)updatePlaybackState {
+  BOOL isPlaying = [PlaybackManager sharedManager].isPlaying;
 
-- (void)setCurrentTrack:(Track *)track {
-  _currentTrack = track;
-
-  _trackTitle.stringValue = track.title ?: @"";
-  _artistName.stringValue = track.artist.name ?: @"";
-
-  _totalTimeLabel.stringValue = [self formatTime:track.duration];
-  _currentTimeLabel.stringValue = @"0:00";
-  _progressSlider.doubleValue = 0;
-
-  [self playTrack:track];
+  NSString *imgName = isPlaying ? @"pause.circle.fill" : @"play.circle.fill";
+  playPauseButton.image = [NSImage imageWithSystemSymbolName:imgName accessibilityDescription:@""];
 }
 
-- (void)playTrack:(Track *)track {
+- (void)updateProgress {
+  if (_isScrubbing)
+    return;
 
-  BOOL isStale = NO;
-  NSError *error = nil;
-
-  // Convert the blob back into a URL
-  NSURL *resolvedURL = [NSURL URLByResolvingBookmarkData:track.urlBookmark
-                                                 options:NSURLBookmarkResolutionWithSecurityScope
-                                           relativeToURL:nil
-                                     bookmarkDataIsStale:&isStale
-                                                   error:&error];
-  NSLog(@"Playing track with url: %@", resolvedURL);
-  if (error) {
-    NSLog(@"Error resolving URL: %@", error);
-  } else if (resolvedURL) {
-    [resolvedURL startAccessingSecurityScopedResource];
-
-    _audioPlayer = [[AVAudioPlayer alloc] initWithContentsOfURL:resolvedURL error:nil];
-    _audioPlayer.volume = _volumeSlider.floatValue;
-    [self play];
-
-    // Note: In a real app, you'd call [resolvedURL stopAccessingSecurityScopedResource]
-    // when the song finishes or the player is destroyed.
+  PlaybackManager *manager = [PlaybackManager sharedManager];
+  if (manager.currentTrack.duration > 0) {
+    double progress = manager.currentTime / manager.currentTrack.duration;
+    progressSlider.doubleValue = progress;
+    currentTimeLabel.stringValue = [self formatTime:manager.currentTime];
   }
 }
 
-- (void)play {
-  [_audioPlayer play];
-  _isPlaying = YES;
-  _playPauseButton.image = [NSImage imageNamed:NSImageNameTouchBarPauseTemplate];
+#pragma mark - IBActions
 
-  // Start progress timer
-  _progressTimer = [NSTimer scheduledTimerWithTimeInterval:0.1
-                                                    target:self
-                                                  selector:@selector(updateProgress)
-                                                  userInfo:nil
-                                                   repeats:YES];
+- (IBAction)progressDidChange:(NSSlider *)sender {
+  _isScrubbing = YES;
+
+  PlaybackManager *manager = [PlaybackManager sharedManager];
+  NSTimeInterval newTime = sender.doubleValue * manager.currentTrack.duration;
+  [manager seekToTime:newTime];
+
+  currentTimeLabel.stringValue = [self formatTime:newTime];
+
+  /// Reset flag after a tiny delay to allow the player to catch up
+  dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+    self->_isScrubbing = NO;
+  });
 }
 
-- (void)pause {
-  [_audioPlayer pause];
-  _isPlaying = NO;
-  _playPauseButton.image = [NSImage imageNamed:NSImageNameTouchBarPlayTemplate];
-  [_progressTimer invalidate];
-  _progressTimer = nil;
+- (IBAction)volumeDidChange:(NSSlider *)sender {
+  [[PlaybackManager sharedManager] setVolume:sender.floatValue];
 }
 
-- (void)togglePlayPause {
-  if (_isPlaying) {
-    [self pause];
-  } else {
-    [self play];
-  }
+- (IBAction)nextAction:(id)sender {
+  [[PlaybackManager sharedManager] playNext];
 }
 
-- (void)next {
-  [[NSNotificationCenter defaultCenter] postNotificationName:@"PlayerRequestNextTrack" object:nil];
+- (IBAction)playAction:(id)sender {
+  [[PlaybackManager sharedManager] togglePlayPause];
+}
+
+- (IBAction)previousAction:(id)sender {
+  [[PlaybackManager sharedManager] playPrevious];
 }
 
 - (void)previous {
   [[NSNotificationCenter defaultCenter] postNotificationName:@"PlayerRequestPreviousTrack" object:nil];
 }
 
-#pragma mark - Actions
-
-- (void)togglePlayPauseAction:(id)sender {
-  [self togglePlayPause];
-}
-
-- (void)nextAction:(id)sender {
-  [self next];
-}
-
-- (void)previousAction:(id)sender {
-  [self previous];
-}
-
-- (void)progressDidChange:(NSSlider *)slider {
-  if (_audioPlayer) {
-    _audioPlayer.currentTime = slider.doubleValue * _audioPlayer.duration;
-  }
-}
-
-- (void)volumeDidChange:(NSSlider *)slider {
-  _volume = slider.floatValue;
-  _audioPlayer.volume = _volume;
-}
-
 #pragma mark - Private
-
-- (void)updateProgress {
-  if (_audioPlayer) {
-    double progress = _audioPlayer.currentTime / _audioPlayer.duration;
-    _progressSlider.doubleValue = progress;
-    _currentTimeLabel.stringValue = [self formatTime:_audioPlayer.currentTime];
-  }
-}
 
 - (NSString *)formatTime:(NSTimeInterval)seconds {
   NSInteger mins = (NSInteger)seconds / 60;

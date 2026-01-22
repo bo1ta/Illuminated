@@ -12,6 +12,20 @@
 @implementation TrackImportService
 
 - (BFTask<Track *> *)importAudioFileAtURL:(NSURL *)fileURL {
+  NSError *bookmarkError = nil;
+  NSData *bookmark = [fileURL bookmarkDataWithOptions:NSURLBookmarkCreationWithSecurityScope
+                       includingResourceValuesForKeys:nil
+                                        relativeToURL:nil
+                                                error:&bookmarkError];
+  if (!bookmark) {
+    return [BFTask
+        taskWithError:bookmarkError
+                          ?: [NSError
+                                 errorWithDomain:@"ImportError"
+                                            code:500
+                                        userInfo:@{NSLocalizedDescriptionKey : @"Failed to create security bookmark"}]];
+  }
+
   return [[[[self extractMetadataFromAudioURL:fileURL]
       continueWithSuccessBlock:^id _Nullable(BFTask<NSDictionary *> *_Nonnull task) {
         NSDictionary *metadata = task.result;
@@ -27,59 +41,47 @@
         NSNumber *bitrate = metadata[@"bitrate"];
         NSNumber *sampleRate = metadata[@"sampleRate"];
 
-        return [[CoreDataStore writeOnlyStore]
-            performWrite:^id _Nullable(NSManagedObjectContext *_Nonnull context,
-                                       NSError *_Nullable __autoreleasing *_Nullable error) {
-              Artist *artist = nil;
-              if (artistName) {
-                artist = [context firstObjectForEntityName:EntityNameArtist
-                                                 predicate:[NSPredicate predicateWithFormat:@"name == %@", artistName]];
-                if (!artist) {
-                  artist = [context insertNewObjectForEntityName:EntityNameArtist];
-                  [artist setUniqueID:[NSUUID new]];
-                  [artist setName:artistName];
-                }
-              }
+        return [[CoreDataStore writeOnlyStore] performWrite:^id(NSManagedObjectContext *context) {
+          Artist *artist = nil;
+          if (artistName) {
+            artist = [context firstObjectForEntityName:EntityNameArtist
+                                             predicate:[NSPredicate predicateWithFormat:@"name == %@", artistName]];
+            if (!artist) {
+              artist = [context insertNewObjectForEntityName:EntityNameArtist];
+              [artist setUniqueID:[NSUUID new]];
+              [artist setName:artistName];
+            }
+          }
 
-              Album *album = nil;
-              if (albumName) {
-                album = [context firstObjectForEntityName:EntityNameAlbum
-                                                predicate:[NSPredicate predicateWithFormat:@"title == %@", artistName]];
-                if (!album) {
-                  album = [context insertNewObjectForEntityName:EntityNameAlbum];
-                  album.uniqueID = [NSUUID new];
-                  album.title = albumName;
-                  album.artist = artist;
-                }
-              }
+          Album *album = nil;
+          if (albumName) {
+            album = [context firstObjectForEntityName:EntityNameAlbum
+                                            predicate:[NSPredicate predicateWithFormat:@"title == %@", artistName]];
+            if (!album) {
+              album = [context insertNewObjectForEntityName:EntityNameAlbum];
+              album.uniqueID = [NSUUID new];
+              album.title = albumName;
+              album.artist = artist;
+            }
+          }
 
-              Track *track = [context firstObjectForEntityName:EntityNameTrack
-                                                     predicate:[NSPredicate predicateWithFormat:@"title == %@", title]];
-              if (!track) {
-                track = [context insertNewObjectForEntityName:EntityNameTrack];
-                track.uniqueID = [NSUUID new];
-                track.title = title;
-                track.trackNumber = [trackNumber intValue] ?: 0;
-                track.fileType = [fileURL pathExtension];
-                track.bitrate = [bitrate intValue] ?: 0;
-                track.sampleRate = [sampleRate intValue] ?: 0;
-                track.duration = [duration doubleValue] ?: 0.0;
-                track.fileURL = [fileURL path];
+          Track *track = [context firstObjectForEntityName:EntityNameTrack
+                                                 predicate:[NSPredicate predicateWithFormat:@"title == %@", title]];
+          if (!track) {
+            track = [context insertNewObjectForEntityName:EntityNameTrack];
+            track.uniqueID = [NSUUID new];
+            track.title = title;
+            track.trackNumber = [trackNumber intValue] ?: 0;
+            track.fileType = [fileURL pathExtension];
+            track.bitrate = [bitrate intValue] ?: 0;
+            track.sampleRate = [sampleRate intValue] ?: 0;
+            track.duration = [duration doubleValue] ?: 0.0;
+            track.fileURL = [fileURL path];
+            track.urlBookmark = bookmark;
+          }
 
-                /// Create security-scaped bookmark (for playback)
-                NSData *bookmark = [fileURL bookmarkDataWithOptions:NSURLBookmarkCreationWithSecurityScope
-                                     includingResourceValuesForKeys:nil
-                                                      relativeToURL:nil
-                                                              error:error];
-                if (bookmark) {
-                  track.urlBookmark = bookmark;
-                } else {
-                  NSLog(@"Critical: Could not create security bookmark");
-                }
-              }
-
-              return track;
-            }];
+          return track;
+        }];
       }] continueWithBlock:^id _Nullable(BFTask *_Nonnull task) {
     if (task.error) {
       NSLog(@"Error importing track: %@", task.error);

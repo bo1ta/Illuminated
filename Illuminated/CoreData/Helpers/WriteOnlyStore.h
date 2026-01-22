@@ -14,7 +14,7 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-typedef id _Nullable (^WriteBlock)(NSManagedObjectContext *_Nonnull context, NSError *_Nullable *_Nullable error);
+typedef id _Nullable (^WriteBlock)(NSManagedObjectContext *context);
 
 @protocol WriteOnlyStore<NSObject>
 
@@ -35,6 +35,8 @@ typedef id _Nullable (^WriteBlock)(NSManagedObjectContext *_Nonnull context, NSE
                          bitrate:(int16_t)bitrate
                       sampleRate:(int16_t)sampleRate
                         duration:(double)duration;
+
+- (BFTask *)deleteObjectWithEntityName:(NSString *)entityName uniqueID:(NSUUID *)uniqueID;
 
 @end
 

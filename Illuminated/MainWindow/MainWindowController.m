@@ -10,7 +10,7 @@
 #import "PlayerBarViewController.h"
 #import "SidebarViewController.h"
 
-@interface MainWindowController ()<MusicViewControllerDelegate>
+@interface MainWindowController ()
 
 @property(strong) MusicViewController *musicViewController;
 @property(strong) PlayerBarViewController *playerBarViewController;
@@ -33,7 +33,6 @@
   [self.splitViewController addSplitViewItem:sidebarItem];
 
   self.musicViewController = [[MusicViewController alloc] initWithNibName:@"MusicViewController" bundle:nil];
-  self.musicViewController.delegate = self;
 
   NSSplitViewItem *contentItem = [NSSplitViewItem splitViewItemWithViewController:self.musicViewController];
   contentItem.minimumThickness = 400;
@@ -71,27 +70,11 @@
     [self.playerBarViewController.view.leadingAnchor constraintEqualToAnchor:containerVC.view.leadingAnchor],
     [self.playerBarViewController.view.trailingAnchor constraintEqualToAnchor:containerVC.view.trailingAnchor],
     [self.playerBarViewController.view.bottomAnchor constraintEqualToAnchor:containerVC.view.bottomAnchor],
-    [self.playerBarViewController.view.heightAnchor constraintEqualToConstant:80]
+    [self.playerBarViewController.view.heightAnchor constraintEqualToConstant:100]
   ]];
 
   // Set container as window content
   self.window.contentViewController = containerVC;
-}
-
-- (void)trackSelected:(NSNotification *)notification {
-  Track *track = notification.object;
-  self.playerBarViewController.currentTrack = track;
-  [self.playerBarViewController play];
-}
-
-- (void)dealloc {
-  [[NSNotificationCenter defaultCenter] removeObserver:self];
-}
-
-#pragma mark - MusicViewControllerDelegate
-
-- (void)musicViewController:(MusicViewController *)controller didSelectTrack:(Track *)track {
-  [self.playerBarViewController setCurrentTrack:track];
 }
 
 @end
