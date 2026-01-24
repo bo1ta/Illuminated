@@ -12,9 +12,14 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
+extern NSString *const SidebarSelectionItemDidChange;
+
+@class SidebarViewController;
+
 @interface SidebarViewController : NSViewController<NSOutlineViewDataSource, NSOutlineViewDelegate>
+
 @property(weak) IBOutlet NSOutlineView *outlineView;
-@property(strong, nonatomic) NSArray<SidebarItem *> *sidebarItems;
+
 @end
 
 NS_ASSUME_NONNULL_END

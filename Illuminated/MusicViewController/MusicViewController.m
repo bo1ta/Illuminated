@@ -9,13 +9,18 @@
 #import "Album.h"
 #import "Artist.h"
 #import "PlaybackManager.h"
+#import "CoreDataStore.h"
+#import "TrackImportService.h"
+#import "Playlist.h"
 #import "Track.h"
+#import "SidebarViewController.h"
 
 @interface MusicViewController ()
 
 @property(atomic, strong) NSArray<Track *> *tracks;
 @property(nonatomic, strong) NSFetchedResultsController *fetchedResultsController;
 @property(nonatomic, strong) TrackImportService *importService;
+@property(nonatomic, strong, nullable) Playlist *currentPlaylist;
 
 @end
 
@@ -42,12 +47,41 @@
                                            selector:@selector(selectCurrentTrack)
                                                name:PlaybackManagerTrackDidChangeNotification
                                              object:nil];
-
+  
+  [[NSNotificationCenter defaultCenter] addObserver:self
+                                           selector:@selector(sidebarSelectionDidChange:)
+                                               name:SidebarSelectionItemDidChange
+                                             object:nil];
   [self setupFetchedResultsController];
 }
 
 - (void)dealloc {
   [[NSNotificationCenter defaultCenter] removeObserver:self];
+}
+
+- (void)sidebarSelectionDidChange:(NSNotification *)notification {
+  id playlistObject = notification.userInfo[@"playlist"];
+  
+  if ([playlistObject isKindOfClass:[Playlist class]]) {
+     self.currentPlaylist = (Playlist *)playlistObject;
+   } else {
+     self.currentPlaylist = nil; // "All Music" selected
+   }
+  
+  [self updateFetchedResultsControllerForCurrentPlaylist];
+}
+
+- (void)updateFetchedResultsControllerForCurrentPlaylist {
+  NSPredicate *predicate = nil;
+  if (self.currentPlaylist != nil) {
+    predicate = [NSPredicate predicateWithFormat:@"ANY playlists == %@", self.currentPlaylist];
+  }
+  
+  self.fetchedResultsController.fetchRequest.predicate = predicate;
+  [self.fetchedResultsController performFetch:nil];
+  
+  self.tracks = (NSArray<Track *> *)[self.fetchedResultsController fetchedObjects];
+  [self.tableView reloadData];
 }
 
 - (void)selectCurrentTrack {
@@ -84,9 +118,15 @@
 
   NSError *error = nil;
   if (![self.fetchedResultsController performFetch:&error]) {
+    NSLog(@"MusicViewController: Error loading tracks for fetched results: %@", error.localizedDescription);
   } else {
     self.tracks = (NSArray<Track *> *)[self.fetchedResultsController fetchedObjects];
   }
+}
+
+- (void)setFetchedResultsPredicate:(NSPredicate *)predicate {
+  self.fetchedResultsController.fetchRequest.predicate = predicate;
+  [self.fetchedResultsController performFetch:nil];
 }
 
 #pragma mark - Drag & Drop methods
@@ -128,7 +168,7 @@
 
 - (void)importURL:(NSURL *)url {
   [[BFTask taskFromExecutor:[BFExecutor defaultExecutor] withBlock:^id {
-    return [self.importService importAudioFileAtURL:url];
+    return [self.importService importAudioFileAtURL:url withPlaylist:self.currentPlaylist];
   }] continueWithSuccessBlock:^id(BFTask<Track *> *task) {
     Track *track = task.result;
     if (track) {

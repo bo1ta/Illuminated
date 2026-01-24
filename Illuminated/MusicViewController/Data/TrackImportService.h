@@ -13,11 +13,11 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-@class Track;
+@class Track, Playlist;
 
 @interface TrackImportService : NSObject
 
-- (BFTask *)importAudioFileAtURL:(NSURL *)fileURL;
+- (BFTask *)importAudioFileAtURL:(NSURL *)fileURL withPlaylist:(nullable Playlist *)playlist;
 - (BFTask *)analyzeBPMForTrackURL:(NSURL *)trackURL;
 
 @end

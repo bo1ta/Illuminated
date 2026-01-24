@@ -46,7 +46,7 @@
   }];
 }
 
-- (BFTask<Track *> *)importAudioFileAtURL:(NSURL *)fileURL {
+- (BFTask<Track *> *)importAudioFileAtURL:(NSURL *)fileURL withPlaylist:(nullable Playlist *)playlist {
   NSError *error = nil;
   NSData *bookmark = [BookmarkResolver bookmarkForURL:fileURL error:&error];
   if (error) {
@@ -55,7 +55,7 @@
 
   // clang-format off
   return [[[self extractMetadataFromAudioURL:fileURL] continueWithSuccessBlock:^id(BFTask<NSDictionary *> *task) {
-    return [self saveTrackWithMetadata:task.result bookmark:bookmark fileURL:fileURL];
+    return [self saveTrackWithMetadata:task.result bookmark:bookmark fileURL:fileURL playlist:playlist];
   }] continueWithExecutor:[BFExecutor mainThreadExecutor] withBlock:^id(BFTask<Track *> *task) {
     return [[CoreDataStore reader] fetchObjectWithID:task.result.objectID];
   }];
@@ -154,7 +154,8 @@
 
 - (BFTask<Track *> *)saveTrackWithMetadata:(NSDictionary *)metadata
                                   bookmark:(NSData *)bookmark
-                                   fileURL:(NSURL *)fileURL {
+                                   fileURL:(NSURL *)fileURL
+                                  playlist:(nullable Playlist *)playlist {
   return [[CoreDataStore writer] performWrite:^id(NSManagedObjectContext *context) {
     Artist *artist = [self findOrCreateArtist:metadata[@"artist"] inContext:context];
     Album *album = [self findOrCreateAlbum:metadata[@"album"] artist:artist inContext:context];
@@ -174,6 +175,10 @@
       track.bpm = [metadata[@"bpm"] floatValue];
       track.fileURL = [fileURL path];
       track.urlBookmark = bookmark;
+      
+      if (playlist) {
+        [track addPlaylistsObject:playlist];
+      }
     }
     return track;
   }];

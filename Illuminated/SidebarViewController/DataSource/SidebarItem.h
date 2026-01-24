@@ -17,6 +17,7 @@ typedef NS_ENUM(NSInteger, SidebarItemType) { SidebarItemTypeGroup, SidebarItemT
 @property(nonatomic, copy) NSString *title;
 @property(nonatomic, copy, nullable) NSString *iconName;
 @property(nonatomic, copy, nullable) NSArray<SidebarItem *> *children;
+@property(nonatomic, strong) id representedObject;
 
 - (instancetype)initWithType:(SidebarItemType)type
                        title:(NSString *)title

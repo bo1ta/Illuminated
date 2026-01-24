@@ -37,6 +37,8 @@ typedef id _Nullable (^WriteBlock)(NSManagedObjectContext *context);
                         duration:(double)duration;
 - (BFTask *)incrementPlayCountForTrack:(Track *)track;
 
+- (BFTask *)createPlaylistWithName:(NSString *)name;
+
 @end
 
 NS_ASSUME_NONNULL_END

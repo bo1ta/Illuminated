@@ -290,6 +290,14 @@
                           predicate:[NSPredicate predicateWithFormat:@"name LIKE %@", name]];
 }
 
+- (BFTask *)createPlaylistWithName:(NSString *)name {
+  return [self performWrite:^id(NSManagedObjectContext *context) {
+    Playlist *playlist = [context insertNewObjectForEntityName:EntityNamePlaylist];
+    playlist.name = name;
+    return playlist;
+  }];
+}
+
 #pragma mark - Track
 
 - (BFTask<NSArray<Track *> *> *)allTracks {
