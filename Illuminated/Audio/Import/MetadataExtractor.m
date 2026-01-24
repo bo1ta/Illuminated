@@ -77,25 +77,42 @@
 }
 
 - (NSDictionary *)applyFilenameFallback:(NSDictionary *)metadata audioURL:(NSURL *)audioURL {
-  NSString *title = metadata[@"title"];
-  NSString *artist = metadata[@"artist"];
-  
-  if (title && artist) return metadata;
-  
   NSMutableDictionary *result = [metadata mutableCopy];
-  NSString *filename = [[audioURL lastPathComponent] stringByDeletingPathExtension];
   
-  if ([filename containsString:@" - "]) {
-    NSArray *parts = [filename componentsSeparatedByString:@" - "];
-    if (parts.count >= 2) {
-      if (!artist) result[@"artist"] = [parts[0] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
-      if (!title) result[@"title"] = [parts[1] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
-    }
-  } else if (!title) {
-    result[@"title"] = filename;
+  NSString *title = result[@"title"];
+  NSString *artist = result[@"artist"];
+  
+  // If both exist, we're done
+  if (title && artist) {
+    return result;
   }
   
-  return [result copy];
+  // Get filename without extension
+  NSString *filename = [[audioURL lastPathComponent] stringByDeletingPathExtension];
+  
+  // Try to split by " - "
+  NSArray *parts = [filename componentsSeparatedByString:@" - "];
+  
+  if (parts.count >= 2) {
+    // Format: "Artist - Title" or "Artist - Title - Extra Stuff"
+    if (!artist) {
+      result[@"artist"] = [parts[0] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
+    }
+    
+    if (!title) {
+      // Join everything after the first " - " back together
+      NSArray *titleParts = [parts subarrayWithRange:NSMakeRange(1, parts.count - 1)];
+      NSString *fullTitle = [titleParts componentsJoinedByString:@" - "];
+      result[@"title"] = [fullTitle stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
+    }
+  } else {
+    // No separator, just use filename as title
+    if (!title) {
+      result[@"title"] = filename;
+    }
+  }
+  
+  return result;
 }
 
 @end

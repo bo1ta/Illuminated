@@ -54,12 +54,30 @@
   }
 
   // clang-format off
-  return [[[self extractMetadataFromAudioURL:fileURL] continueWithSuccessBlock:^id(BFTask<NSDictionary *> *task) {
+  return [[[[self trackExistsForURL:fileURL] continueWithSuccessBlock:^id(BFTask<NSNumber *> *task) {
+    if (task.result.boolValue == YES) {
+      return [BFTask cancelledTask];
+    }
+    return [self extractMetadataFromAudioURL:fileURL];
+  }] continueWithSuccessBlock:^id(BFTask<NSDictionary *> *task) {
     return [self saveTrackWithMetadata:task.result bookmark:bookmark fileURL:fileURL playlist:playlist];
   }] continueWithExecutor:[BFExecutor mainThreadExecutor] withBlock:^id(BFTask<Track *> *task) {
-    return [[CoreDataStore reader] fetchObjectWithID:task.result.objectID];
+    if (task.result) {
+      return [[CoreDataStore reader] fetchObjectWithID:task.result.objectID];
+    }
+    return task;
   }];
   // clang-format on
+}
+
+- (BFTask<NSNumber *> *)trackExistsForURL:(NSURL *)trackURL {
+  return [[CoreDataStore reader] performRead:^id(NSManagedObjectContext *context) {
+    BOOL objectExists = [context objectExistsForEntityName:EntityNameTrack predicate:[NSPredicate predicateWithFormat:@"fileURL == %@", [trackURL path]]];
+    if (objectExists) {
+      return [NSNumber numberWithBool:YES];
+    }
+    return [NSNumber numberWithBool:NO];
+  }];
 }
 
 #pragma mark - Metadata Extraction
@@ -175,6 +193,8 @@
       track.bpm = [metadata[@"bpm"] floatValue];
       track.fileURL = [fileURL path];
       track.urlBookmark = bookmark;
+      track.artist = artist;
+      track.album = album;
       
       if (playlist) {
         [track addPlaylistsObject:playlist];
