@@ -87,6 +87,9 @@
                                 <constraint firstAttribute="width" constant="18" id="Uny-1X-D2K"/>
                                 <constraint firstAttribute="height" constant="18" id="Xcq-ny-hYi"/>
                             </constraints>
+                            <connections>
+                                <action selector="repeatAction:" target="-2" id="S3U-cx-WcL"/>
+                            </connections>
                         </button>
                     </subviews>
                     <visibilityPriorities>

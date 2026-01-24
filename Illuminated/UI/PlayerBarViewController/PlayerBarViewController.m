@@ -40,6 +40,7 @@
 
   [self setupNotifications];
   [self updateTrackUI];
+  [self updateRepeatButton];
 }
 
 - (void)dealloc {
@@ -111,6 +112,30 @@
   }
 }
 
+- (void)updateRepeatButton {
+  PlaybackManager *manager = [PlaybackManager sharedManager];
+  
+  switch (manager.repeatMode) {
+    case RepeatModeOff:
+      repeatButton.image = [NSImage imageWithSystemSymbolName:@"repeat"
+                                     accessibilityDescription:@"Repeat Off"];
+      repeatButton.contentTintColor = [NSColor secondaryLabelColor];
+      break;
+      
+    case RepeatModeOne:
+      repeatButton.image = [NSImage imageWithSystemSymbolName:@"repeat.1"
+                                     accessibilityDescription:@"Repeat One"];
+      repeatButton.contentTintColor = [NSColor systemBlueColor];
+      break;
+      
+    case RepeatModeAll:
+      repeatButton.image = [NSImage imageWithSystemSymbolName:@"repeat"
+                                     accessibilityDescription:@"Repeat All"];
+      repeatButton.contentTintColor = [NSColor systemBlueColor];
+      break;
+  }
+}
+
 #pragma mark - IBActions
 
 - (IBAction)progressDidChange:(NSSlider *)sender {
@@ -134,6 +159,23 @@
 
 - (IBAction)nextAction:(id)sender {
   [[PlaybackManager sharedManager] playNext];
+}
+
+- (IBAction)repeatAction:(id)sender {
+  PlaybackManager *manager = [PlaybackManager sharedManager];
+  switch (manager.repeatMode) {
+    case RepeatModeOff:
+      manager.repeatMode = RepeatModeOne;
+      break;
+    case RepeatModeOne:
+      manager.repeatMode = RepeatModeAll;
+      break;
+    case RepeatModeAll:
+      manager.repeatMode = RepeatModeOff;
+      break;
+  }
+  
+  [self updateRepeatButton];
 }
 
 - (IBAction)playAction:(id)sender {

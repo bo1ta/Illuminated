@@ -15,6 +15,12 @@ extern NSString *const PlaybackManagerTrackDidChangeNotification;
 extern NSString *const PlaybackManagerPlaybackStateDidChangeNotification;
 extern NSString *const PlaybackManagerPlaybackProgressDidChangeNotification;
 
+typedef NS_ENUM(NSInteger, RepeatMode) {
+  RepeatModeOff,
+  RepeatModeOne,
+  RepeatModeAll
+};
+
 @interface PlaybackManager : NSObject
 
 + (instancetype)sharedManager;
@@ -23,6 +29,8 @@ extern NSString *const PlaybackManagerPlaybackProgressDidChangeNotification;
 @property(assign, readonly) BOOL isPlaying;
 @property(assign, readonly) NSTimeInterval currentTime;
 @property(nonatomic, readonly) float volume;
+
+@property(nonatomic) RepeatMode repeatMode;
 
 - (void)playTrack:(Track *)track;
 - (void)playNext;

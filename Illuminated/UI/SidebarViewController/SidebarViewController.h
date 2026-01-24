@@ -5,9 +5,6 @@
 //  Created by Alexandru Solomon on 19.01.2026.
 //
 
-#import "SidebarCellFactory.h"
-#import "SidebarDataSource.h"
-#import "SidebarItem.h"
 #import <Cocoa/Cocoa.h>
 
 NS_ASSUME_NONNULL_BEGIN

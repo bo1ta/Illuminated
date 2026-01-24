@@ -56,6 +56,7 @@ static const NSTimeInterval kProgressTimerInterval = 0.5;
 - (instancetype)init {
   self = [super init];
   if (self) {
+    _repeatMode = RepeatModeOff;
     _queue = [[TrackQueue alloc] init];
 
     _engine = [[AVAudioEngine alloc] init];
@@ -205,9 +206,7 @@ static const NSTimeInterval kProgressTimerInterval = 0.5;
         if (strongSelf.playbackGeneration != currentGeneration) {
           return;
         }
-        if (strongSelf.isPlaying) {
-          [strongSelf playNext];
-        }
+        [strongSelf handleTrackCompletion];
       });
     }];
     // clang-format on
@@ -252,13 +251,39 @@ static const NSTimeInterval kProgressTimerInterval = 0.5;
     
     dispatch_async(dispatch_get_main_queue(), ^{
       if (strongSelf.playbackGeneration != currentGeneration) return;
-      if (strongSelf.isPlaying) [strongSelf playNext];
+      if (strongSelf.playerNode.isPlaying) {
+        [strongSelf handleTrackCompletion];
+      }
     });
   }];
   // clang-format on
 
   [[self playerNode] setVolume:self.volume];
   [self.playerNode play];
+}
+
+- (void)handleTrackCompletion {
+  switch (self.repeatMode) {
+    case RepeatModeOne:
+      [self playTrack:self.currentTrack];
+      break;
+      
+    case RepeatModeAll: {
+      Track *next = [self.queue nextTrack];
+      if (next) {
+        [self playTrack:next];
+      } else if (self.queue.tracks.count > 0) {
+        [self playTrack:self.queue.tracks.firstObject];
+      }
+      break;
+    }
+      
+    case RepeatModeOff:
+    default:
+      // Just play next (existing behavior)
+      [self playNext];
+      break;
+  }
 }
 
 - (NSTimeInterval)currentTime {

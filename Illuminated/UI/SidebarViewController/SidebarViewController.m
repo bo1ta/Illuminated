@@ -8,7 +8,8 @@
 #import "SidebarViewController.h"
 #import "CoreDataStore.h"
 #import "Playlist.h"
-#import "SidebarHeaderView.h"
+#import "SidebarCellFactory.h"
+#import "SidebarItem.h"
 
 NSString *const SidebarSelectionItemDidChange = @"SidebarSelectionChanged";
 
@@ -26,7 +27,7 @@ NSString *const SidebarSelectionItemDidChange = @"SidebarSelectionChanged";
 
 - (void)viewDidLoad {
   [super viewDidLoad];
-
+  
   self.outlineView.dataSource = self;
   self.outlineView.delegate = self;
   self.outlineView.style = NSTableViewStyleSourceList;
@@ -44,54 +45,51 @@ NSString *const SidebarSelectionItemDidChange = @"SidebarSelectionChanged";
 #pragma mark - UI setup
 
 - (void)setupHeaderView {
+  self.outlineView.headerView = nil;
+  
   NSScrollView *scrollView = self.outlineView.enclosingScrollView;
+  
+  NSView *headerView = [[NSView alloc] initWithFrame:NSMakeRect(0, 0, 200, 28)];
+  headerView.translatesAutoresizingMaskIntoConstraints = NO;
+  headerView.wantsLayer = YES;
+  headerView.layer.backgroundColor = [NSColor controlBackgroundColor].CGColor;
+  
+  NSTextField *titleLabel = [NSTextField labelWithString:@"PLAYLISTS"];
+  titleLabel.font = [NSFont systemFontOfSize:11 weight:NSFontWeightSemibold];
+  titleLabel.textColor = [NSColor secondaryLabelColor];
+  titleLabel.translatesAutoresizingMaskIntoConstraints = NO;
+  
+  NSButton *addButton = [NSButton buttonWithImage:[NSImage imageWithSystemSymbolName:@"plus" accessibilityDescription:@"Add Playlist"]
+                                           target:self
+                                           action:@selector(addPlaylistButtonClicked:)];
+  addButton.bezelStyle = NSBezelStyleInline;
+  addButton.bordered = NO;
+  addButton.translatesAutoresizingMaskIntoConstraints = NO;
+  
+  [headerView addSubview:titleLabel];
+  [headerView addSubview:addButton];
+  
+  [self.view addSubview:headerView];
+  scrollView.translatesAutoresizingMaskIntoConstraints = NO;
+  
+  [NSLayoutConstraint activateConstraints:@[
+    [headerView.topAnchor constraintEqualToAnchor:self.view.topAnchor],
+    [headerView.leadingAnchor constraintEqualToAnchor:self.view.leadingAnchor],
+    [headerView.trailingAnchor constraintEqualToAnchor:self.view.trailingAnchor],
+    [headerView.heightAnchor constraintEqualToConstant:28],
     
-    // Create header as a sibling to the scroll view
-    NSView *headerView = [[NSView alloc] initWithFrame:NSMakeRect(0, 0, 200, 28)];
-    headerView.translatesAutoresizingMaskIntoConstraints = NO;
-    headerView.wantsLayer = YES;
-    headerView.layer.backgroundColor = [NSColor controlBackgroundColor].CGColor;
+    [scrollView.topAnchor constraintEqualToAnchor:headerView.bottomAnchor],
+    [scrollView.leadingAnchor constraintEqualToAnchor:self.view.leadingAnchor],
+    [scrollView.trailingAnchor constraintEqualToAnchor:self.view.trailingAnchor],
+    [scrollView.bottomAnchor constraintEqualToAnchor:self.view.bottomAnchor],
     
-    NSTextField *titleLabel = [NSTextField labelWithString:@"PLAYLISTS"];
-    titleLabel.font = [NSFont systemFontOfSize:11 weight:NSFontWeightSemibold];
-    titleLabel.textColor = [NSColor secondaryLabelColor];
-    titleLabel.translatesAutoresizingMaskIntoConstraints = NO;
     
-    NSButton *addButton = [NSButton buttonWithImage:[NSImage imageWithSystemSymbolName:@"plus" accessibilityDescription:@"Add Playlist"]
-                                             target:self
-                                             action:@selector(addPlaylistButtonClicked:)];
-    addButton.bezelStyle = NSBezelStyleInline;
-    addButton.bordered = NO;
-    addButton.translatesAutoresizingMaskIntoConstraints = NO;
+    [titleLabel.leadingAnchor constraintEqualToAnchor:headerView.leadingAnchor constant:8],
+    [titleLabel.centerYAnchor constraintEqualToAnchor:headerView.centerYAnchor],
     
-    [headerView addSubview:titleLabel];
-    [headerView addSubview:addButton];
-    
-    // Add to parent view
-    [self.view addSubview:headerView];
-    scrollView.translatesAutoresizingMaskIntoConstraints = NO;
-    
-    [NSLayoutConstraint activateConstraints:@[
-      [headerView.topAnchor constraintEqualToAnchor:self.view.topAnchor],
-      [headerView.leadingAnchor constraintEqualToAnchor:self.view.leadingAnchor],
-      [headerView.trailingAnchor constraintEqualToAnchor:self.view.trailingAnchor],
-      [headerView.heightAnchor constraintEqualToConstant:28],
-      
-      [scrollView.topAnchor constraintEqualToAnchor:headerView.bottomAnchor],
-        [scrollView.leadingAnchor constraintEqualToAnchor:self.view.leadingAnchor],
-        [scrollView.trailingAnchor constraintEqualToAnchor:self.view.trailingAnchor],
-        [scrollView.bottomAnchor constraintEqualToAnchor:self.view.bottomAnchor],
-
-      
-      [titleLabel.leadingAnchor constraintEqualToAnchor:headerView.leadingAnchor constant:8],
-      [titleLabel.centerYAnchor constraintEqualToAnchor:headerView.centerYAnchor],
-      
-      [addButton.trailingAnchor constraintEqualToAnchor:headerView.trailingAnchor constant:-8],
-      [addButton.centerYAnchor constraintEqualToAnchor:headerView.centerYAnchor]
-    ]];
-    
-    // Keep outline view header nil
-    self.outlineView.headerView = nil;
+    [addButton.trailingAnchor constraintEqualToAnchor:headerView.trailingAnchor constant:-8],
+    [addButton.centerYAnchor constraintEqualToAnchor:headerView.centerYAnchor]
+  ]];
 }
 
 - (void)addPlaylistButtonClicked:(NSButton *)sender {
@@ -101,7 +99,6 @@ NSString *const SidebarSelectionItemDidChange = @"SidebarSelectionChanged";
   [alert addButtonWithTitle:@"Create"];
   [alert addButtonWithTitle:@"Cancel"];
   
-  // Create text field
   NSTextField *input = [[NSTextField alloc] initWithFrame:NSMakeRect(0, 0, 280, 24)];
   input.placeholderString = @"Playlist name";
   
@@ -113,11 +110,7 @@ NSString *const SidebarSelectionItemDidChange = @"SidebarSelectionChanged";
       NSString *playlistName = input.stringValue;
       if (playlistName.length > 0) {
         [[CoreDataStore writer] createPlaylistWithName:playlistName];
-      } else {
-        NSLog(@"Empty playlist name");
       }
-    } else {
-      NSLog(@"Cancelled");
     }
   }];
 }
@@ -154,7 +147,7 @@ NSString *const SidebarSelectionItemDidChange = @"SidebarSelectionChanged";
                                                                               predicate:nil
                                                                         sortDescriptors:nil];
   _fetchedResultsController.delegate = self;
-
+  
   NSError *error = nil;
   if (![self.fetchedResultsController performFetch:&error]) {
     NSLog(@"SidebarViewController: Error performing Playlist fetch: %@", error.localizedDescription);
@@ -175,7 +168,7 @@ NSString *const SidebarSelectionItemDidChange = @"SidebarSelectionChanged";
   if (item == nil) {
     return self.sidebarItems.count;
   }
-
+  
   SidebarItem *sidebarItem = (SidebarItem *)item;
   return sidebarItem.children.count;
 }
@@ -184,7 +177,7 @@ NSString *const SidebarSelectionItemDidChange = @"SidebarSelectionChanged";
   if (item == nil) {
     return self.sidebarItems[index];
   }
-
+  
   return [(SidebarItem *)item children][index];
 }
 
@@ -200,9 +193,9 @@ NSString *const SidebarSelectionItemDidChange = @"SidebarSelectionChanged";
 
 - (NSView *)outlineView:(NSOutlineView *)outlineView viewForTableColumn:(NSTableColumn *)tableColumn item:(id)item {
   BOOL isGroupItem = [self outlineView:outlineView isGroupItem:item];
-
+  
   SidebarItem *sidebarItem = (SidebarItem *)item;
-
+  
   if (isGroupItem) {
     return [SidebarCellFactory headerCellForOutlineView:self.outlineView title:sidebarItem.title];
   } else {
@@ -220,11 +213,11 @@ NSString *const SidebarSelectionItemDidChange = @"SidebarSelectionChanged";
 - (void)outlineViewSelectionDidChange:(NSNotification *)notification {
   NSInteger selectedRow = self.outlineView.selectedRow;
   SidebarItem *sidebarItem = (SidebarItem *)[self.outlineView itemAtRow:selectedRow];
-
+  
   if (![self outlineView:self.outlineView isGroupItem:sidebarItem]) {
     id playlistValue = sidebarItem.representedObject ?: [NSNull null];
     [[NSNotificationCenter defaultCenter] postNotificationName:SidebarSelectionItemDidChange
-                                                           object:nil
+                                                        object:nil
                                                       userInfo:@{@"playlist": playlistValue}];
   }
 }
