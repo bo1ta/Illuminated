@@ -20,6 +20,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property(nullable, nonatomic, copy) NSUUID *uniqueID;
 @property(nullable, nonatomic, copy) NSString *title;
 @property(nonatomic) double duration;
+@property(nonatomic) float bpm;
 @property(nonatomic) int16_t trackNumber;
 @property(nonatomic) int16_t discNumber;
 @property(nullable, nonatomic, copy) NSString *fileURL;

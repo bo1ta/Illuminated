@@ -17,6 +17,7 @@
 @dynamic uniqueID;
 @dynamic title;
 @dynamic duration;
+@dynamic bpm;
 @dynamic trackNumber;
 @dynamic discNumber;
 @dynamic fileURL;
