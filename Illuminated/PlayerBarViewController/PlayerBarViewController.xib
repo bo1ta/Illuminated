@@ -8,6 +8,7 @@
         <customObject id="-2" userLabel="File's Owner" customClass="PlayerBarViewController">
             <connections>
                 <outlet property="artistName" destination="qab-q3-5Ya" id="DtZ-Ao-x2u"/>
+                <outlet property="bpmLabel" destination="KG0-K8-NhX" id="mIT-Vr-RfL"/>
                 <outlet property="controlsStackView" destination="Iep-vN-JHC" id="h5V-S4-PX0"/>
                 <outlet property="currentTimeLabel" destination="I6e-1A-WvN" id="Lg8-MR-P9L"/>
                 <outlet property="nextButton" destination="Gp2-4J-BpA" id="pw8-tT-rnI"/>
@@ -28,33 +29,6 @@
             <rect key="frame" x="0.0" y="0.0" width="800" height="130"/>
             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
             <subviews>
-                <imageView horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="cso-Vn-14Z">
-                    <rect key="frame" x="20" y="10" width="55" height="55"/>
-                    <constraints>
-                        <constraint firstAttribute="width" constant="55" id="Ab0-aP-MJV"/>
-                        <constraint firstAttribute="height" constant="55" id="R72-Ir-38f"/>
-                    </constraints>
-                    <imageCell key="cell" refusesFirstResponder="YES" alignment="left" imageScaling="proportionallyDown" id="IXM-eP-c5c"/>
-                </imageView>
-                <textField focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="g3Z-pj-EbQ">
-                    <rect key="frame" x="89" y="34" width="119" height="16"/>
-                    <constraints>
-                        <constraint firstAttribute="width" constant="115" id="n4v-nd-WII"/>
-                    </constraints>
-                    <textFieldCell key="cell" lineBreakMode="clipping" title="Track Name" id="PkG-UH-cju">
-                        <font key="font" metaFont="systemMedium" size="13"/>
-                        <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
-                        <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
-                    </textFieldCell>
-                </textField>
-                <textField focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="qab-q3-5Ya">
-                    <rect key="frame" x="89" y="15" width="67" height="14"/>
-                    <textFieldCell key="cell" lineBreakMode="clipping" title="Artist Name" id="MDE-4p-Fgj">
-                        <font key="font" metaFont="smallSystem"/>
-                        <color key="textColor" name="secondaryLabelColor" catalog="System" colorSpace="catalog"/>
-                        <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
-                    </textFieldCell>
-                </textField>
                 <stackView distribution="fill" orientation="horizontal" alignment="centerY" horizontalStackHuggingPriority="249.99998474121094" verticalStackHuggingPriority="249.99998474121094" detachesHiddenViews="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Iep-vN-JHC">
                     <rect key="frame" x="337" y="31" width="126" height="48"/>
                     <subviews>
@@ -180,22 +154,70 @@
                         <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                     </textFieldCell>
                 </textField>
+                <stackView distribution="fill" orientation="vertical" alignment="leading" spacing="2" horizontalStackHuggingPriority="249.99998474121094" verticalStackHuggingPriority="249.99998474121094" detachesHiddenViews="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Ct6-K7-tLJ" userLabel="TrackInfoStackView">
+                    <rect key="frame" x="83" y="25" width="115" height="44"/>
+                    <subviews>
+                        <textField focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="g3Z-pj-EbQ">
+                            <rect key="frame" x="-2" y="28" width="119" height="16"/>
+                            <constraints>
+                                <constraint firstAttribute="width" constant="115" id="n4v-nd-WII"/>
+                            </constraints>
+                            <textFieldCell key="cell" lineBreakMode="clipping" title="Track Name" id="PkG-UH-cju">
+                                <font key="font" metaFont="systemMedium" size="13"/>
+                                <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                                <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                            </textFieldCell>
+                        </textField>
+                        <textField focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="qab-q3-5Ya">
+                            <rect key="frame" x="-2" y="13" width="62" height="13"/>
+                            <textFieldCell key="cell" lineBreakMode="clipping" title="Artist Name" id="MDE-4p-Fgj">
+                                <font key="font" metaFont="system" size="10"/>
+                                <color key="textColor" name="secondaryLabelColor" catalog="System" colorSpace="catalog"/>
+                                <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                            </textFieldCell>
+                        </textField>
+                        <textField focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="KG0-K8-NhX">
+                            <rect key="frame" x="-2" y="0.0" width="42" height="11"/>
+                            <textFieldCell key="cell" lineBreakMode="clipping" title="120 bpm" id="6sg-pN-0Pz">
+                                <font key="font" metaFont="miniSystem"/>
+                                <color key="textColor" name="systemMintColor" catalog="System" colorSpace="catalog"/>
+                                <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                            </textFieldCell>
+                        </textField>
+                    </subviews>
+                    <visibilityPriorities>
+                        <integer value="1000"/>
+                        <integer value="1000"/>
+                        <integer value="1000"/>
+                    </visibilityPriorities>
+                    <customSpacing>
+                        <real value="3.4028234663852886e+38"/>
+                        <real value="3.4028234663852886e+38"/>
+                        <real value="3.4028234663852886e+38"/>
+                    </customSpacing>
+                </stackView>
+                <imageView horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="cso-Vn-14Z">
+                    <rect key="frame" x="8" y="20" width="55" height="55"/>
+                    <constraints>
+                        <constraint firstAttribute="width" constant="55" id="Ab0-aP-MJV"/>
+                        <constraint firstAttribute="height" constant="55" id="R72-Ir-38f"/>
+                    </constraints>
+                    <imageCell key="cell" refusesFirstResponder="YES" alignment="left" imageScaling="proportionallyDown" id="IXM-eP-c5c"/>
+                </imageView>
             </subviews>
             <constraints>
-                <constraint firstItem="qab-q3-5Ya" firstAttribute="top" secondItem="g3Z-pj-EbQ" secondAttribute="bottom" constant="5" id="1EJ-jQ-OV2"/>
                 <constraint firstAttribute="trailing" secondItem="uvO-Z0-veq" secondAttribute="trailing" constant="20" symbolic="YES" id="372-bm-4rs"/>
                 <constraint firstItem="8DK-dt-Zb1" firstAttribute="top" secondItem="c22-O7-iKe" secondAttribute="top" constant="3" id="5WN-5I-DRU"/>
                 <constraint firstItem="Iep-vN-JHC" firstAttribute="centerY" secondItem="c22-O7-iKe" secondAttribute="centerY" constant="10" id="Ak0-b4-9mV"/>
                 <constraint firstItem="8DK-dt-Zb1" firstAttribute="leading" secondItem="c22-O7-iKe" secondAttribute="leading" constant="20" symbolic="YES" id="Gu1-5S-rgE"/>
                 <constraint firstItem="ESG-gD-635" firstAttribute="centerY" secondItem="c22-O7-iKe" secondAttribute="centerY" constant="10" id="H7b-bb-Ypq"/>
-                <constraint firstAttribute="bottom" secondItem="qab-q3-5Ya" secondAttribute="bottom" constant="15" id="HWo-He-X3w"/>
-                <constraint firstAttribute="bottom" secondItem="cso-Vn-14Z" secondAttribute="bottom" constant="10" id="MZs-Wd-PHG"/>
-                <constraint firstItem="qab-q3-5Ya" firstAttribute="leading" secondItem="cso-Vn-14Z" secondAttribute="trailing" constant="16" id="Ppw-Ly-11Q"/>
+                <constraint firstAttribute="bottom" secondItem="cso-Vn-14Z" secondAttribute="bottom" constant="20" id="MZs-Wd-PHG"/>
                 <constraint firstItem="I6e-1A-WvN" firstAttribute="leading" secondItem="c22-O7-iKe" secondAttribute="leading" constant="22" id="SZM-qm-so8"/>
                 <constraint firstAttribute="trailing" secondItem="8DK-dt-Zb1" secondAttribute="trailing" constant="20" symbolic="YES" id="Sag-TV-ueJ"/>
-                <constraint firstItem="g3Z-pj-EbQ" firstAttribute="leading" secondItem="cso-Vn-14Z" secondAttribute="trailing" constant="16" id="SwX-yb-m2p"/>
+                <constraint firstAttribute="bottom" secondItem="Ct6-K7-tLJ" secondAttribute="bottom" constant="25" id="ZdS-go-Jly"/>
+                <constraint firstItem="Ct6-K7-tLJ" firstAttribute="leading" secondItem="cso-Vn-14Z" secondAttribute="trailing" constant="20" id="ZiO-Xu-5QT"/>
                 <constraint firstItem="Iep-vN-JHC" firstAttribute="centerX" secondItem="c22-O7-iKe" secondAttribute="centerX" id="khE-tx-0Ih"/>
-                <constraint firstItem="cso-Vn-14Z" firstAttribute="leading" secondItem="c22-O7-iKe" secondAttribute="leading" constant="20" symbolic="YES" id="laG-eu-8mW"/>
+                <constraint firstItem="cso-Vn-14Z" firstAttribute="leading" secondItem="c22-O7-iKe" secondAttribute="leading" constant="8" id="laG-eu-8mW"/>
                 <constraint firstAttribute="trailing" secondItem="ESG-gD-635" secondAttribute="trailing" constant="20" symbolic="YES" id="s2w-78-Kc3"/>
                 <constraint firstItem="uvO-Z0-veq" firstAttribute="top" secondItem="8DK-dt-Zb1" secondAttribute="bottom" id="sR2-Tm-Trp"/>
                 <constraint firstItem="I6e-1A-WvN" firstAttribute="top" secondItem="8DK-dt-Zb1" secondAttribute="bottom" id="yqa-2M-Ppw"/>

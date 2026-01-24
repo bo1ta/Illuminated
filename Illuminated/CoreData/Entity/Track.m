@@ -14,6 +14,13 @@
   return [NSFetchRequest fetchRequestWithEntityName:@"Track"];
 }
 
+- (NSNumber *)roundedBPM {
+  if (!self.bpm) return nil;
+  
+   NSInteger rounded = lround(self.bpm);
+   return @(rounded);
+}
+
 @dynamic uniqueID;
 @dynamic title;
 @dynamic duration;

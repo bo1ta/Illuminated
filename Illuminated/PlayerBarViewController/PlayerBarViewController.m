@@ -24,7 +24,8 @@
   __weak IBOutlet NSTextField *totalTimeLabel;
   __weak IBOutlet NSSlider *progressSlider;
   __weak IBOutlet NSSlider *volumeSlider;
-
+  __weak IBOutlet NSTextField *bpmLabel;
+  
   BOOL _isScrubbing;
 }
 
@@ -69,6 +70,7 @@
     [artistName setHidden:YES];
     [totalTimeLabel setHidden:YES];
     [currentTimeLabel setHidden:YES];
+    [bpmLabel setHidden:YES];
     return;
   }
 
@@ -80,6 +82,13 @@
   trackTitle.stringValue = track.title ?: @"Not playing";
   artistName.stringValue = track.artist.name ?: @"";
   totalTimeLabel.stringValue = [self formatTime:track.duration];
+  if (track.roundedBPM > 0) {
+    [bpmLabel setHidden:NO];
+    bpmLabel.stringValue = [NSString stringWithFormat:@"%@", track.roundedBPM];
+  } else {
+    [bpmLabel setHidden:YES];
+  }
+  
 
   [self updatePlaybackState];
 }

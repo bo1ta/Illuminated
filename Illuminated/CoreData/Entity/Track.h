@@ -38,6 +38,8 @@ NS_ASSUME_NONNULL_BEGIN
 @property(nullable, nonatomic, retain) NSSet<Playlist *> *playlists;
 @property(nullable, nonatomic, retain) NSData *urlBookmark;
 
+- (NSNumber *)roundedBPM;
+
 @end
 
 @interface Track (CoreDataGeneratedAccessors)
