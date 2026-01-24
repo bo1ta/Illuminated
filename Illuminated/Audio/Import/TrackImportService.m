@@ -54,12 +54,7 @@
   }
 
   // clang-format off
-  return [[[[self trackExistsForURL:fileURL] continueWithSuccessBlock:^id(BFTask<NSNumber *> *task) {
-    if (task.result.boolValue == YES) {
-      return [BFTask cancelledTask];
-    }
-    return [self extractMetadataFromAudioURL:fileURL];
-  }] continueWithSuccessBlock:^id(BFTask<NSDictionary *> *task) {
+  return [[[self extractMetadataFromAudioURL:fileURL]  continueWithSuccessBlock:^id(BFTask<NSDictionary *> *task) {
     return [self saveTrackWithMetadata:task.result bookmark:bookmark fileURL:fileURL playlist:playlist];
   }] continueWithExecutor:[BFExecutor mainThreadExecutor] withBlock:^id(BFTask<Track *> *task) {
     if (task.result) {
@@ -68,16 +63,6 @@
     return task;
   }];
   // clang-format on
-}
-
-- (BFTask<NSNumber *> *)trackExistsForURL:(NSURL *)trackURL {
-  return [[CoreDataStore reader] performRead:^id(NSManagedObjectContext *context) {
-    BOOL objectExists = [context objectExistsForEntityName:EntityNameTrack predicate:[NSPredicate predicateWithFormat:@"fileURL == %@", [trackURL path]]];
-    if (objectExists) {
-      return [NSNumber numberWithBool:YES];
-    }
-    return [NSNumber numberWithBool:NO];
-  }];
 }
 
 #pragma mark - Metadata Extraction

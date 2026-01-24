@@ -48,6 +48,7 @@ typedef id _Nullable (^ReadBlockWithError)(NSManagedObjectContext *context, NSEr
 - (BFTask<NSArray<Track *> *> *)allTracks;
 - (BFTask<NSArray<Track *> *> *)searchTracks:(NSString *)query;
 - (BFTask<NSNumber *> *)tracksCount;
+- (BFTask<Track *> *)trackWithURL:(NSURL *)url;
 
 #pragma mark - Artists
 - (BFTask<Artist *> *)artistWithUniqueID:(NSUUID *)uniqueID;

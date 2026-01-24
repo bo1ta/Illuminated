@@ -33,6 +33,8 @@
   return _importService;
 }
 
+#pragma mark - Lifecycle
+
 - (void)viewDidLoad {
   [super viewDidLoad];
 
@@ -44,6 +46,31 @@
   [self.tableView setDraggingSourceOperationMask:NSDragOperationCopy forLocal:YES];
   self.tableView.draggingDestinationFeedbackStyle = NSTableViewDraggingDestinationFeedbackStyleRegular;
 
+  [self setupFetchedResultsController];
+  [self setupNotifications];
+}
+
+- (void)dealloc {
+  [[NSNotificationCenter defaultCenter] removeObserver:self];
+}
+
+- (void)setupFetchedResultsController {
+  _fetchedResultsController = [[CoreDataStore reader] fetchedResultsControllerForEntity:EntityNameTrack
+                                                                              predicate:nil
+                                                                        sortDescriptors:nil];
+  _fetchedResultsController.delegate = self;
+
+  NSError *error = nil;
+  if (![self.fetchedResultsController performFetch:&error]) {
+    NSLog(@"MusicViewController: Error loading tracks for fetched results: %@", error.localizedDescription);
+  } else {
+    self.tracks = (NSArray<Track *> *)[self.fetchedResultsController fetchedObjects];
+  }
+}
+
+#pragma mark - Notifications
+
+- (void)setupNotifications {
   [[NSNotificationCenter defaultCenter] addObserver:self
                                            selector:@selector(selectCurrentTrack)
                                                name:PlaybackManagerTrackDidChangeNotification
@@ -53,36 +80,6 @@
                                            selector:@selector(sidebarSelectionDidChange:)
                                                name:SidebarSelectionItemDidChange
                                              object:nil];
-  [self setupFetchedResultsController];
-}
-
-- (void)dealloc {
-  [[NSNotificationCenter defaultCenter] removeObserver:self];
-}
-
-- (void)sidebarSelectionDidChange:(NSNotification *)notification {
-  id playlistObject = notification.userInfo[@"playlist"];
-  
-  if ([playlistObject isKindOfClass:[Playlist class]]) {
-     self.currentPlaylist = (Playlist *)playlistObject;
-   } else {
-     self.currentPlaylist = nil; // "All Music" selected
-   }
-  
-  [self updateFetchedResultsControllerForCurrentPlaylist];
-}
-
-- (void)updateFetchedResultsControllerForCurrentPlaylist {
-  NSPredicate *predicate = nil;
-  if (self.currentPlaylist != nil) {
-    predicate = [NSPredicate predicateWithFormat:@"ANY playlists == %@", self.currentPlaylist];
-  }
-  
-  self.fetchedResultsController.fetchRequest.predicate = predicate;
-  [self.fetchedResultsController performFetch:nil];
-  
-  self.tracks = (NSArray<Track *> *)[self.fetchedResultsController fetchedObjects];
-  [self.tableView reloadData];
 }
 
 - (void)selectCurrentTrack {
@@ -102,32 +99,16 @@
   }
 }
 
-- (void)tableViewClicked:(id)sender {
-  if (self.tableView.selectedRow >= 0) {
-    Track *selectedTrack = self.tracks[self.tableView.selectedRow];
-
-    [[PlaybackManager sharedManager] updateQueue:self.tracks];
-    [[PlaybackManager sharedManager] playTrack:selectedTrack];
-  }
-}
-
-- (void)setupFetchedResultsController {
-  _fetchedResultsController = [[CoreDataStore reader] fetchedResultsControllerForEntity:EntityNameTrack
-                                                                              predicate:nil
-                                                                        sortDescriptors:nil];
-  _fetchedResultsController.delegate = self;
-
-  NSError *error = nil;
-  if (![self.fetchedResultsController performFetch:&error]) {
-    NSLog(@"MusicViewController: Error loading tracks for fetched results: %@", error.localizedDescription);
-  } else {
-    self.tracks = (NSArray<Track *> *)[self.fetchedResultsController fetchedObjects];
-  }
-}
-
-- (void)setFetchedResultsPredicate:(NSPredicate *)predicate {
-  self.fetchedResultsController.fetchRequest.predicate = predicate;
-  [self.fetchedResultsController performFetch:nil];
+- (void)sidebarSelectionDidChange:(NSNotification *)notification {
+  id playlistObject = notification.userInfo[@"playlist"];
+  
+  if ([playlistObject isKindOfClass:[Playlist class]]) {
+     self.currentPlaylist = (Playlist *)playlistObject;
+   } else {
+     self.currentPlaylist = nil; // "All Music" selected
+   }
+  
+  [self updateFetchedResultsControllerForCurrentPlaylist];
 }
 
 #pragma mark - Drag & Drop methods
@@ -174,18 +155,6 @@
   [self importURL:resolvedURLs.firstObject];
 
   return YES;
-}
-
-- (void)importURL:(NSURL *)url {
-  [[BFTask taskFromExecutor:[BFExecutor defaultExecutor] withBlock:^id {
-    return [self.importService importAudioFileAtURL:url withPlaylist:self.currentPlaylist];
-  }] continueWithSuccessBlock:^id(BFTask<Track *> *task) {
-    Track *track = task.result;
-    if (track) {
-      [[PlaybackManager sharedManager] playTrack:track];
-    }
-    return nil;
-  }];
 }
 
 #pragma mark - NSFetchedResultsControllerDelegate
@@ -264,6 +233,46 @@
 
 - (CGFloat)tableView:(NSTableView *)tableView heightOfRow:(NSInteger)row {
   return 24.0;
+}
+
+#pragma mark - Private Helpers
+
+- (void)updateFetchedResultsControllerForCurrentPlaylist {
+  NSPredicate *predicate = nil;
+  if (self.currentPlaylist != nil) {
+    predicate = [NSPredicate predicateWithFormat:@"ANY playlists == %@", self.currentPlaylist];
+  }
+  
+  self.fetchedResultsController.fetchRequest.predicate = predicate;
+  [self.fetchedResultsController performFetch:nil];
+  
+  self.tracks = (NSArray<Track *> *)[self.fetchedResultsController fetchedObjects];
+  [self.tableView reloadData];
+}
+
+- (void)tableViewClicked:(id)sender {
+  if (self.tableView.selectedRow >= 0) {
+    Track *selectedTrack = self.tracks[self.tableView.selectedRow];
+
+    [[PlaybackManager sharedManager] updateQueue:self.tracks];
+    [[PlaybackManager sharedManager] playTrack:selectedTrack];
+  }
+}
+
+- (void)importURL:(NSURL *)url {
+  [[[[CoreDataStore reader] trackWithURL:url] continueWithBlock:^id(BFTask<Track *> *task) {
+    Track *track = task.result;
+    if (track) {
+      return task;
+    }
+    return [self.importService importAudioFileAtURL:url withPlaylist:self.currentPlaylist];
+  }] continueWithSuccessBlock:^id(BFTask<Track *> *task) {
+    Track *track = task.result;
+    if (track) {
+      [[PlaybackManager sharedManager] playTrack:track];
+    }
+    return nil;
+  }];
 }
 
 @end

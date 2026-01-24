@@ -322,6 +322,10 @@
   return [self objectForEntityName:EntityNameTrack uniqueID:uniqueID];
 }
 
+- (BFTask<Track *> *)trackWithURL:(NSURL *)url {
+  return [self firstObjectForEntity:EntityNameTrack predicate:[NSPredicate predicateWithFormat:@"fileURL == %@", [url path]]];
+}
+
 - (BFTask<NSArray<Track *> *> *)searchTracks:(NSString *)query {
   return [self allObjectsForEntity:EntityNameTrack
                           matching:[NSPredicate predicateWithFormat:@"title LIKE %@", query]

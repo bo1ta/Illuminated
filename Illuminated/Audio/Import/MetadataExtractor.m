@@ -61,19 +61,19 @@
 - (NSDictionary *)extractAudioFormatFromAudioTrack:(AVAssetTrack *)audioTrack {
   NSMutableDictionary *metadata = [NSMutableDictionary dictionary];
   if (audioTrack.estimatedDataRate > 0) {
-     metadata[@"bitrate"] = @((NSInteger)(audioTrack.estimatedDataRate / 1000));
+    metadata[@"bitrate"] = @((NSInteger)(audioTrack.estimatedDataRate / 1000));
   }
   
   NSArray *formatDescriptions = audioTrack.formatDescriptions;
-   if (formatDescriptions.count > 0) {
-     CMAudioFormatDescriptionRef desc = (__bridge CMAudioFormatDescriptionRef)formatDescriptions[0];
-     const AudioStreamBasicDescription *asbd = CMAudioFormatDescriptionGetStreamBasicDescription(desc);
-     if (asbd) {
-       metadata[@"sampleRate"] = @((NSInteger)asbd->mSampleRate);
-     }
-   }
-   
-   return [metadata copy];
+  if (formatDescriptions.count > 0) {
+    CMAudioFormatDescriptionRef desc = (__bridge CMAudioFormatDescriptionRef)formatDescriptions[0];
+    const AudioStreamBasicDescription *asbd = CMAudioFormatDescriptionGetStreamBasicDescription(desc);
+    if (asbd) {
+      metadata[@"sampleRate"] = @((NSInteger)asbd->mSampleRate);
+    }
+  }
+  
+  return [metadata copy];
 }
 
 - (NSDictionary *)applyFilenameFallback:(NSDictionary *)metadata audioURL:(NSURL *)audioURL {
@@ -82,31 +82,25 @@
   NSString *title = result[@"title"];
   NSString *artist = result[@"artist"];
   
-  // If both exist, we're done
   if (title && artist) {
     return result;
   }
   
-  // Get filename without extension
   NSString *filename = [[audioURL lastPathComponent] stringByDeletingPathExtension];
   
-  // Try to split by " - "
   NSArray *parts = [filename componentsSeparatedByString:@" - "];
   
   if (parts.count >= 2) {
-    // Format: "Artist - Title" or "Artist - Title - Extra Stuff"
     if (!artist) {
       result[@"artist"] = [parts[0] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
     }
     
     if (!title) {
-      // Join everything after the first " - " back together
       NSArray *titleParts = [parts subarrayWithRange:NSMakeRange(1, parts.count - 1)];
       NSString *fullTitle = [titleParts componentsJoinedByString:@" - "];
       result[@"title"] = [fullTitle stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
     }
   } else {
-    // No separator, just use filename as title
     if (!title) {
       result[@"title"] = filename;
     }
