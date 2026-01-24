@@ -18,6 +18,7 @@ NSString *const SidebarSelectionItemDidChange = @"SidebarSelectionChanged";
 @property(nonatomic, strong) NSFetchedResultsController *fetchedResultsController;
 @property(nonatomic, strong) NSArray<Playlist *> *playlists;
 @property(nonatomic, strong) NSMutableArray<SidebarItem *> *sidebarItems;
+@property(nonatomic, strong) id selectedRepresentedObject;
 
 @end
 
@@ -40,6 +41,7 @@ NSString *const SidebarSelectionItemDidChange = @"SidebarSelectionChanged";
   
   [self.outlineView reloadData];
   [self.outlineView expandItem:nil expandChildren:YES];
+  [self.outlineView selectRowIndexes:[NSIndexSet indexSetWithIndex:0] byExtendingSelection:NO];
 }
 
 #pragma mark - UI setup
