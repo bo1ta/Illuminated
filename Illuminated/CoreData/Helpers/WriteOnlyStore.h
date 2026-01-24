@@ -5,20 +5,20 @@
 //  Created by Alexandru Solomon on 18.01.2026.
 //
 
-#import "Album.h"
-#import "Artist.h"
 #import "BFTask.h"
-#import "Playlist.h"
-#import "Track.h"
 #import <Foundation/Foundation.h>
 
 NS_ASSUME_NONNULL_BEGIN
+
+@class Track, Album, Playlist, Artist;
 
 typedef id _Nullable (^WriteBlock)(NSManagedObjectContext *context);
 
 @protocol WriteOnlyStore<NSObject>
 
 - (BFTask *)performWrite:(WriteBlock)writeBlock;
+
+- (BFTask *)deleteObjectWithEntityName:(NSString *)entityName uniqueID:(NSUUID *)uniqueID;
 
 - (BFTask *)createAlbumWithTitle:(NSString *)title
                             year:(nullable NSNumber *)year
@@ -35,8 +35,7 @@ typedef id _Nullable (^WriteBlock)(NSManagedObjectContext *context);
                          bitrate:(int16_t)bitrate
                       sampleRate:(int16_t)sampleRate
                         duration:(double)duration;
-
-- (BFTask *)deleteObjectWithEntityName:(NSString *)entityName uniqueID:(NSUUID *)uniqueID;
+- (BFTask *)incrementPlayCountForTrack:(Track *)track;
 
 @end
 

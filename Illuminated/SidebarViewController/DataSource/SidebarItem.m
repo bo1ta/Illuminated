@@ -34,7 +34,11 @@
 
 - (NSString *)description {
   return [NSString stringWithFormat:@"<%@: %p; type=%ld; title=%@; icon=%@; children=%@>",
-                                    NSStringFromClass([self class]), self, (long)_type, _title, _iconName ?: @"nil",
+                                    NSStringFromClass([self class]),
+                                    self,
+                                    (long)_type,
+                                    _title,
+                                    _iconName ?: @"nil",
                                     _children ? @(_children.count) : @"nil"];
 }
 

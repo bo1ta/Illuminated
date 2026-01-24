@@ -23,9 +23,7 @@
 + (instancetype)sharedDataSource {
   static SidebarDataSource *sharedInstance = nil;
   static dispatch_once_t onceToken;
-  dispatch_once(&onceToken, ^{
-    sharedInstance = [[self alloc] init];
-  });
+  dispatch_once(&onceToken, ^{ sharedInstance = [[self alloc] init]; });
   return sharedInstance;
 }
 

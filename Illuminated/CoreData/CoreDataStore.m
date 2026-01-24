@@ -6,6 +6,10 @@
 //
 
 #import "CoreDataStore.h"
+#import "Album.h"
+#import "Artist.h"
+#import "Playlist.h"
+#import "Track.h"
 #import <Foundation/Foundation.h>
 
 @implementation CoreDataStore
@@ -15,17 +19,15 @@
 + (instancetype)shared {
   static CoreDataStore *sharedCoreDataStore = nil;
   static dispatch_once_t onceToken;
-  dispatch_once(&onceToken, ^{
-    sharedCoreDataStore = [[self alloc] init];
-  });
+  dispatch_once(&onceToken, ^{ sharedCoreDataStore = [[self alloc] init]; });
   return sharedCoreDataStore;
 }
 
-+ (id<ReadOnlyStore>)readOnlyStore {
++ (id<ReadOnlyStore>)reader {
   return [self shared];
 }
 
-+ (id<WriteOnlyStore>)writeOnlyStore {
++ (id<WriteOnlyStore>)writer {
   return [self shared];
 }
 
@@ -67,9 +69,7 @@
   [[self writerDerivedStorage] performBlock:^{
     [[self writerDerivedStorage] saveIfNeeded];
 
-    [[self viewContext] performBlock:^{
-      [[self viewContext] saveIfNeeded];
-    }];
+    [[self viewContext] performBlock:^{ [[self viewContext] saveIfNeeded]; }];
   }];
 }
 
@@ -136,13 +136,13 @@
 - (BFTask<NSArray *> *)allObjectsForEntity:(NSString *)entityName
                                   matching:(nullable NSPredicate *)predicate
                            sortDescriptors:(nullable NSArray<NSSortDescriptor *> *)sortDescriptors {
-  return [self performRead:^id _Nullable(NSManagedObjectContext *_Nonnull context) {
+  return [self performRead:^id(NSManagedObjectContext *context) {
     return [context allObjectsForEntityName:entityName predicate:predicate sortDescriptors:sortDescriptors ?: @[]];
   }];
 }
 
-- (BFTask *)firstObjectForEntity:(nonnull NSString *)entityName predicate:(nonnull NSPredicate *)predicate {
-  return [self performRead:^id _Nullable(NSManagedObjectContext *_Nonnull context) {
+- (BFTask *)firstObjectForEntity:(NSString *)entityName predicate:(NSPredicate *)predicate {
+  return [self performRead:^id(NSManagedObjectContext *context) {
     return [context firstObjectForEntityName:entityName predicate:predicate];
   }];
 }
@@ -211,7 +211,7 @@
   return [self objectForEntityName:EntityNameAlbum uniqueID:uniqueID];
 }
 
-- (BFTask<NSArray<Album *> *> *)albumsWithTitle:(nonnull NSString *)title artist:(nullable NSString *)artistName {
+- (BFTask<NSArray<Album *> *> *)albumsWithTitle:(NSString *)title artist:(nullable NSString *)artistName {
   NSPredicate *predicate = [NSPredicate predicateWithFormat:@"title LIKE %@", title];
   NSSortDescriptor *sort = [NSSortDescriptor sortDescriptorWithKey:@"year" ascending:NO];
   return [self allObjectsForEntity:EntityNameAlbum matching:predicate sortDescriptors:@[ sort ]];
@@ -225,7 +225,7 @@
   return [self allObjectsForEntity:EntityNameAlbum matching:nil sortDescriptors:nil];
 }
 
-- (BFTask<NSManagedObjectID *> *)createAlbumWithTitle:(nonnull NSString *)title
+- (BFTask<NSManagedObjectID *> *)createAlbumWithTitle:(NSString *)title
                                                  year:(nullable NSNumber *)year
                                           artworkPath:(nullable NSString *)artworkPath
                                              duration:(double)duration
@@ -253,7 +253,7 @@
   return [self objectForEntityName:EntityNameArtist uniqueID:uniqueID];
 }
 
-- (BFTask<Artist *> *)artistWithName:(nonnull NSString *)name {
+- (BFTask<Artist *> *)artistWithName:(NSString *)name {
   return [self firstObjectForEntity:EntityNameArtist predicate:[NSPredicate predicateWithFormat:@"name == %@", name]];
 }
 
@@ -261,7 +261,7 @@
   return [self countForEntity:EntityNameArtist];
 }
 
-- (BFTask *)createArtistWithName:(nonnull NSString *)name {
+- (BFTask *)createArtistWithName:(NSString *)name {
   return [self performWrite:^id(NSManagedObjectContext *context) {
     Artist *artist = [context firstObjectForEntityName:EntityNameArtist
                                              predicate:[NSPredicate predicateWithFormat:@"name == %@", name]];
@@ -285,7 +285,7 @@
   return [self objectForEntityName:EntityNamePlaylist uniqueID:uniqueID];
 }
 
-- (BFTask<Playlist *> *)playlistWithName:(nonnull NSString *)name {
+- (BFTask<Playlist *> *)playlistWithName:(NSString *)name {
   return [self firstObjectForEntity:EntityNamePlaylist
                           predicate:[NSPredicate predicateWithFormat:@"name LIKE %@", name]];
 }
@@ -300,7 +300,7 @@
   return [self objectForEntityName:EntityNameTrack uniqueID:uniqueID];
 }
 
-- (BFTask<NSArray<Track *> *> *)searchTracks:(nonnull NSString *)query {
+- (BFTask<NSArray<Track *> *> *)searchTracks:(NSString *)query {
   return [self allObjectsForEntity:EntityNameTrack
                           matching:[NSPredicate predicateWithFormat:@"title LIKE %@", query]
                    sortDescriptors:nil];
@@ -331,6 +331,18 @@
     [track setLastPlayed:[NSDate now]];
 
     return track;
+  }];
+}
+
+- (BFTask *)incrementPlayCountForTrack:(Track *)track {
+  NSManagedObjectID *objectID = track.objectID;
+  return [self performWrite:^id(NSManagedObjectContext *context) {
+    Track *object = [context objectWithID:objectID];
+    if (!object) return nil;
+
+    object.playCount += 1;
+    object.lastPlayed = [NSDate new];
+    return nil;
   }];
 }
 

@@ -73,11 +73,7 @@ __attribute__((noinline)) static size_t remaining_stack_size(size_t *restrict to
 + (instancetype)immediateExecutor {
   static BFExecutor *immediateExecutor = NULL;
   static dispatch_once_t onceToken;
-  dispatch_once(&onceToken, ^{
-    immediateExecutor = [self executorWithBlock:^void(void (^block)(void)) {
-      block();
-    }];
-  });
+  dispatch_once(&onceToken, ^{ immediateExecutor = [self executorWithBlock:^void(void (^block)(void)) { block(); }]; });
   return immediateExecutor;
 }
 
@@ -103,9 +99,7 @@ __attribute__((noinline)) static size_t remaining_stack_size(size_t *restrict to
 }
 
 + (instancetype)executorWithDispatchQueue:(dispatch_queue_t)queue {
-  return [self executorWithBlock:^void(void (^block)(void)) {
-    dispatch_async(queue, block);
-  }];
+  return [self executorWithBlock:^void(void (^block)(void)) { dispatch_async(queue, block); }];
 }
 
 + (instancetype)executorWithOperationQueue:(NSOperationQueue *)queue {
@@ -118,8 +112,7 @@ __attribute__((noinline)) static size_t remaining_stack_size(size_t *restrict to
 
 - (instancetype)initWithBlock:(void (^)(void (^block)(void)))block {
   self = [super init];
-  if (!self)
-    return self;
+  if (!self) return self;
 
   _block = block;
 

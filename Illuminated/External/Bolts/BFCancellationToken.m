@@ -37,8 +37,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (instancetype)init {
   self = [super init];
-  if (!self)
-    return self;
+  if (!self) return self;
 
   _registrations = [NSMutableArray array];
   _lock = [NSObject new];

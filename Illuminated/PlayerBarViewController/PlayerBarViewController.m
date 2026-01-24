@@ -11,10 +11,6 @@
 #import "Track.h"
 #import <AVFoundation/AVFoundation.h>
 
-@interface PlayerBarViewController ()
-
-@end
-
 @implementation PlayerBarViewController {
   __weak IBOutlet NSButton *previousButton;
   __weak IBOutlet NSImageView *trackArtwork;
@@ -39,6 +35,19 @@
 
   [controlsStackView setCustomSpacing:30.0 afterView:nextButton];
 
+  [[PlaybackManager sharedManager] setVolume:volumeSlider.floatValue];
+
+  [self setupNotifications];
+  [self updateTrackUI];
+}
+
+- (void)dealloc {
+  [[NSNotificationCenter defaultCenter] removeObserver:self];
+}
+
+#pragma mark - Notifications
+
+- (void)setupNotifications {
   NSNotificationCenter *nc = [NSNotificationCenter defaultCenter];
   [nc addObserver:self selector:@selector(updateTrackUI) name:PlaybackManagerTrackDidChangeNotification object:nil];
   [nc addObserver:self
@@ -49,14 +58,6 @@
          selector:@selector(updateProgress)
              name:PlaybackManagerPlaybackProgressDidChangeNotification
            object:nil];
-
-  [[PlaybackManager sharedManager] setVolume:50];
-
-  [self updateTrackUI];
-}
-
-- (void)dealloc {
-  [[NSNotificationCenter defaultCenter] removeObserver:self];
 }
 
 #pragma mark - UI updates
@@ -91,8 +92,7 @@
 }
 
 - (void)updateProgress {
-  if (_isScrubbing)
-    return;
+  if (_isScrubbing) return;
 
   PlaybackManager *manager = [PlaybackManager sharedManager];
   if (manager.currentTrack.duration > 0) {
@@ -113,7 +113,7 @@
 
   currentTimeLabel.stringValue = [self formatTime:newTime];
 
-  /// Reset flag after a tiny delay to allow the player to catch up
+  /// reset flag after a tiny delay to allow the player to catch up
   dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
     self->_isScrubbing = NO;
   });

@@ -5,14 +5,12 @@
 //  Created by Alexandru Solomon on 18.01.2026.
 //
 
-#import "Album.h"
-#import "Artist.h"
 #import "BFTask.h"
-#import "Playlist.h"
-#import "Track.h"
 #import <Foundation/Foundation.h>
 
 NS_ASSUME_NONNULL_BEGIN
+
+@class Track, Album, Playlist, Artist;
 
 typedef id _Nullable (^ReadBlock)(NSManagedObjectContext *context);
 typedef id _Nullable (^ReadBlockWithError)(NSManagedObjectContext *context, NSError **error);

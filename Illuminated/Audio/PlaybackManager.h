@@ -5,7 +5,7 @@
 //  Created by Alexandru Solomon on 22.01.2026.
 //
 
-#import <AVFoundation/AVFoundation.h>
+#import "Cocoa/Cocoa.h"
 
 @class Track;
 
@@ -22,6 +22,7 @@ extern NSString *const PlaybackManagerPlaybackProgressDidChangeNotification;
 @property(strong, readonly) Track *currentTrack;
 @property(assign, readonly) BOOL isPlaying;
 @property(assign, readonly) NSTimeInterval currentTime;
+@property(nonatomic, readonly) float volume;
 
 - (void)playTrack:(Track *)track;
 - (void)playNext;
@@ -30,6 +31,7 @@ extern NSString *const PlaybackManagerPlaybackProgressDidChangeNotification;
 - (void)setVolume:(float)volume;
 - (void)seekToTime:(NSTimeInterval)timeInterval;
 - (void)updateQueue:(NSArray<Track *> *)tracks;
+- (void)stop;
 
 @end
 

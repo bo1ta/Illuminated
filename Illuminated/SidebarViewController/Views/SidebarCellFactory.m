@@ -62,7 +62,8 @@
     [NSLayoutConstraint activateConstraints:@[
       [imageView.leadingAnchor constraintEqualToAnchor:cell.leadingAnchor constant:16],
       [imageView.centerYAnchor constraintEqualToAnchor:cell.centerYAnchor constant:0],
-      [imageView.widthAnchor constraintEqualToConstant:16], [imageView.heightAnchor constraintEqualToConstant:16],
+      [imageView.widthAnchor constraintEqualToConstant:16],
+      [imageView.heightAnchor constraintEqualToConstant:16],
 
       [textField.leadingAnchor constraintEqualToAnchor:imageView.trailingAnchor constant:8],
       [textField.trailingAnchor constraintEqualToAnchor:cell.trailingAnchor constant:-16],

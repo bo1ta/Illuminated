@@ -6,173 +6,217 @@
 //
 
 #import "TrackImportService.h"
+#import "Album.h"
+#import "Artist.h"
+#import "CoreDataStore.h"
+#import "Track.h"
 #import <AVFoundation/AVFoundation.h>
 #import <Foundation/Foundation.h>
+#import "BookmarkResolver.h"
+#import "MetadataExtractor.h"
+#import "NSDictionary+Merge.h"
+
+@interface TrackImportService ()
+@property(strong, nonatomic) MetadataExtractor *metadataExtractor;
+@end
 
 @implementation TrackImportService
 
-- (BFTask<Track *> *)importAudioFileAtURL:(NSURL *)fileURL {
-  NSError *bookmarkError = nil;
-  NSData *bookmark = [fileURL bookmarkDataWithOptions:NSURLBookmarkCreationWithSecurityScope
-                       includingResourceValuesForKeys:nil
-                                        relativeToURL:nil
-                                                error:&bookmarkError];
-  if (!bookmark) {
-    return [BFTask
-        taskWithError:bookmarkError
-                          ?: [NSError
-                                 errorWithDomain:@"ImportError"
-                                            code:500
-                                        userInfo:@{NSLocalizedDescriptionKey : @"Failed to create security bookmark"}]];
+- (instancetype)init
+{
+  self = [super init];
+  if (self) {
+    _metadataExtractor = [[MetadataExtractor alloc] init];
   }
-
-  return [[[[self extractMetadataFromAudioURL:fileURL]
-      continueWithSuccessBlock:^id _Nullable(BFTask<NSDictionary *> *_Nonnull task) {
-        NSDictionary *metadata = task.result;
-
-        NSString *title = metadata[@"title"] ?: [fileURL lastPathComponent];
-        NSString *artistName = metadata[@"artist"];
-        NSString *albumName = metadata[@"album"];
-        NSNumber *trackNumber = metadata[@"trackNumber"];
-        NSNumber *year = metadata[@"year"];
-        NSString *genre = metadata[@"genre"];
-        NSData *artworkData = metadata[@"artwork"];
-        NSNumber *duration = metadata[@"duration"];
-        NSNumber *bitrate = metadata[@"bitrate"];
-        NSNumber *sampleRate = metadata[@"sampleRate"];
-
-        return [[CoreDataStore writeOnlyStore] performWrite:^id(NSManagedObjectContext *context) {
-          Artist *artist = nil;
-          if (artistName) {
-            artist = [context firstObjectForEntityName:EntityNameArtist
-                                             predicate:[NSPredicate predicateWithFormat:@"name == %@", artistName]];
-            if (!artist) {
-              artist = [context insertNewObjectForEntityName:EntityNameArtist];
-              [artist setUniqueID:[NSUUID new]];
-              [artist setName:artistName];
-            }
-          }
-
-          Album *album = nil;
-          if (albumName) {
-            album = [context firstObjectForEntityName:EntityNameAlbum
-                                            predicate:[NSPredicate predicateWithFormat:@"title == %@", artistName]];
-            if (!album) {
-              album = [context insertNewObjectForEntityName:EntityNameAlbum];
-              album.uniqueID = [NSUUID new];
-              album.title = albumName;
-              album.artist = artist;
-            }
-          }
-
-          Track *track = [context firstObjectForEntityName:EntityNameTrack
-                                                 predicate:[NSPredicate predicateWithFormat:@"title == %@", title]];
-          if (!track) {
-            track = [context insertNewObjectForEntityName:EntityNameTrack];
-            track.uniqueID = [NSUUID new];
-            track.title = title;
-            track.trackNumber = [trackNumber intValue] ?: 0;
-            track.fileType = [fileURL pathExtension];
-            track.bitrate = [bitrate intValue] ?: 0;
-            track.sampleRate = [sampleRate intValue] ?: 0;
-            track.duration = [duration doubleValue] ?: 0.0;
-            track.fileURL = [fileURL path];
-            track.urlBookmark = bookmark;
-          }
-
-          return track;
-        }];
-      }] continueWithBlock:^id _Nullable(BFTask *_Nonnull task) {
-    if (task.error) {
-      NSLog(@"Error importing track: %@", task.error);
-    }
-
-    return task;
-  }] continueWithExecutor:[BFExecutor mainThreadExecutor]
-                withBlock:^id _Nullable(BFTask<Track *> *_Nonnull task) {
-                  NSManagedObjectID *objectID = task.result.objectID;
-                  if (objectID) {
-                    return [[CoreDataStore readOnlyStore] fetchObjectWithID:objectID];
-                  }
-                  return task;
-                }];
+  return self;
 }
 
+- (BFTask<Track *> *)importAudioFileAtURL:(NSURL *)fileURL {
+  NSError *error = nil;
+  NSData *bookmark = [BookmarkResolver bookmarkForURL:fileURL error:&error];
+  if (error) {
+    return [BFTask taskWithError:error];
+  }
+  
+  // clang-format off
+  return [[[self extractMetadataFromAudioURL:fileURL] continueWithSuccessBlock:^id(BFTask<NSDictionary *> *task) {
+    return [self saveTrackWithMetadata:task.result bookmark:bookmark fileURL:fileURL];
+  }] continueWithExecutor:[BFExecutor mainThreadExecutor] withBlock:^id(BFTask<Track *> *task) {
+    return [[CoreDataStore reader] fetchObjectWithID:task.result.objectID];
+  }];
+  // clang-format on
+}
+
+#pragma mark - Metadata Extraction
+
 - (BFTask<NSDictionary *> *)extractMetadataFromAudioURL:(NSURL *)audioURL {
-  BFTaskCompletionSource *source = [BFTaskCompletionSource taskCompletionSource];
-
-  // 1. Use AVURLAsset for better control
   AVURLAsset *asset = [AVURLAsset URLAssetWithURL:audioURL options:nil];
+  NSArray *keys = @[@"commonMetadata", @"availableMetadataFormats", @"duration", @"tracks"];
+  
+  return [[[self loadAssetWithKeys:keys asset:asset]
+    continueWithSuccessBlock:^id(BFTask<AVURLAsset *> *task) {
+      return [self extractAllMetadataFromAsset:task.result];
+    }]
+    continueWithSuccessBlock:^id(BFTask<NSDictionary *> *task) {
+      return [BFTask taskWithResult:[self.metadataExtractor applyFilenameFallback:task.result
+                                                                         audioURL:audioURL]];
+    }];
+}
 
-  // 2. Load BOTH commonMetadata and the general metadata (for ID3/Track info)
-  NSArray *keys = @[ @"commonMetadata", @"metadata", @"duration" ];
+- (BFTask<NSDictionary *> *)extractAllMetadataFromAsset:(AVURLAsset *)asset {
+  NSMutableDictionary *basicMetadata = [NSMutableDictionary dictionary];
+  
+  if (CMTIME_IS_VALID(asset.duration)) {
+    basicMetadata[@"duration"] = @(CMTimeGetSeconds(asset.duration));
+  }
+  
+  NSDictionary *commonMetadata = [self.metadataExtractor extractFromItems:asset.commonMetadata];
+  [basicMetadata addEntriesFromDictionary:commonMetadata];
+  
+  // clang-format off
+  return [[[self loadAudioTrackFromAsset:asset] continueWithSuccessBlock:^id(BFTask<AVAssetTrack *> *task) {
+      NSDictionary *audioFormat = [self.metadataExtractor extractAudioFormatFromAudioTrack:task.result];
+      return [BFTask taskWithResult:[basicMetadata dictionaryByMergingWithDictionary:audioFormat]];
+    }] continueWithSuccessBlock:^id(BFTask<NSDictionary *> *task) {
+      return [[self loadFormatSpecificMetadataFromAsset:asset] continueWithSuccessBlock:^id(BFTask<NSDictionary *> *formatTask) {
+          return [BFTask taskWithResult:[task.result dictionaryByMergingWithDictionary:formatTask.result]];
+        }];
+    }];
+  // clang-format on
+}
 
-  // Capture asset strongly to prevent deallocation
-  [asset loadValuesAsynchronouslyForKeys:keys
-                       completionHandler:^{
-                         @try {
-                           // Check status of ALL keys
-                           for (NSString *key in keys) {
-                             NSError *error = nil;
-                             if ([asset statusOfValueForKey:key error:&error] == AVKeyValueStatusFailed) {
-                               [source setError:error];
-                               return;
-                             }
-                           }
+- (BFTask<NSDictionary *> *)loadFormatSpecificMetadataFromAsset:(AVURLAsset *)asset {
+  NSArray<AVMetadataFormat> *formats = asset.availableMetadataFormats;
+  
+  if (formats.count == 0) {
+    return [BFTask taskWithResult:@{}];
+  }
+  
+  NSMutableArray<BFTask *> *tasks = [NSMutableArray array];
+  for (AVMetadataFormat format in formats) {
+    [tasks addObject:[self loadMetadataForFormat:format asset:asset]];
+  }
+  
+  return [[BFTask taskForCompletionOfAllTasks:tasks]
+    continueWithSuccessBlock:^id(BFTask *_) {
+      NSMutableArray *allItems = [NSMutableArray array];
+      for (BFTask<NSArray *> *task in tasks) {
+        if (task.result) {
+          [allItems addObjectsFromArray:task.result];
+        }
+      }
+      return [BFTask taskWithResult:[self.metadataExtractor extractFromItems:allItems]];
+    }];
+}
 
-                           NSMutableDictionary *metadata = [NSMutableDictionary dictionary];
+#pragma mark - Core Data Saving
 
-                           // Safe Duration
-                           if (CMTIME_IS_VALID(asset.duration)) {
-                             metadata[@"duration"] = @(CMTimeGetSeconds(asset.duration));
-                           }
+- (BFTask<Track *> *)saveTrackWithMetadata:(NSDictionary *)metadata
+                                  bookmark:(NSData *)bookmark
+                                   fileURL:(NSURL *)fileURL {
+  return [[CoreDataStore writer] performWrite:^id(NSManagedObjectContext *context) {
+    Artist *artist = [self findOrCreateArtist:metadata[@"artist"] inContext:context];
+    Album *album = [self findOrCreateAlbum:metadata[@"album"] artist:artist inContext:context];
 
-                           // Use the loaded metadata arrays directly
-                           NSArray *allMetadata = asset.metadata;
-                           NSArray *commonMetadata = asset.commonMetadata;
+    Track *track = [context firstObjectForEntityName:EntityNameTrack
+                                           predicate:[NSPredicate predicateWithFormat:@"fileURL == %@", [fileURL path]]];
+    if (!track) {
+      track = [context insertNewObjectForEntityName:EntityNameTrack];
+      track.uniqueID = [NSUUID new];
+      track.title = metadata[@"title"] ?: [fileURL lastPathComponent];
+      track.trackNumber = [metadata[@"trackNumber"] intValue];
+      track.fileType = [fileURL pathExtension];
+      track.bitrate = [metadata[@"bitrate"] intValue];
+      track.sampleRate = [metadata[@"sampleRate"] intValue];
+      track.duration = [metadata[@"duration"] doubleValue];
+      track.fileURL = [fileURL path];
+      track.urlBookmark = bookmark;
+    }
+    return track;
+  }];
+}
 
-                           // Process Common
-                           for (AVMetadataItem *item in commonMetadata) {
-                             NSString *key = [item commonKey];
-                             id value = [item value]; // Use 'value' instead of 'stringValue' for safety
+- (Artist *)findOrCreateArtist:(NSString *)artistName inContext:(NSManagedObjectContext *)context {
+  if (!artistName) return nil;
+  
+  Artist *artist = [context firstObjectForEntityName:EntityNameArtist
+                                           predicate:[NSPredicate predicateWithFormat:@"name == %@", artistName]];
+  if (!artist) {
+    artist = [context insertNewObjectForEntityName:EntityNameArtist];
+    artist.uniqueID = [NSUUID new];
+    artist.name = artistName;
+  }
+  return artist;
+}
 
-                             if (!key || !value)
-                               continue;
+- (Album *)findOrCreateAlbum:(NSString *)albumName
+                      artist:(Artist *)artist
+                   inContext:(NSManagedObjectContext *)context {
+  if (!albumName) return nil;
+  
+  NSPredicate *predicate;
+  if (artist) {
+    predicate = [NSPredicate predicateWithFormat:@"title == %@ AND artist == %@", albumName, artist];
+  } else {
+    predicate = [NSPredicate predicateWithFormat:@"title == %@", albumName];
+  }
+  
+  Album *album = [context firstObjectForEntityName:EntityNameAlbum predicate:predicate];
+  if (!album) {
+    album = [context insertNewObjectForEntityName:EntityNameAlbum];
+    album.uniqueID = [NSUUID new];
+    album.title = albumName;
+    album.artist = artist;
+  }
+  return album;
+}
 
-                             if ([key isEqualToString:AVMetadataCommonKeyTitle])
-                               metadata[@"title"] = [item stringValue];
-                             else if ([key isEqualToString:AVMetadataCommonKeyArtist])
-                               metadata[@"artist"] = [item stringValue];
-                             else if ([key isEqualToString:AVMetadataCommonKeyAlbumName])
-                               metadata[@"album"] = [item stringValue];
-                             else if ([key isEqualToString:AVMetadataCommonKeyArtwork])
-                               metadata[@"artwork"] = [item dataValue];
-                           }
+#pragma mark - Async Wrappers
 
-                           // Process ID3/Track Number safely from the already loaded 'allMetadata'
-                           NSArray *trackItems =
-                               [AVMetadataItem metadataItemsFromArray:allMetadata
-                                                              withKey:AVMetadataID3MetadataKeyTrackNumber
-                                                             keySpace:AVMetadataKeySpaceID3];
-                           if (trackItems.count > 0) {
-                             NSString *trackString = [trackItems.firstObject stringValue];
-                             if (trackString) {
-                               metadata[@"trackNumber"] =
-                                   @([[trackString componentsSeparatedByString:@"/"].firstObject integerValue]);
-                             }
-                           }
+- (BFTask<AVURLAsset *> *)loadAssetWithKeys:(NSArray *)keys asset:(AVURLAsset *)asset {
+  BFTaskCompletionSource *source = [BFTaskCompletionSource taskCompletionSource];
+  
+  [asset loadValuesAsynchronouslyForKeys:keys completionHandler:^{
+    NSError *error = nil;
+    for (NSString *key in keys) {
+      if ([asset statusOfValueForKey:key error:&error] == AVKeyValueStatusFailed) {
+        [source setError:error];
+        return;
+      }
+    }
+    [source setResult:asset];
+  }];
+  
+  return source.task;
+}
 
-                           NSLog(@"DEBUG: Successfully parsed all metadata. Setting result.");
-                           [source setResult:[metadata copy]];
+- (BFTask<AVAssetTrack *> *)loadAudioTrackFromAsset:(AVURLAsset *)asset {
+  BFTaskCompletionSource *source = [BFTaskCompletionSource taskCompletionSource];
+  
+  [asset loadTracksWithMediaType:AVMediaTypeAudio completionHandler:^(NSArray<AVAssetTrack *> *tracks, NSError *error) {
+    if (error) {
+      [source setError:error];
+    } else if (tracks.firstObject) {
+      [source setResult:tracks.firstObject];
+    } else {
+      [source setError:[NSError errorWithDomain:@"ImportError"
+                                           code:-1
+                                       userInfo:@{NSLocalizedDescriptionKey: @"No audio track found"}]];
+    }
+  }];
+  
+  return source.task;
+}
 
-                         } @catch (NSException *e) {
-                           NSLog(@"DEBUG: Caught exception: %@", e);
-                           [source setError:[NSError errorWithDomain:@"ImportError"
-                                                                code:-1
-                                                            userInfo:@{NSLocalizedDescriptionKey : e.reason}]];
-                         }
-                       }];
-
+- (BFTask<NSArray<AVMetadataItem *> *> *)loadMetadataForFormat:(AVMetadataFormat)format
+                                                          asset:(AVURLAsset *)asset {
+  BFTaskCompletionSource *source = [BFTaskCompletionSource taskCompletionSource];
+  
+  [asset loadMetadataForFormat:format completionHandler:^(NSArray<AVMetadataItem *> *items, NSError *error) {
+    NSLog(@"Error loading metadata: %@", error.localizedDescription);
+    [source setResult:items ?: @[]];
+  }];
+  
   return source.task;
 }
 

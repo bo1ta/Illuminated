@@ -30,8 +30,8 @@ static EntityName const EntityNamePlaylist = @"Playlist";
 @property(readonly) NSManagedObjectContext *writerDerivedStorage;
 
 + (instancetype)shared;
-+ (id<ReadOnlyStore>)readOnlyStore;
-+ (id<WriteOnlyStore>)writeOnlyStore;
++ (id<ReadOnlyStore>)reader;
++ (id<WriteOnlyStore>)writer;
 
 @end
 

@@ -4,12 +4,18 @@ ColumnLimit: 120
 IndentWidth: 2
 ContinuationIndentWidth: 4
 ObjCSpaceBeforeProtocolList: false
-AllowShortBlocksOnASingleLine: Never
-AllowShortIfStatementsOnASingleLine: false
+
+AllowShortBlocksOnASingleLine: Empty
+AllowShortLambdasOnASingleLine: All
+AllowShortIfStatementsOnASingleLine: true
 AllowShortFunctionsOnASingleLine: None
+
 AlwaysBreakBeforeMultilineStrings: false
 BreakBeforeBraces: Attach
 PointerAlignment: Right
 ObjCBlockIndentWidth: 2
 SpacesBeforeTrailingComments: 1
+
+BinPackParameters: false
+BinPackArguments: false
 ---

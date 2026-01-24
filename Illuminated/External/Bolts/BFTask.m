@@ -43,8 +43,7 @@ NSString *const BFTaskMultipleErrorsUserInfoKey = @"errors";
 
 - (instancetype)init {
   self = [super init];
-  if (!self)
-    return self;
+  if (!self) return self;
 
   _lock = [[NSObject alloc] init];
   _condition = [[NSCondition alloc] init];
@@ -55,8 +54,7 @@ NSString *const BFTaskMultipleErrorsUserInfoKey = @"errors";
 
 - (instancetype)initWithResult:(nullable id)result {
   self = [super init];
-  if (!self)
-    return self;
+  if (!self) return self;
 
   [self trySetResult:result];
 
@@ -65,8 +63,7 @@ NSString *const BFTaskMultipleErrorsUserInfoKey = @"errors";
 
 - (instancetype)initWithError:(NSError *)error {
   self = [super init];
-  if (!self)
-    return self;
+  if (!self) return self;
 
   [self trySetError:error];
 
@@ -75,8 +72,7 @@ NSString *const BFTaskMultipleErrorsUserInfoKey = @"errors";
 
 - (instancetype)initCancelled {
   self = [super init];
-  if (!self)
-    return self;
+  if (!self) return self;
 
   [self trySetCancelled];
 
@@ -144,9 +140,8 @@ NSString *const BFTaskMultipleErrorsUserInfoKey = @"errors";
 }
 
 + (instancetype)taskForCompletionOfAllTasksWithResults:(nullable NSArray<BFTask *> *)tasks {
-  return [[self taskForCompletionOfAllTasks:tasks] continueWithSuccessBlock:^id(BFTask *__unused task) {
-    return [tasks valueForKey:@"result"];
-  }];
+  return [[self taskForCompletionOfAllTasks:tasks]
+      continueWithSuccessBlock:^id(BFTask *__unused task) { return [tasks valueForKey:@"result"]; }];
 }
 
 + (instancetype)taskForCompletionOfAnyTask:(nullable NSArray<BFTask *> *)tasks {
@@ -173,8 +168,8 @@ NSString *const BFTaskMultipleErrorsUserInfoKey = @"errors";
       } else {
         // Compare-and-swap: if completed is 0, set it to 1
         int32_t expected = 0;
-        if (atomic_compare_exchange_strong_explicit(&completed, &expected, 1, memory_order_acq_rel,
-                                                    memory_order_relaxed)) {
+        if (atomic_compare_exchange_strong_explicit(
+                &completed, &expected, 1, memory_order_acq_rel, memory_order_relaxed)) {
           [source setResult:t.result];
         }
       }
@@ -182,8 +177,8 @@ NSString *const BFTaskMultipleErrorsUserInfoKey = @"errors";
       // Check if this is the last task AND we haven't completed yet
       int32_t expected = 0;
       if (atomic_fetch_sub_explicit(&total, 1, memory_order_acq_rel) == 1 &&
-          atomic_compare_exchange_strong_explicit(&completed, &expected, 1, memory_order_acq_rel,
-                                                  memory_order_relaxed)) {
+          atomic_compare_exchange_strong_explicit(
+              &completed, &expected, 1, memory_order_acq_rel, memory_order_relaxed)) {
         int32_t cancelledCount = atomic_load_explicit(&cancelled, memory_order_relaxed);
 
         if (cancelledCount > 0) {
@@ -209,9 +204,7 @@ NSString *const BFTaskMultipleErrorsUserInfoKey = @"errors";
 + (BFTask<BFVoid> *)taskWithDelay:(int)millis {
   BFTaskCompletionSource *tcs = [BFTaskCompletionSource taskCompletionSource];
   dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, millis * NSEC_PER_MSEC);
-  dispatch_after(popTime, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^(void) {
-    tcs.result = nil;
-  });
+  dispatch_after(popTime, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^(void) { tcs.result = nil; });
   return tcs.task;
 }
 
@@ -233,10 +226,7 @@ NSString *const BFTaskMultipleErrorsUserInfoKey = @"errors";
 }
 
 + (instancetype)taskFromExecutor:(BFExecutor *)executor withBlock:(nullable id (^)(void))block {
-  return [[self taskWithResult:nil] continueWithExecutor:executor
-                                               withBlock:^id(BFTask *_) {
-                                                 return block();
-                                               }];
+  return [[self taskWithResult:nil] continueWithExecutor:executor withBlock:^id(BFTask *_) { return block(); }];
 }
 
 #pragma mark - Custom Setters/Getters
@@ -368,9 +358,7 @@ NSString *const BFTaskMultipleErrorsUserInfoKey = @"errors";
   @synchronized(self.lock) {
     completed = self.completed;
     if (!completed) {
-      [self.callbacks addObject:[^{
-                        [executor execute:executionBlock];
-                      } copy]];
+      [self.callbacks addObject:[^{ [executor execute:executionBlock]; } copy]];
     }
   }
   if (completed) {
@@ -466,8 +454,12 @@ NSString *const BFTaskMultipleErrorsUserInfoKey = @"errors";
   // Description string includes status information and, if available, the
   // result since in some ways this is what a promise actually "is".
   return [NSString stringWithFormat:@"<%@: %p; completed = %@; cancelled = %@; faulted = %@;%@>",
-                                    NSStringFromClass([self class]), self, completed ? @"YES" : @"NO",
-                                    cancelled ? @"YES" : @"NO", faulted ? @"YES" : @"NO", resultDescription];
+                                    NSStringFromClass([self class]),
+                                    self,
+                                    completed ? @"YES" : @"NO",
+                                    cancelled ? @"YES" : @"NO",
+                                    faulted ? @"YES" : @"NO",
+                                    resultDescription];
 }
 
 @end

@@ -37,7 +37,10 @@
                     <imageCell key="cell" refusesFirstResponder="YES" alignment="left" imageScaling="proportionallyDown" id="IXM-eP-c5c"/>
                 </imageView>
                 <textField focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="g3Z-pj-EbQ">
-                    <rect key="frame" x="89" y="34" width="78" height="16"/>
+                    <rect key="frame" x="89" y="34" width="119" height="16"/>
+                    <constraints>
+                        <constraint firstAttribute="width" constant="115" id="n4v-nd-WII"/>
+                    </constraints>
                     <textFieldCell key="cell" lineBreakMode="clipping" title="Track Name" id="PkG-UH-cju">
                         <font key="font" metaFont="systemMedium" size="13"/>
                         <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
@@ -47,7 +50,7 @@
                 <textField focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="qab-q3-5Ya">
                     <rect key="frame" x="89" y="15" width="67" height="14"/>
                     <textFieldCell key="cell" lineBreakMode="clipping" title="Artist Name" id="MDE-4p-Fgj">
-                        <font key="font" metaFont="system" size="11"/>
+                        <font key="font" metaFont="smallSystem"/>
                         <color key="textColor" name="secondaryLabelColor" catalog="System" colorSpace="catalog"/>
                         <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                     </textFieldCell>
@@ -134,7 +137,7 @@
                         </imageView>
                         <slider verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="XKA-cv-r4Z">
                             <rect key="frame" x="33" y="-2" width="96" height="17"/>
-                            <sliderCell key="cell" controlSize="mini" continuous="YES" state="on" alignment="left" maxValue="100" doubleValue="50" tickMarkPosition="above" sliderType="linear" id="37c-G9-ndl"/>
+                            <sliderCell key="cell" controlSize="mini" continuous="YES" state="on" alignment="left" maxValue="1" doubleValue="0.5" tickMarkPosition="above" sliderType="linear" id="37c-G9-ndl"/>
                             <connections>
                                 <action selector="volumeDidChange:" target="-2" id="hRk-TG-cxi"/>
                             </connections>
@@ -155,7 +158,7 @@
                 <slider verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="8DK-dt-Zb1">
                     <rect key="frame" x="18" y="101" width="764" height="28"/>
                     <sliderCell key="cell" state="on" alignment="left" maxValue="1" tickMarkPosition="above" sliderType="linear" id="5Xc-4S-ciZ">
-                        <font key="font" metaFont="system" size="12"/>
+                        <font key="font" metaFont="cellTitle"/>
                     </sliderCell>
                     <connections>
                         <action selector="progressDidChange:" target="-2" id="Wyo-92-Tpq"/>

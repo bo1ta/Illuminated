@@ -6,7 +6,10 @@
 //
 
 #import "MusicViewController.h"
+#import "Album.h"
+#import "Artist.h"
 #import "PlaybackManager.h"
+#import "Track.h"
 
 @interface MusicViewController ()
 
@@ -48,9 +51,9 @@
 }
 
 - (void)setupFetchedResultsController {
-  _fetchedResultsController = [[CoreDataStore readOnlyStore] fetchedResultsControllerForEntity:EntityNameTrack
-                                                                                     predicate:nil
-                                                                               sortDescriptors:nil];
+  _fetchedResultsController = [[CoreDataStore reader] fetchedResultsControllerForEntity:EntityNameTrack
+                                                                              predicate:nil
+                                                                        sortDescriptors:nil];
   _fetchedResultsController.delegate = self;
 
   NSError *error = nil;
@@ -76,8 +79,7 @@
   NSPasteboard *pasteboard = [info draggingPasteboard];
   NSArray<NSURL *> *fileURLs = [pasteboard readObjectsForClasses:@[ [NSURL class] ] options:@{}];
 
-  if (fileURLs.count == 0)
-    return NO;
+  if (fileURLs.count == 0) return NO;
 
   NSMutableArray<NSURL *> *resolvedURLs = [NSMutableArray array];
   NSSet *audioExtensions = [NSSet setWithArray:@[ @"mp3", @"m4a", @"wav", @"aiff", @"flac", @"aac", @"ogg", @"wma" ]];
@@ -91,8 +93,7 @@
     }
   }
 
-  if (resolvedURLs.count == 0)
-    return NO;
+  if (resolvedURLs.count == 0) return NO;
 
   [self importURL:resolvedURLs.firstObject];
 
@@ -168,18 +169,21 @@
     cell.textField.stringValue = track.album.title ?: @"Unknown";
     cell.textField.alignment = NSTextAlignmentLeft;
   } else if ([columnIdentifier isEqualToString:@"TimeColumn"]) {
-    cell.textField.stringValue = [NSString stringWithFormat:@"%f", track.duration];
+    cell.textField.stringValue = [self formatTime:track.duration];
     cell.textField.alignment = NSTextAlignmentRight;
   }
 
   return cell;
 }
 
-- (CGFloat)tableView:(NSTableView *)tableView heightOfRow:(NSInteger)row {
-  return 24.0;
+- (NSString *)formatTime:(NSTimeInterval)seconds {
+  NSInteger mins = (NSInteger)seconds / 60;
+  NSInteger secs = (NSInteger)seconds % 60;
+  return [NSString stringWithFormat:@"%ld:%02ld", mins, secs];
 }
 
-- (void)tableView:(NSTableView *)tableView sortDescriptorsDidChange:(NSArray<NSSortDescriptor *> *)oldDescriptors {
+- (CGFloat)tableView:(NSTableView *)tableView heightOfRow:(NSInteger)row {
+  return 24.0;
 }
 
 @end

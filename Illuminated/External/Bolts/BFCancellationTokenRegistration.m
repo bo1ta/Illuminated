@@ -40,8 +40,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (instancetype)init {
   self = [super init];
-  if (!self)
-    return self;
+  if (!self) return self;
 
   _lock = [NSObject new];
 
