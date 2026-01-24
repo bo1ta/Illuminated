@@ -33,6 +33,8 @@ extern NSString *const PlaybackManagerPlaybackProgressDidChangeNotification;
 - (void)updateQueue:(NSArray<Track *> *)tracks;
 - (void)stop;
 
+- (NSURL *)currentPlaybackURL;
+
 @end
 
 NS_ASSUME_NONNULL_END

@@ -37,8 +37,34 @@
 
   [self.tableView registerForDraggedTypes:@[ NSPasteboardTypeFileURL ]];
   self.tableView.draggingDestinationFeedbackStyle = NSTableViewDraggingDestinationFeedbackStyleRegular;
+  
+  [[NSNotificationCenter defaultCenter] addObserver:self
+                                           selector:@selector(selectCurrentTrack)
+                                               name:PlaybackManagerTrackDidChangeNotification
+                                             object:nil];
 
   [self setupFetchedResultsController];
+}
+
+- (void)dealloc {
+  [[NSNotificationCenter defaultCenter] removeObserver:self];
+}
+
+- (void)selectCurrentTrack {
+  dispatch_async(dispatch_get_main_queue(), ^{
+    [self.tableView reloadData];
+  });
+  
+  Track *playingTrack = [[PlaybackManager sharedManager] currentTrack];
+  if (playingTrack.bpm <= 0) {
+    NSURL *currentURL = [[PlaybackManager sharedManager] currentPlaybackURL];
+    [[BFTask taskFromExecutor:[BFExecutor defaultExecutor] withBlock:^id {
+      return [self.importService analyzeBPMForTrackURL:currentURL];
+    }] continueWithExecutor:[BFExecutor mainThreadExecutor] withSuccessBlock:^id(BFTask<Track *> *task) {
+      [[NSNotificationCenter defaultCenter] postNotificationName:PlaybackManagerTrackDidChangeNotification object:nil];
+      return task;
+    }];
+  }
 }
 
 - (void)tableViewClicked:(id)sender {
@@ -101,17 +127,12 @@
 }
 
 - (void)importURL:(NSURL *)url {
-  [[[BFTask taskWithDelay:0] continueWithExecutor:[BFExecutor defaultExecutor]
-                                        withBlock:^id(BFTask<BFVoid> *_) {
-                                          return [self.importService importAudioFileAtURL:url];
-                                        }] continueWithBlock:^id(BFTask<Track *> *task) {
-    if (task.error) {
-      NSLog(@"Final Task Error: %@", task.error);
-    } else {
-      Track *track = task.result;
-      if (track) {
-        [[PlaybackManager sharedManager] playTrack:track];
-      }
+  [[BFTask taskFromExecutor:[BFExecutor defaultExecutor] withBlock:^id {
+    return [self.importService importAudioFileAtURL:url];
+  }] continueWithSuccessBlock:^id(BFTask<Track *> *task) {
+    Track *track = task.result;
+    if (track) {
+      [[PlaybackManager sharedManager] playTrack:track];
     }
     return nil;
   }];
@@ -156,9 +177,16 @@
   }
 
   Track *track = self.tracks[row];
+  Track *playingTrack = [[PlaybackManager sharedManager] currentTrack];
+  BOOL isPlaying = track && playingTrack && [track.objectID isEqual:playingTrack.objectID];
+  
   if ([columnIdentifier isEqualToString:@"NumberColumn"]) {
-    cell.textField.stringValue = [NSString stringWithFormat:@"%ld", (long)row];
     cell.textField.alignment = NSTextAlignmentCenter;
+    if (isPlaying) {
+      cell.textField.stringValue = @"▶";
+    } else {
+      cell.textField.stringValue = [NSString stringWithFormat:@"%ld", (long)row + 1];
+    }
   } else if ([columnIdentifier isEqualToString:@"SongColumn"]) {
     cell.textField.stringValue = track.title;
     cell.textField.alignment = NSTextAlignmentLeft;
@@ -172,7 +200,9 @@
     cell.textField.stringValue = [self formatTime:track.duration];
     cell.textField.alignment = NSTextAlignmentRight;
   }
-
+  
+  cell.textField.font = isPlaying ? [NSFont boldSystemFontOfSize:13] : [NSFont systemFontOfSize:13];
+  
   return cell;
 }
 

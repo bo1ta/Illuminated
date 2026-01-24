@@ -1,9 +1,10 @@
-/*
- * BPMAnalyzer.mm
- * Illuminated
- *
- * Created by Antigravity on 2026-01-24.
- */
+//
+//  BPMAnalyzer.mm
+//
+//
+//  Created by Alexandru Solomon on 24.01.2026.
+//
+//
 
 #import "BPMAnalyzer.h"
 #import "BFExecutor.h"

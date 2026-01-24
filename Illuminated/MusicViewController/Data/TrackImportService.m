@@ -31,6 +31,21 @@
   return self;
 }
 
+- (BFTask<Track *> *)analyzeBPMForTrackURL:(NSURL *)trackURL {
+  AVURLAsset *asset = [AVURLAsset URLAssetWithURL:trackURL options:nil];
+  return [[[[self loadAudioTrackFromAsset:asset] continueWithSuccessBlock:^id(BFTask<AVAssetTrack *> *task) {
+    return [BPMAnalyzer analyzeBPMForAssetTrack:task.result];
+  }] continueWithSuccessBlock:^id(BFTask<NSNumber *> *task) {
+    return [self updateBPMForTrackWithFileURL:trackURL bpm:task.result];
+  }] continueWithBlock:^id(BFTask *task) {
+    if (task.error) {
+      NSLog(@"Error analyzing bpm for track: %@", task.error.localizedDescription);
+    }
+    
+    return task;
+  }];
+}
+
 - (BFTask<Track *> *)importAudioFileAtURL:(NSURL *)fileURL {
   NSError *error = nil;
   NSData *bookmark = [BookmarkResolver bookmarkForURL:fileURL error:&error];
@@ -123,6 +138,19 @@
 }
 
 #pragma mark - Core Data Saving
+
+- (BFTask<Track *> *)updateBPMForTrackWithFileURL:(NSURL *)fileURL bpm:(NSNumber *)bpm {
+  return [[CoreDataStore writer] performWrite:^id(NSManagedObjectContext *context) {
+    Track *track =
+        [context firstObjectForEntityName:EntityNameTrack
+                                predicate:[NSPredicate predicateWithFormat:@"fileURL == %@", [fileURL path]]];
+    if (track) {
+      track.bpm = [bpm floatValue];
+      return track;
+    }
+    return nil;
+  }];
+}
 
 - (BFTask<Track *> *)saveTrackWithMetadata:(NSDictionary *)metadata
                                   bookmark:(NSData *)bookmark

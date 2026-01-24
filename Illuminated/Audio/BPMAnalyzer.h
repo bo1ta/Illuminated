@@ -1,9 +1,10 @@
-/*
- * BPMAnalyzer.h
- * Illuminated
- *
- * Created by Antigravity on 2026-01-24.
- */
+//
+//  BPMAnalyzer.h
+//
+//
+//  Created by Alexandru Solomon on 24.01.2026.
+//
+//
 
 #import "BFTask.h"
 #import <Foundation/Foundation.h>

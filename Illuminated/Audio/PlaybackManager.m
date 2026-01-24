@@ -93,6 +93,10 @@ static const NSTimeInterval kProgressTimerInterval = 0.5;
   [self.queue setTracks:tracks];
 }
 
+- (NSURL *)currentPlaybackURL {
+  return self.currentFile.url;
+}
+
 #pragma mark - Playback
 
 - (void)playTrack:(Track *)track {
