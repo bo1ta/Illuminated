@@ -42,6 +42,8 @@ NSString *const SidebarSelectionItemDidChange = @"SidebarSelectionChanged";
   [self.outlineView reloadData];
   [self.outlineView expandItem:nil expandChildren:YES];
   [self.outlineView selectRowIndexes:[NSIndexSet indexSetWithIndex:0] byExtendingSelection:NO];
+  
+  [self.outlineView registerForDraggedTypes:@[@"com.illuminated.track"]];
 }
 
 #pragma mark - UI setup
@@ -189,6 +191,43 @@ NSString *const SidebarSelectionItemDidChange = @"SidebarSelectionChanged";
 
 - (BOOL)outlineView:(NSOutlineView *)outlineView isGroupItem:(id)item {
   return [(SidebarItem *)item children] != nil;
+}
+
+#pragma mark - Drop Target
+
+- (NSDragOperation)outlineView:(NSOutlineView *)outlineView validateDrop:(id<NSDraggingInfo>)info proposedItem:(id)item proposedChildIndex:(NSInteger)index {
+  if (item != nil && ![self outlineView:outlineView isGroupItem:item]) {
+     SidebarItem *sidebarItem = (SidebarItem *)item;
+     
+     if ([sidebarItem.representedObject isKindOfClass:[Playlist class]]) {
+       [outlineView setDropItem:item dropChildIndex:NSOutlineViewDropOnItemIndex];
+       return NSDragOperationCopy;
+     }
+   }
+   
+   return NSDragOperationNone;
+}
+
+- (BOOL)outlineView:(NSOutlineView *)outlineView
+         acceptDrop:(id<NSDraggingInfo>)info
+               item:(id)item
+         childIndex:(NSInteger)index {
+  SidebarItem *sidebarItem = (SidebarItem *)item;
+  Playlist *targetPlaylist = (Playlist *)sidebarItem.representedObject;
+  
+  // Get the dragged track ID
+  NSPasteboard *pasteboard = [info draggingPasteboard];
+  NSString *trackUUIDString = [pasteboard stringForType:@"com.illuminated.track"];
+  
+  if (trackUUIDString == nil) {
+    return NO;
+  }
+  
+  NSUUID *trackUUID = [[NSUUID alloc] initWithUUIDString:trackUUIDString];
+  
+  [[CoreDataStore writer] addTrackWithUUID:trackUUID toPlaylist:targetPlaylist];
+  
+  return YES;
 }
 
 #pragma mark - NSOutlineViewDelegate

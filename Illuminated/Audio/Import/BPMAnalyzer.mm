@@ -108,7 +108,6 @@
     }
     
     double bpm = [self internalAnalyzeBPM:data sampleRate:sampleRate];
-    NSLog(@"BPM IS: %f", bpm);
     return @(bpm);
   }];
 }

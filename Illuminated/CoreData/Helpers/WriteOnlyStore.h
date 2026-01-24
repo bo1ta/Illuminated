@@ -38,6 +38,7 @@ typedef id _Nullable (^WriteBlock)(NSManagedObjectContext *context);
 - (BFTask *)incrementPlayCountForTrack:(Track *)track;
 
 - (BFTask *)createPlaylistWithName:(NSString *)name;
+- (BFTask *)addTrackWithUUID:(NSUUID *)uuid toPlaylist:(Playlist *)playlist;
 
 @end
 

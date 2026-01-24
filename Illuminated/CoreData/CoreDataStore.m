@@ -298,6 +298,20 @@
   }];
 }
 
+- (BFTask *)addTrackWithUUID:(NSUUID *)uuid toPlaylist:(Playlist *)playlist {
+  NSManagedObjectID *playlistObjectID = playlist.objectID;
+  return [self performWrite:^id(NSManagedObjectContext *context) {
+    Playlist *safePlaylist = [context objectWithID:playlistObjectID];
+    if (!safePlaylist) return nil;
+    
+    Track *track = [context firstObjectForEntityName:EntityNameTrack predicate:[NSPredicate predicateWithFormat:@"uniqueID == %@", uuid]];
+    if (!track) return nil;
+    
+    [safePlaylist addTracksObject:track];
+    return safePlaylist;
+  }];
+}
+
 #pragma mark - Track
 
 - (BFTask<NSArray<Track *> *> *)allTracks {

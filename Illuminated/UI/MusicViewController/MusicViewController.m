@@ -41,8 +41,9 @@
   self.tableView.doubleAction = @selector(tableViewClicked:);
 
   [self.tableView registerForDraggedTypes:@[ NSPasteboardTypeFileURL ]];
+  [self.tableView setDraggingSourceOperationMask:NSDragOperationCopy forLocal:YES];
   self.tableView.draggingDestinationFeedbackStyle = NSTableViewDraggingDestinationFeedbackStyleRegular;
-  
+
   [[NSNotificationCenter defaultCenter] addObserver:self
                                            selector:@selector(selectCurrentTrack)
                                                name:PlaybackManagerTrackDidChangeNotification
@@ -130,6 +131,15 @@
 }
 
 #pragma mark - Drag & Drop methods
+
+- (id<NSPasteboardWriting>)tableView:(NSTableView *)tableView pasteboardWriterForRow:(NSInteger)row {
+  Track *track = self.tracks[row];
+  
+  NSPasteboardItem *item = [[NSPasteboardItem alloc] init];
+  [item setString:track.uniqueID.UUIDString forType:@"com.illuminated.track"];
+  
+  return item;
+}
 
 - (NSDragOperation)tableView:(NSTableView *)tableView
                 validateDrop:(id<NSDraggingInfo>)info
