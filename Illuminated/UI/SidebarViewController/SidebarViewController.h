@@ -10,6 +10,7 @@
 NS_ASSUME_NONNULL_BEGIN
 
 extern NSString *const SidebarSelectionItemDidChange;
+extern NSString *const PasteboardItemTypeTrack;
 
 @class SidebarViewController;
 

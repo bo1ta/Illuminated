@@ -11,7 +11,12 @@
 #import "SidebarCellFactory.h"
 #import "SidebarItem.h"
 
+#pragma mark - Constants
+
 NSString *const SidebarSelectionItemDidChange = @"SidebarSelectionChanged";
+NSString *const PasteboardItemTypeTrack = @"com.illuminated.track";
+
+#pragma mark - Interface
 
 @interface SidebarViewController () <NSFetchedResultsControllerDelegate>
 
@@ -21,6 +26,8 @@ NSString *const SidebarSelectionItemDidChange = @"SidebarSelectionChanged";
 @property(nonatomic, strong) id selectedRepresentedObject;
 
 @end
+
+#pragma mark - Implementation
 
 @implementation SidebarViewController
 
@@ -43,7 +50,7 @@ NSString *const SidebarSelectionItemDidChange = @"SidebarSelectionChanged";
   [self.outlineView expandItem:nil expandChildren:YES];
   [self.outlineView selectRowIndexes:[NSIndexSet indexSetWithIndex:0] byExtendingSelection:NO];
   
-  [self.outlineView registerForDraggedTypes:@[@"com.illuminated.track"]];
+  [self.outlineView registerForDraggedTypes:@[PasteboardItemTypeTrack]];
 }
 
 #pragma mark - UI setup
@@ -215,9 +222,8 @@ NSString *const SidebarSelectionItemDidChange = @"SidebarSelectionChanged";
   SidebarItem *sidebarItem = (SidebarItem *)item;
   Playlist *targetPlaylist = (Playlist *)sidebarItem.representedObject;
   
-  // Get the dragged track ID
   NSPasteboard *pasteboard = [info draggingPasteboard];
-  NSString *trackUUIDString = [pasteboard stringForType:@"com.illuminated.track"];
+  NSString *trackUUIDString = [pasteboard stringForType:PasteboardItemTypeTrack];
   
   if (trackUUIDString == nil) {
     return NO;

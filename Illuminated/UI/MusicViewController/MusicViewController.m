@@ -136,7 +136,7 @@
   Track *track = self.tracks[row];
   
   NSPasteboardItem *item = [[NSPasteboardItem alloc] init];
-  [item setString:track.uniqueID.UUIDString forType:@"com.illuminated.track"];
+  [item setString:track.uniqueID.UUIDString forType:PasteboardItemTypeTrack];
   
   return item;
 }
