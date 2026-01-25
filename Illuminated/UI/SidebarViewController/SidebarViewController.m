@@ -10,6 +10,7 @@
 #import "Playlist.h"
 #import "SidebarCellFactory.h"
 #import "SidebarItem.h"
+#import "Album.h"
 
 #pragma mark - Constants
 
@@ -20,7 +21,8 @@ NSString *const PasteboardItemTypeTrack = @"com.illuminated.track";
 
 @interface SidebarViewController () <NSFetchedResultsControllerDelegate>
 
-@property(nonatomic, strong) NSFetchedResultsController *fetchedResultsController;
+@property(nonatomic, strong) NSFetchedResultsController *playlistFetchedResultsController;
+@property(nonatomic, strong) NSFetchedResultsController *albumFetchedResultsController;
 @property(nonatomic, strong) NSArray<Playlist *> *playlists;
 @property(nonatomic, strong) NSMutableArray<SidebarItem *> *sidebarItems;
 @property(nonatomic, strong) id selectedRepresentedObject;
@@ -43,7 +45,7 @@ NSString *const PasteboardItemTypeTrack = @"com.illuminated.track";
   
   [self setupHeaderView];
   
-  [self setupFetchedResultsController];
+  [self setupFetchedResultsControllers];
   [self buildSidebarItems];
   
   [self.outlineView reloadData];
@@ -129,11 +131,13 @@ NSString *const PasteboardItemTypeTrack = @"com.illuminated.track";
 - (void)buildSidebarItems {
   NSMutableArray *items = [NSMutableArray array];
   
+  /// All section
   SidebarItem *allMusicItem = [SidebarItem itemWithTitle:@"All Music" iconName:@"music.note"];
   allMusicItem.representedObject = [NSNull null];
   [items addObject:allMusicItem];
   
-  NSArray<Playlist *> *playlists = [self.fetchedResultsController fetchedObjects];
+  /// Playlist Section
+  NSArray<Playlist *> *playlists = [self.playlistFetchedResultsController fetchedObjects];
   if (playlists.count > 0) {
     NSMutableArray *playlistItems = [NSMutableArray array];
     
@@ -148,22 +152,47 @@ NSString *const PasteboardItemTypeTrack = @"com.illuminated.track";
     [items addObject:playlistsGroup];
   }
   
+  // Albums section
+  NSArray<Album *> *albums = [self.albumFetchedResultsController fetchedObjects];
+  if (albums.count > 0) {
+    NSMutableArray *albumItems = [NSMutableArray array];
+    
+    for (Album *album in albums) {
+      SidebarItem *albumItem = [SidebarItem itemWithTitle:album.title iconName:@"square.stack"];
+      albumItem.representedObject = album;
+      [albumItems addObject:albumItem];
+    }
+    
+    SidebarItem *albumsGroup = [SidebarItem groupWithTitle:@"Albums" children:albumItems];
+    [items addObject:albumsGroup];
+  }
+  
+  
   self.sidebarItems = items;
 }
 
 #pragma mark - NSFetchedResultsController
 
-- (void)setupFetchedResultsController {
-  _fetchedResultsController = [[CoreDataStore reader] fetchedResultsControllerForEntity:EntityNamePlaylist
+- (void)setupFetchedResultsControllers {
+  NSSortDescriptor *playlistSort = [NSSortDescriptor sortDescriptorWithKey:@"name" ascending:YES];
+  _playlistFetchedResultsController = [[CoreDataStore reader] fetchedResultsControllerForEntity:EntityNamePlaylist
                                                                               predicate:nil
-                                                                        sortDescriptors:nil];
-  _fetchedResultsController.delegate = self;
+                                                                        sortDescriptors:@[playlistSort]];
+  _playlistFetchedResultsController.delegate = self;
   
   NSError *error = nil;
-  if (![self.fetchedResultsController performFetch:&error]) {
+  if (![self.playlistFetchedResultsController performFetch:&error]) {
     NSLog(@"SidebarViewController: Error performing Playlist fetch: %@", error.localizedDescription);
-  } else {
-    self.playlists = (NSArray<Playlist *> *)[self.fetchedResultsController fetchedObjects];
+  }
+  
+  NSSortDescriptor *albumSort = [NSSortDescriptor sortDescriptorWithKey:@"title" ascending:YES];
+  _albumFetchedResultsController = [[CoreDataStore reader] fetchedResultsControllerForEntity:EntityNameAlbum
+                                                                                   predicate:nil
+                                                                             sortDescriptors:@[albumSort]];
+  _albumFetchedResultsController.delegate = self;
+  
+  if (![_albumFetchedResultsController performFetch:&error]) {
+    NSLog(@"Error fetching albums: %@", error.localizedDescription);
   }
 }
 

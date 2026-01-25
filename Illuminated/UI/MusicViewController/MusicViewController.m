@@ -21,6 +21,7 @@
 @property(nonatomic, strong) NSFetchedResultsController *fetchedResultsController;
 @property(nonatomic, strong) TrackImportService *importService;
 @property(nonatomic, strong, nullable) Playlist *currentPlaylist;
+@property(nonatomic, strong, nullable) Album *currentAlbum;
 
 @end
 
@@ -106,8 +107,13 @@
   
   if ([playlistObject isKindOfClass:[Playlist class]]) {
      self.currentPlaylist = (Playlist *)playlistObject;
+    self.currentAlbum = nil;
+   } else if ([playlistObject isKindOfClass:[Album class]]) {
+     self.currentAlbum = (Album *)playlistObject;
+     self.currentPlaylist = nil;
    } else {
-     self.currentPlaylist = nil; // "All Music" selected
+     self.currentAlbum = nil;
+     self.currentPlaylist = nil;
    }
   
   [self updateFetchedResultsControllerForCurrentPlaylist];
@@ -243,6 +249,8 @@
   NSPredicate *predicate = nil;
   if (self.currentPlaylist != nil) {
     predicate = [NSPredicate predicateWithFormat:@"ANY playlists == %@", self.currentPlaylist];
+  } else if (self.currentAlbum != nil) {
+    predicate = [NSPredicate predicateWithFormat:@"album == %@", self.currentAlbum];
   }
   
   self.fetchedResultsController.fetchRequest.predicate = predicate;
