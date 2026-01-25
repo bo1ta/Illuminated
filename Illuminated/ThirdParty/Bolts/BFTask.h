@@ -254,6 +254,8 @@ typedef __nullable id (^BFContinuationBlock)(BFTask<ResultType> *t);
                cancellationToken:(nullable BFCancellationToken *)cancellationToken
     NS_SWIFT_NAME(continueOnSuccessWith(executor:block:cancellationToken:));
 
+- (BFTask *)continueOnMainThreadWithBlock:(BFContinuationBlock)block;
+
 /*!
  Waits until this operation is completed.
  This method is inefficient and consumes a thread resource while

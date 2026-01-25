@@ -312,6 +312,10 @@ NSString *const BFTaskMultipleErrorsUserInfoKey = @"errors";
 
 #pragma mark - Chaining methods
 
+- (BFTask *)continueOnMainThreadWithBlock:(BFContinuationBlock)block {
+  return [self continueWithExecutor:[BFExecutor mainThreadExecutor] withBlock:block];
+}
+
 - (BFTask *)continueWithExecutor:(BFExecutor *)executor withBlock:(BFContinuationBlock)block {
   return [self continueWithExecutor:executor block:block cancellationToken:nil];
 }

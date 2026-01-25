@@ -11,25 +11,12 @@
 #import "BPMAnalyzer.h"
 #import "BookmarkResolver.h"
 #import "CoreDataStore.h"
-#import "MetadataExtractor.h"
-#import "NSDictionary+Merge.h"
 #import "Track.h"
 #import <AVFoundation/AVFoundation.h>
 #import <Foundation/Foundation.h>
-
-@interface TrackImportService ()
-@property(strong, nonatomic) MetadataExtractor *metadataExtractor;
-@end
+#import "MetadataExtractor.h"
 
 @implementation TrackImportService
-
-- (instancetype)init {
-  self = [super init];
-  if (self) {
-    _metadataExtractor = [[MetadataExtractor alloc] init];
-  }
-  return self;
-}
 
 - (BFTask<Track *> *)analyzeBPMForTrackURL:(NSURL *)trackURL {
   AVURLAsset *asset = [AVURLAsset URLAssetWithURL:trackURL options:nil];
@@ -52,91 +39,14 @@
   if (error) {
     return [BFTask taskWithError:error];
   }
-
-  // clang-format off
-  return [[[self extractMetadataFromAudioURL:fileURL]  continueWithSuccessBlock:^id(BFTask<NSDictionary *> *task) {
-    return [self saveTrackWithMetadata:task.result bookmark:bookmark fileURL:fileURL playlist:playlist];
-  }] continueWithExecutor:[BFExecutor mainThreadExecutor] withBlock:^id(BFTask<Track *> *task) {
+  
+  NSDictionary *metadata = [MetadataExtractor extractMetadataFromFileAtURL:fileURL];
+  return [[self saveTrackWithMetadata:metadata bookmark:bookmark fileURL:fileURL playlist:playlist]
+          continueOnMainThreadWithBlock:^id(BFTask<Track *> *task) {
     if (task.result) {
       return [[CoreDataStore reader] fetchObjectWithID:task.result.objectID];
     }
     return task;
-  }];
-  // clang-format on
-}
-
-#pragma mark - Metadata Extraction
-
-- (BFTask<NSDictionary *> *)extractMetadataFromAudioURL:(NSURL *)audioURL {
-  AVURLAsset *asset = [AVURLAsset URLAssetWithURL:audioURL options:nil];
-  NSArray *keys = @[ @"commonMetadata", @"availableMetadataFormats", @"duration", @"tracks" ];
-
-  return [[[self loadAssetWithKeys:keys asset:asset] continueWithSuccessBlock:^id(BFTask<AVURLAsset *> *task) {
-    return [self extractAllMetadataFromAsset:task.result];
-  }] continueWithSuccessBlock:^id(BFTask<NSDictionary *> *task) {
-    return [BFTask taskWithResult:[self.metadataExtractor applyFilenameFallback:task.result audioURL:audioURL]];
-  }];
-}
-
-- (BFTask<NSDictionary *> *)extractAllMetadataFromAsset:(AVURLAsset *)asset {
-  NSMutableDictionary *assetMetadata = [NSMutableDictionary dictionary];
-
-  if (CMTIME_IS_VALID(asset.duration)) {
-    assetMetadata[@"duration"] = @(CMTimeGetSeconds(asset.duration));
-  }
-
-  NSDictionary *commonMetadata = [self.metadataExtractor extractFromItems:asset.commonMetadata];
-  [assetMetadata addEntriesFromDictionary:commonMetadata];
-
-  // clang-format off
-  return [[[[[self loadAudioTrackFromAsset:asset] continueWithSuccessBlock:^id(BFTask<AVAssetTrack *> *task) {
-    return [self extractAudioPropertiesFromTrack:task.result];
-  }] continueWithSuccessBlock:^id(BFTask<NSDictionary *> *task) {
-    return [BFTask taskWithResult:[task.result dictionaryByMergingWithDictionary:assetMetadata]];
-  }] continueWithSuccessBlock:^id(BFTask<NSDictionary *> *task) {
-    return [[self loadFormatSpecificMetadataFromAsset:asset] continueWithSuccessBlock:^id(BFTask<NSDictionary *> *formatTask) {
-      return [BFTask taskWithResult:[task.result dictionaryByMergingWithDictionary:formatTask.result]];
-    }];
-  }] continueWithBlock:^id(BFTask *task) {
-    if (task.error) {
-      NSLog(@"Error extracting metadata: %@", task.error.localizedDescription);
-    }
-    return task;
-  }];
-  // clang-format on
-}
-
-- (BFTask<NSDictionary *> *)extractAudioPropertiesFromTrack:(AVAssetTrack *)assetTrack {
-  NSDictionary *audioFormat = [self.metadataExtractor extractAudioFormatFromAudioTrack:assetTrack];
-  return [[BPMAnalyzer analyzeBPMForAssetTrack:assetTrack] continueWithSuccessBlock:^id(BFTask<NSNumber *> *task) {
-    NSMutableDictionary *properties = [audioFormat mutableCopy];
-    if (task.result) {
-      properties[@"bpm"] = task.result;
-    }
-    return [BFTask taskWithResult:[properties copy]];
-  }];
-}
-
-- (BFTask<NSDictionary *> *)loadFormatSpecificMetadataFromAsset:(AVURLAsset *)asset {
-  NSArray<AVMetadataFormat> *formats = asset.availableMetadataFormats;
-
-  if (formats.count == 0) {
-    return [BFTask taskWithResult:@{}];
-  }
-
-  NSMutableArray<BFTask *> *tasks = [NSMutableArray array];
-  for (AVMetadataFormat format in formats) {
-    [tasks addObject:[self loadMetadataForFormat:format asset:asset]];
-  }
-
-  return [[BFTask taskForCompletionOfAllTasks:tasks] continueWithSuccessBlock:^id(BFTask *_) {
-    NSMutableArray *allItems = [NSMutableArray array];
-    for (BFTask<NSArray *> *task in tasks) {
-      if (task.result) {
-        [allItems addObjectsFromArray:task.result];
-      }
-    }
-    return [BFTask taskWithResult:[self.metadataExtractor extractFromItems:allItems]];
   }];
 }
 
@@ -224,23 +134,6 @@
 
 #pragma mark - Async Wrappers
 
-- (BFTask<AVURLAsset *> *)loadAssetWithKeys:(NSArray *)keys asset:(AVURLAsset *)asset {
-  BFTaskCompletionSource *source = [BFTaskCompletionSource taskCompletionSource];
-  
-  [asset loadValuesAsynchronouslyForKeys:keys completionHandler:^{
-    NSError *error = nil;
-    for (NSString *key in keys) {
-      if ([asset statusOfValueForKey:key error:&error] == AVKeyValueStatusFailed) {
-        [source setError:error];
-        return;
-      }
-    }
-    [source setResult:asset];
-  }];
-  
-  return source.task;
-}
-
 - (BFTask<AVAssetTrack *> *)loadAudioTrackFromAsset:(AVURLAsset *)asset {
   BFTaskCompletionSource *source = [BFTaskCompletionSource taskCompletionSource];
   
@@ -254,19 +147,6 @@
                                            code:-1
                                        userInfo:@{NSLocalizedDescriptionKey : @"No audio track found"}]];
     }
-  }];
-
-  return source.task;
-}
-
-- (BFTask<NSArray<AVMetadataItem *> *> *)loadMetadataForFormat:(AVMetadataFormat)format asset:(AVURLAsset *)asset {
-  BFTaskCompletionSource *source = [BFTaskCompletionSource taskCompletionSource];
-  
-  [asset loadMetadataForFormat:format completionHandler:^(NSArray<AVMetadataItem *> *items, NSError *error) {
-    if (error) {
-      NSLog(@"Error loading metadata: %@", error.localizedDescription);
-    }
-    [source setResult:items ?: @[]];
   }];
 
   return source.task;
