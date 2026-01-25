@@ -13,6 +13,7 @@
 #import "TrackImportService.h"
 #import "Playlist.h"
 #import "Track.h"
+#import "MainWindowController.h"
 #import "SidebarViewController.h"
 
 @interface MusicViewController ()
@@ -81,6 +82,43 @@
                                            selector:@selector(sidebarSelectionDidChange:)
                                                name:SidebarSelectionItemDidChange
                                              object:nil];
+  
+  [[NSNotificationCenter defaultCenter] addObserver:self
+                                           selector:@selector(toolbarSearchDidChange:)
+                                               name:ToolbarSearchDidChangeNotification
+                                             object:nil];
+}
+
+- (void)toolbarSearchDidChange:(NSNotification *)notification {
+  NSString *searchText = notification.userInfo[ToolbarSearchUserInfo];
+  NSMutableArray *predicates = [NSMutableArray array];
+  
+  if (searchText.length > 0) {
+    NSPredicate *searchPredicate = [NSPredicate predicateWithFormat:
+                                    @"title CONTAINS[cd] %@ OR artist.name CONTAINS[cd] %@ OR album.title CONTAINS[cd] %@",
+                                    searchText, searchText, searchText];
+    [predicates addObject:searchPredicate];
+  } else {
+    [self updateFetchedResultsControllerForCurrentPlaylist];
+    return;
+  }
+
+  if (self.currentPlaylist != nil) {
+    [predicates addObject:[NSPredicate predicateWithFormat:@"ANY playlists == %@", self.currentPlaylist]];
+  } else if (self.currentAlbum != nil) {
+    [predicates addObject:[NSPredicate predicateWithFormat:@"album == %@", self.currentAlbum]];
+  }
+    
+  NSPredicate *finalPredicate = nil;
+  if (predicates.count > 0) {
+    finalPredicate = [NSCompoundPredicate andPredicateWithSubpredicates:predicates];
+  }
+  
+  self.fetchedResultsController.fetchRequest.predicate = finalPredicate;
+  [self.fetchedResultsController performFetch:nil];
+  
+  self.tracks = (NSArray<Track *> *)[self.fetchedResultsController fetchedObjects];
+  [self.tableView reloadData];
 }
 
 - (void)selectCurrentTrack {

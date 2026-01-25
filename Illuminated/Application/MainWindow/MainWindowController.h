@@ -9,6 +9,9 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
+extern NSString *const ToolbarSearchDidChangeNotification;
+extern NSString *const ToolbarSearchUserInfo;
+
 @interface MainWindowController : NSWindowController
 
 @end

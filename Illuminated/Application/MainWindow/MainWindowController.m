@@ -10,11 +10,15 @@
 #import "PlayerBarViewController.h"
 #import "SidebarViewController.h"
 
-@interface MainWindowController ()
+NSString *const ToolbarSearchDidChangeNotification = @"ToolbarSearchDidChangeNotification";
+NSString *const ToolbarSearchUserInfo = @"ToolbarSearch";
+
+@interface MainWindowController () <NSToolbarDelegate, NSSearchFieldDelegate>
 
 @property(strong) MusicViewController *musicViewController;
 @property(strong) PlayerBarViewController *playerBarViewController;
 @property(strong) NSSplitViewController *splitViewController;
+@property(nonatomic, strong) NSSearchField *searchField;
 
 @end
 
@@ -22,6 +26,8 @@
 
 - (void)windowDidLoad {
   [super windowDidLoad];
+  
+  [self setupToolbar];
 
   self.splitViewController = [[NSSplitViewController alloc] init];
 
@@ -77,4 +83,58 @@
   self.window.contentViewController = containerVC;
 }
 
+- (void)setupToolbar {
+  NSToolbar *toolbar = [[NSToolbar alloc] initWithIdentifier:@"MainToolbar"];
+  toolbar.delegate = self;
+  toolbar.displayMode = NSToolbarDisplayModeIconOnly;
+  self.window.toolbar = toolbar;
+  self.window.titleVisibility = NSWindowTitleHidden;
+}
+
+#pragma mark - NSToolbarDelegate
+
+- (NSArray<NSToolbarItemIdentifier> *)toolbarAllowedItemIdentifiers:(NSToolbar *)toolbar {
+  return @[
+    NSToolbarFlexibleSpaceItemIdentifier,
+    @"SearchField"
+  ];
+}
+
+- (NSArray<NSToolbarItemIdentifier> *)toolbarDefaultItemIdentifiers:(NSToolbar *)toolbar {
+  return @[
+    NSToolbarFlexibleSpaceItemIdentifier,
+    @"SearchField"
+  ];
+}
+
+- (NSToolbarItem *)toolbar:(NSToolbar *)toolbar
+     itemForItemIdentifier:(NSToolbarItemIdentifier)itemIdentifier
+ willBeInsertedIntoToolbar:(BOOL)flag {
+  
+  if ([itemIdentifier isEqualToString:@"SearchField"]) {
+    NSToolbarItem *item = [[NSToolbarItem alloc] initWithItemIdentifier:itemIdentifier];
+    
+    self.searchField = [[NSSearchField alloc] initWithFrame:NSMakeRect(0, 0, 200, 22)];
+    self.searchField.placeholderString = @"Search";
+    self.searchField.delegate = self;
+    self.searchField.target = self;
+    self.searchField.action = @selector(searchFieldDidChange:);
+    
+    item.view = self.searchField;
+    item.label = @"Search";
+    
+    return item;
+  }
+  
+  return nil;
+}
+
+#pragma mark - Search
+
+- (void)searchFieldDidChange:(NSSearchField *)sender {
+  NSString *searchText = sender.stringValue;
+  [[NSNotificationCenter defaultCenter] postNotificationName:ToolbarSearchDidChangeNotification
+                                                        object:nil
+                                                      userInfo:@{ToolbarSearchUserInfo: searchText}];
+}
 @end
