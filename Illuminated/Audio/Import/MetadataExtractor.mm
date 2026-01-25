@@ -11,8 +11,21 @@
 #import <tpropertymap.h>
 #import <audioproperties.h>
 #import "MetadataExtractor.h"
+#import <id3v2tag.h>
+#import <id3v2frame.h>
+#import <flacfile.h>
+#import <flacpicture.h>
+#import <xiphcomment.h>
+#import <mp4file.h>
+#import <mp4tag.h>
+#import <mpegfile.h>
+#import <attachedpictureframe.h>
+#import <mp4coverart.h>
 
 @implementation MetadataExtractor
+
+#pragma mark - File Metadata
+
 + (NSDictionary *)extractMetadataFromFileAtURL:(NSURL *)fileURL {
   NSMutableDictionary *metadata = [NSMutableDictionary dictionary];
   
@@ -59,8 +72,21 @@
     metadata[@"sampleRate"] = @(properties->sampleRate());
   }
   
-  NSLog(@"TagLib extracted - Title: %@, Artist: %@, Album: %@",
-        metadata[@"title"], metadata[@"artist"], metadata[@"album"]);
+  NSString *extension = [[fileURL pathExtension] lowercaseString];
+  NSData *artworkData = nil;
+  
+  if ([extension isEqualToString:@"mp3"]) {
+    artworkData = [self extractArtworkFromMP3:filePath];
+  } else if ([extension isEqualToString:@"flac"]) {
+    artworkData = [self extractArtworkFromFLAC:filePath];
+  } else if ([extension isEqualToString:@"m4a"] || [extension isEqualToString:@"mp4"]) {
+    artworkData = [self extractArtworkFromM4A:filePath];
+  }
+  
+  if (artworkData) {
+    metadata[@"artwork"] = artworkData;
+    NSLog(@"TagLib: Extracted artwork (%lu bytes)", (unsigned long)artworkData.length);
+  }
   
   return [self applyFilenameFallback:[metadata copy] audioURL:fileURL];
 }
@@ -96,6 +122,74 @@
   }
   
   return result;
+}
+
+#pragma mark - Artwork Metadata
+
++ (NSData *)extractArtworkFromMP3:(const char *)filePath {
+  TagLib::MPEG::File mp3File(filePath);
+  
+  if (!mp3File.isValid() || !mp3File.ID3v2Tag()) {
+    return nil;
+  }
+  
+  TagLib::ID3v2::Tag *tag = mp3File.ID3v2Tag();
+  TagLib::ID3v2::FrameList frameList = tag->frameList("APIC");
+  
+  if (frameList.isEmpty()) {
+    return nil;
+  }
+  
+  TagLib::ID3v2::AttachedPictureFrame *frame =
+    static_cast<TagLib::ID3v2::AttachedPictureFrame *>(frameList.front());
+  
+  TagLib::ByteVector pictureData = frame->picture();
+  
+  return [NSData dataWithBytes:pictureData.data() length:pictureData.size()];
+}
+
++ (NSData *)extractArtworkFromFLAC:(const char *)filePath {
+  TagLib::FLAC::File flacFile(filePath);
+  
+  if (!flacFile.isValid()) {
+    return nil;
+  }
+  
+  const TagLib::List<TagLib::FLAC::Picture *> &picList = flacFile.pictureList();
+  
+  if (picList.isEmpty()) {
+    return nil;
+  }
+  
+  TagLib::FLAC::Picture *picture = picList.front();
+  TagLib::ByteVector pictureData = picture->data();
+  
+  return [NSData dataWithBytes:pictureData.data() length:pictureData.size()];
+}
+
++ (NSData *)extractArtworkFromM4A:(const char *)filePath {
+  TagLib::MP4::File mp4File(filePath);
+  
+  if (!mp4File.isValid() || !mp4File.tag()) {
+    return nil;
+  }
+  
+  TagLib::MP4::Tag *tag = mp4File.tag();
+  
+  if (!tag->contains("covr")) {
+    return nil;
+  }
+  
+  TagLib::MP4::CoverArtList coverList = tag->item("covr").toCoverArtList();
+  
+  if (coverList.isEmpty()) {
+    return nil;
+  }
+  
+  TagLib::MP4::CoverArt coverArt = coverList.front();
+  TagLib::ByteVector pictureData = coverArt.data();
+  
+  return [NSData dataWithBytes:pictureData.data() length:pictureData.size()];
 }
 
 @end

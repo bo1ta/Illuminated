@@ -92,8 +92,10 @@
     NSURL *currentURL = [[PlaybackManager sharedManager] currentPlaybackURL];
     [[BFTask taskFromExecutor:[BFExecutor defaultExecutor] withBlock:^id {
       return [self.importService analyzeBPMForTrackURL:currentURL];
-    }] continueWithExecutor:[BFExecutor mainThreadExecutor] withSuccessBlock:^id(BFTask<Track *> *task) {
-      [[NSNotificationCenter defaultCenter] postNotificationName:PlaybackManagerTrackDidChangeNotification object:nil];
+    }] continueOnMainThreadWithBlock:^id(BFTask<Track *> *task) {
+      if (!task.error) {
+        [[NSNotificationCenter defaultCenter] postNotificationName:PlaybackManagerTrackDidChangeNotification object:nil];
+      }
       return task;
     }];
   }

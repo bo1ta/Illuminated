@@ -15,6 +15,7 @@
 #import <AVFoundation/AVFoundation.h>
 #import <Foundation/Foundation.h>
 #import "MetadataExtractor.h"
+#import "ArtworkManager.h"
 
 @implementation TrackImportService
 
@@ -71,7 +72,7 @@
                                   playlist:(nullable Playlist *)playlist {
   return [[CoreDataStore writer] performWrite:^id(NSManagedObjectContext *context) {
     Artist *artist = [self findOrCreateArtist:metadata[@"artist"] inContext:context];
-    Album *album = [self findOrCreateAlbum:metadata[@"album"] artist:artist inContext:context];
+    Album *album = [self findOrCreateAlbum:metadata[@"album"] artist:artist artwork: metadata[@"artwork"] inContext:context];
 
     Track *track =
         [context firstObjectForEntityName:EntityNameTrack
@@ -109,10 +110,11 @@
     artist.uniqueID = [NSUUID new];
     artist.name = artistName;
   }
+  
   return artist;
 }
 
-- (Album *)findOrCreateAlbum:(NSString *)albumName artist:(Artist *)artist inContext:(NSManagedObjectContext *)context {
+- (Album *)findOrCreateAlbum:(NSString *)albumName artist:(Artist *)artist artwork:(NSData *)artworkData inContext:(NSManagedObjectContext *)context {
   if (!albumName) return nil;
 
   NSPredicate *predicate;
@@ -129,6 +131,12 @@
     album.title = albumName;
     album.artist = artist;
   }
+  
+  if (artworkData) {
+    NSString *artworkPath = [ArtworkManager saveArtwork:artworkData forUUID:album.uniqueID];
+    album.artworkPath = artworkPath;
+  }
+  
   return album;
 }
 

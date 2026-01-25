@@ -29,6 +29,14 @@
             <rect key="frame" x="0.0" y="0.0" width="800" height="130"/>
             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
             <subviews>
+                <imageView horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="cso-Vn-14Z">
+                    <rect key="frame" x="20" y="17" width="45" height="45"/>
+                    <constraints>
+                        <constraint firstAttribute="width" constant="45" id="Ab0-aP-MJV"/>
+                        <constraint firstAttribute="height" constant="45" id="R72-Ir-38f"/>
+                    </constraints>
+                    <imageCell key="cell" refusesFirstResponder="YES" alignment="left" imageScaling="proportionallyDown" id="IXM-eP-c5c"/>
+                </imageView>
                 <stackView distribution="fill" orientation="horizontal" alignment="centerY" horizontalStackHuggingPriority="249.99998474121094" verticalStackHuggingPriority="249.99998474121094" detachesHiddenViews="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Iep-vN-JHC">
                     <rect key="frame" x="337" y="31" width="126" height="48"/>
                     <subviews>
@@ -158,7 +166,7 @@
                     </textFieldCell>
                 </textField>
                 <stackView distribution="fill" orientation="vertical" alignment="leading" spacing="2" horizontalStackHuggingPriority="249.99998474121094" verticalStackHuggingPriority="249.99998474121094" detachesHiddenViews="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Ct6-K7-tLJ" userLabel="TrackInfoStackView">
-                    <rect key="frame" x="83" y="25" width="115" height="44"/>
+                    <rect key="frame" x="75" y="17" width="115" height="44"/>
                     <subviews>
                         <textField focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="g3Z-pj-EbQ">
                             <rect key="frame" x="-2" y="28" width="119" height="16"/>
@@ -199,14 +207,6 @@
                         <real value="3.4028234663852886e+38"/>
                     </customSpacing>
                 </stackView>
-                <imageView horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="cso-Vn-14Z">
-                    <rect key="frame" x="8" y="20" width="55" height="55"/>
-                    <constraints>
-                        <constraint firstAttribute="width" constant="55" id="Ab0-aP-MJV"/>
-                        <constraint firstAttribute="height" constant="55" id="R72-Ir-38f"/>
-                    </constraints>
-                    <imageCell key="cell" refusesFirstResponder="YES" alignment="left" imageScaling="proportionallyDown" id="IXM-eP-c5c"/>
-                </imageView>
             </subviews>
             <constraints>
                 <constraint firstAttribute="trailing" secondItem="uvO-Z0-veq" secondAttribute="trailing" constant="20" symbolic="YES" id="372-bm-4rs"/>
@@ -214,13 +214,13 @@
                 <constraint firstItem="Iep-vN-JHC" firstAttribute="centerY" secondItem="c22-O7-iKe" secondAttribute="centerY" constant="10" id="Ak0-b4-9mV"/>
                 <constraint firstItem="8DK-dt-Zb1" firstAttribute="leading" secondItem="c22-O7-iKe" secondAttribute="leading" constant="20" symbolic="YES" id="Gu1-5S-rgE"/>
                 <constraint firstItem="ESG-gD-635" firstAttribute="centerY" secondItem="c22-O7-iKe" secondAttribute="centerY" constant="10" id="H7b-bb-Ypq"/>
-                <constraint firstAttribute="bottom" secondItem="cso-Vn-14Z" secondAttribute="bottom" constant="20" id="MZs-Wd-PHG"/>
+                <constraint firstAttribute="bottom" secondItem="cso-Vn-14Z" secondAttribute="bottom" constant="17" id="MZs-Wd-PHG"/>
                 <constraint firstItem="I6e-1A-WvN" firstAttribute="leading" secondItem="c22-O7-iKe" secondAttribute="leading" constant="22" id="SZM-qm-so8"/>
                 <constraint firstAttribute="trailing" secondItem="8DK-dt-Zb1" secondAttribute="trailing" constant="20" symbolic="YES" id="Sag-TV-ueJ"/>
-                <constraint firstAttribute="bottom" secondItem="Ct6-K7-tLJ" secondAttribute="bottom" constant="25" id="ZdS-go-Jly"/>
-                <constraint firstItem="Ct6-K7-tLJ" firstAttribute="leading" secondItem="cso-Vn-14Z" secondAttribute="trailing" constant="20" id="ZiO-Xu-5QT"/>
+                <constraint firstAttribute="bottom" secondItem="Ct6-K7-tLJ" secondAttribute="bottom" constant="17" id="ZdS-go-Jly"/>
+                <constraint firstItem="Ct6-K7-tLJ" firstAttribute="leading" secondItem="cso-Vn-14Z" secondAttribute="trailing" constant="10" id="ZiO-Xu-5QT"/>
                 <constraint firstItem="Iep-vN-JHC" firstAttribute="centerX" secondItem="c22-O7-iKe" secondAttribute="centerX" id="khE-tx-0Ih"/>
-                <constraint firstItem="cso-Vn-14Z" firstAttribute="leading" secondItem="c22-O7-iKe" secondAttribute="leading" constant="8" id="laG-eu-8mW"/>
+                <constraint firstItem="cso-Vn-14Z" firstAttribute="leading" secondItem="c22-O7-iKe" secondAttribute="leading" constant="20" id="laG-eu-8mW"/>
                 <constraint firstAttribute="trailing" secondItem="ESG-gD-635" secondAttribute="trailing" constant="20" symbolic="YES" id="s2w-78-Kc3"/>
                 <constraint firstItem="uvO-Z0-veq" firstAttribute="top" secondItem="8DK-dt-Zb1" secondAttribute="bottom" id="sR2-Tm-Trp"/>
                 <constraint firstItem="I6e-1A-WvN" firstAttribute="top" secondItem="8DK-dt-Zb1" secondAttribute="bottom" id="yqa-2M-Ppw"/>

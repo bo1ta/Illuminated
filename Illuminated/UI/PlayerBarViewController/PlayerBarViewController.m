@@ -7,7 +7,9 @@
 
 #import "PlayerBarViewController.h"
 #import "Artist.h"
+#import "ArtworkManager.h"
 #import "PlaybackManager.h"
+#import "Album.h"
 #import "Track.h"
 #import <AVFoundation/AVFoundation.h>
 
@@ -88,6 +90,12 @@
     bpmLabel.stringValue = [NSString stringWithFormat:@"%@", track.roundedBPM];
   } else {
     [bpmLabel setHidden:YES];
+  }
+  
+  if (track.album.artworkPath) {
+    trackArtwork.image = [ArtworkManager loadArtworkAtPath:track.album.artworkPath];
+  } else {
+    trackArtwork.image = nil;
   }
   
 

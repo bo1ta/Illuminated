@@ -70,7 +70,7 @@
     [self.playerBarViewController.view.leadingAnchor constraintEqualToAnchor:containerVC.view.leadingAnchor],
     [self.playerBarViewController.view.trailingAnchor constraintEqualToAnchor:containerVC.view.trailingAnchor],
     [self.playerBarViewController.view.bottomAnchor constraintEqualToAnchor:containerVC.view.bottomAnchor],
-    [self.playerBarViewController.view.heightAnchor constraintEqualToConstant:100]
+    [self.playerBarViewController.view.heightAnchor constraintEqualToConstant:130]
   ]];
 
   // Set container as window content
