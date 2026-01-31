@@ -44,6 +44,7 @@
   if (!cell) {
     cell = [[NSTableCellView alloc] init];
     cell.identifier = @"ItemCell";
+    cell.translatesAutoresizingMaskIntoConstraints = NO;
 
     NSImageView *imageView = [[NSImageView alloc] init];
     imageView.translatesAutoresizingMaskIntoConstraints = NO;
@@ -54,12 +55,14 @@
     textField.translatesAutoresizingMaskIntoConstraints = NO;
     textField.bordered = NO;
     textField.drawsBackground = NO;
+    textField.maximumNumberOfLines = 1;
     textField.editable = NO;
     textField.selectable = NO;
     cell.textField = textField;
     [cell addSubview:textField];
 
     [NSLayoutConstraint activateConstraints:@[
+      [cell.heightAnchor constraintEqualToConstant:20],
       [imageView.leadingAnchor constraintEqualToAnchor:cell.leadingAnchor constant:16],
       [imageView.centerYAnchor constraintEqualToAnchor:cell.centerYAnchor constant:0],
       [imageView.widthAnchor constraintEqualToConstant:16],

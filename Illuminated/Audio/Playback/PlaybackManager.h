@@ -5,6 +5,7 @@
 //  Created by Alexandru Solomon on 22.01.2026.
 //
 
+#import "AVFoundation/AVFoundation.h"
 #import "Cocoa/Cocoa.h"
 
 @class Track;
@@ -15,11 +16,9 @@ extern NSString *const PlaybackManagerTrackDidChangeNotification;
 extern NSString *const PlaybackManagerPlaybackStateDidChangeNotification;
 extern NSString *const PlaybackManagerPlaybackProgressDidChangeNotification;
 
-typedef NS_ENUM(NSInteger, RepeatMode) {
-  RepeatModeOff,
-  RepeatModeOne,
-  RepeatModeAll
-};
+typedef NS_ENUM(NSInteger, RepeatMode) { RepeatModeOff, RepeatModeOne, RepeatModeAll };
+
+typedef void (^AudioBufferCallback)(const float *monoData, AVAudioFrameCount length);
 
 @interface PlaybackManager : NSObject
 
@@ -42,6 +41,9 @@ typedef NS_ENUM(NSInteger, RepeatMode) {
 - (void)stop;
 
 - (NSURL *)currentPlaybackURL;
+
+- (void)registerAudioBufferCallback:(AudioBufferCallback)callback;
+- (void)unregisterAudioBufferCallback;
 
 @end
 

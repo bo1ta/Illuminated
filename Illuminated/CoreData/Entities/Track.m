@@ -16,9 +16,9 @@
 
 - (NSNumber *)roundedBPM {
   if (!self.bpm) return nil;
-  
-   NSInteger rounded = lround(self.bpm);
-   return @(rounded);
+
+  NSInteger rounded = lround(self.bpm);
+  return @(rounded);
 }
 
 @dynamic uniqueID;

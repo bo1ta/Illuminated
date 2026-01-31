@@ -8,13 +8,13 @@
 #import "MusicViewController.h"
 #import "Album.h"
 #import "Artist.h"
-#import "PlaybackManager.h"
 #import "CoreDataStore.h"
-#import "TrackImportService.h"
-#import "Playlist.h"
-#import "Track.h"
 #import "MainWindowController.h"
+#import "PlaybackManager.h"
+#import "Playlist.h"
 #import "SidebarViewController.h"
+#import "Track.h"
+#import "TrackImportService.h"
 
 @interface MusicViewController ()
 
@@ -77,12 +77,12 @@
                                            selector:@selector(selectCurrentTrack)
                                                name:PlaybackManagerTrackDidChangeNotification
                                              object:nil];
-  
+
   [[NSNotificationCenter defaultCenter] addObserver:self
                                            selector:@selector(sidebarSelectionDidChange:)
                                                name:SidebarSelectionItemDidChange
                                              object:nil];
-  
+
   [[NSNotificationCenter defaultCenter] addObserver:self
                                            selector:@selector(toolbarSearchDidChange:)
                                                name:ToolbarSearchDidChangeNotification
@@ -92,11 +92,13 @@
 - (void)toolbarSearchDidChange:(NSNotification *)notification {
   NSString *searchText = notification.userInfo[ToolbarSearchUserInfo];
   NSMutableArray *predicates = [NSMutableArray array];
-  
+
   if (searchText.length > 0) {
-    NSPredicate *searchPredicate = [NSPredicate predicateWithFormat:
-                                    @"title CONTAINS[cd] %@ OR artist.name CONTAINS[cd] %@ OR album.title CONTAINS[cd] %@",
-                                    searchText, searchText, searchText];
+    NSPredicate *searchPredicate = [NSPredicate
+        predicateWithFormat:@"title CONTAINS[cd] %@ OR artist.name CONTAINS[cd] %@ OR album.title CONTAINS[cd] %@",
+                            searchText,
+                            searchText,
+                            searchText];
     [predicates addObject:searchPredicate];
   } else {
     [self updateFetchedResultsControllerForCurrentPlaylist];
@@ -108,52 +110,51 @@
   } else if (self.currentAlbum != nil) {
     [predicates addObject:[NSPredicate predicateWithFormat:@"album == %@", self.currentAlbum]];
   }
-    
+
   NSPredicate *finalPredicate = nil;
   if (predicates.count > 0) {
     finalPredicate = [NSCompoundPredicate andPredicateWithSubpredicates:predicates];
   }
-  
+
   self.fetchedResultsController.fetchRequest.predicate = finalPredicate;
   [self.fetchedResultsController performFetch:nil];
-  
+
   self.tracks = (NSArray<Track *> *)[self.fetchedResultsController fetchedObjects];
   [self.tableView reloadData];
 }
 
 - (void)selectCurrentTrack {
-  dispatch_async(dispatch_get_main_queue(), ^{
-    [self.tableView reloadData];
-  });
-  
+  dispatch_async(dispatch_get_main_queue(), ^{ [self.tableView reloadData]; });
+
   Track *playingTrack = [[PlaybackManager sharedManager] currentTrack];
   if (playingTrack.bpm <= 0) {
     NSURL *currentURL = [[PlaybackManager sharedManager] currentPlaybackURL];
-    [[BFTask taskFromExecutor:[BFExecutor defaultExecutor] withBlock:^id {
-      return [self.importService analyzeBPMForTrackURL:currentURL];
-    }] continueOnMainThreadWithBlock:^id(BFTask<Track *> *task) {
-      if (!task.error) {
-        [[NSNotificationCenter defaultCenter] postNotificationName:PlaybackManagerTrackDidChangeNotification object:nil];
-      }
-      return task;
-    }];
+    [[BFTask taskFromExecutor:[BFExecutor defaultExecutor]
+                    withBlock:^id { return [self.importService analyzeBPMForTrackURL:currentURL]; }]
+        continueOnMainThreadWithBlock:^id(BFTask<Track *> *task) {
+          if (!task.error) {
+            [[NSNotificationCenter defaultCenter] postNotificationName:PlaybackManagerTrackDidChangeNotification
+                                                                object:nil];
+          }
+          return task;
+        }];
   }
 }
 
 - (void)sidebarSelectionDidChange:(NSNotification *)notification {
   id playlistObject = notification.userInfo[@"playlist"];
-  
+
   if ([playlistObject isKindOfClass:[Playlist class]]) {
-     self.currentPlaylist = (Playlist *)playlistObject;
+    self.currentPlaylist = (Playlist *)playlistObject;
     self.currentAlbum = nil;
-   } else if ([playlistObject isKindOfClass:[Album class]]) {
-     self.currentAlbum = (Album *)playlistObject;
-     self.currentPlaylist = nil;
-   } else {
-     self.currentAlbum = nil;
-     self.currentPlaylist = nil;
-   }
-  
+  } else if ([playlistObject isKindOfClass:[Album class]]) {
+    self.currentAlbum = (Album *)playlistObject;
+    self.currentPlaylist = nil;
+  } else {
+    self.currentAlbum = nil;
+    self.currentPlaylist = nil;
+  }
+
   [self updateFetchedResultsControllerForCurrentPlaylist];
 }
 
@@ -161,10 +162,10 @@
 
 - (id<NSPasteboardWriting>)tableView:(NSTableView *)tableView pasteboardWriterForRow:(NSInteger)row {
   Track *track = self.tracks[row];
-  
+
   NSPasteboardItem *item = [[NSPasteboardItem alloc] init];
   [item setString:track.uniqueID.UUIDString forType:PasteboardItemTypeTrack];
-  
+
   return item;
 }
 
@@ -244,7 +245,7 @@
   Track *track = self.tracks[row];
   Track *playingTrack = [[PlaybackManager sharedManager] currentTrack];
   BOOL isPlaying = track && playingTrack && [track.objectID isEqual:playingTrack.objectID];
-  
+
   if ([columnIdentifier isEqualToString:@"NumberColumn"]) {
     cell.textField.alignment = NSTextAlignmentCenter;
     if (isPlaying) {
@@ -265,9 +266,9 @@
     cell.textField.stringValue = [self formatTime:track.duration];
     cell.textField.alignment = NSTextAlignmentRight;
   }
-  
+
   cell.textField.font = isPlaying ? [NSFont boldSystemFontOfSize:13] : [NSFont systemFontOfSize:13];
-  
+
   return cell;
 }
 
@@ -290,10 +291,10 @@
   } else if (self.currentAlbum != nil) {
     predicate = [NSPredicate predicateWithFormat:@"album == %@", self.currentAlbum];
   }
-  
+
   self.fetchedResultsController.fetchRequest.predicate = predicate;
   [self.fetchedResultsController performFetch:nil];
-  
+
   self.tracks = (NSArray<Track *> *)[self.fetchedResultsController fetchedObjects];
   [self.tableView reloadData];
 }

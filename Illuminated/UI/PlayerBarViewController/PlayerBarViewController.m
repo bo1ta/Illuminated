@@ -6,10 +6,10 @@
 //
 
 #import "PlayerBarViewController.h"
+#import "Album.h"
 #import "Artist.h"
 #import "ArtworkManager.h"
 #import "PlaybackManager.h"
-#import "Album.h"
 #import "Track.h"
 #import <AVFoundation/AVFoundation.h>
 
@@ -27,7 +27,7 @@
   __weak IBOutlet NSSlider *progressSlider;
   __weak IBOutlet NSSlider *volumeSlider;
   __weak IBOutlet NSTextField *bpmLabel;
-  
+
   BOOL _isScrubbing;
 }
 
@@ -91,13 +91,12 @@
   } else {
     [bpmLabel setHidden:YES];
   }
-  
+
   if (track.album.artworkPath) {
     trackArtwork.image = [ArtworkManager loadArtworkAtPath:track.album.artworkPath];
   } else {
     trackArtwork.image = nil;
   }
-  
 
   [self updatePlaybackState];
 }
@@ -122,25 +121,22 @@
 
 - (void)updateRepeatButton {
   PlaybackManager *manager = [PlaybackManager sharedManager];
-  
+
   switch (manager.repeatMode) {
-    case RepeatModeOff:
-      repeatButton.image = [NSImage imageWithSystemSymbolName:@"repeat"
-                                     accessibilityDescription:@"Repeat Off"];
-      repeatButton.contentTintColor = [NSColor secondaryLabelColor];
-      break;
-      
-    case RepeatModeOne:
-      repeatButton.image = [NSImage imageWithSystemSymbolName:@"repeat.1"
-                                     accessibilityDescription:@"Repeat One"];
-      repeatButton.contentTintColor = [NSColor systemBlueColor];
-      break;
-      
-    case RepeatModeAll:
-      repeatButton.image = [NSImage imageWithSystemSymbolName:@"repeat"
-                                     accessibilityDescription:@"Repeat All"];
-      repeatButton.contentTintColor = [NSColor systemBlueColor];
-      break;
+  case RepeatModeOff:
+    repeatButton.image = [NSImage imageWithSystemSymbolName:@"repeat" accessibilityDescription:@"Repeat Off"];
+    repeatButton.contentTintColor = [NSColor secondaryLabelColor];
+    break;
+
+  case RepeatModeOne:
+    repeatButton.image = [NSImage imageWithSystemSymbolName:@"repeat.1" accessibilityDescription:@"Repeat One"];
+    repeatButton.contentTintColor = [NSColor systemBlueColor];
+    break;
+
+  case RepeatModeAll:
+    repeatButton.image = [NSImage imageWithSystemSymbolName:@"repeat" accessibilityDescription:@"Repeat All"];
+    repeatButton.contentTintColor = [NSColor systemBlueColor];
+    break;
   }
 }
 
@@ -172,17 +168,17 @@
 - (IBAction)repeatAction:(id)sender {
   PlaybackManager *manager = [PlaybackManager sharedManager];
   switch (manager.repeatMode) {
-    case RepeatModeOff:
-      manager.repeatMode = RepeatModeOne;
-      break;
-    case RepeatModeOne:
-      manager.repeatMode = RepeatModeAll;
-      break;
-    case RepeatModeAll:
-      manager.repeatMode = RepeatModeOff;
-      break;
+  case RepeatModeOff:
+    manager.repeatMode = RepeatModeOne;
+    break;
+  case RepeatModeOne:
+    manager.repeatMode = RepeatModeAll;
+    break;
+  case RepeatModeAll:
+    manager.repeatMode = RepeatModeOff;
+    break;
   }
-  
+
   [self updateRepeatButton];
 }
 

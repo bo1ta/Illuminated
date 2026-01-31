@@ -303,10 +303,11 @@
   return [self performWrite:^id(NSManagedObjectContext *context) {
     Playlist *safePlaylist = [context objectWithID:playlistObjectID];
     if (!safePlaylist) return nil;
-    
-    Track *track = [context firstObjectForEntityName:EntityNameTrack predicate:[NSPredicate predicateWithFormat:@"uniqueID == %@", uuid]];
+
+    Track *track = [context firstObjectForEntityName:EntityNameTrack
+                                           predicate:[NSPredicate predicateWithFormat:@"uniqueID == %@", uuid]];
     if (!track) return nil;
-    
+
     [safePlaylist addTracksObject:track];
     return safePlaylist;
   }];
@@ -323,7 +324,8 @@
 }
 
 - (BFTask<Track *> *)trackWithURL:(NSURL *)url {
-  return [self firstObjectForEntity:EntityNameTrack predicate:[NSPredicate predicateWithFormat:@"fileURL == %@", [url path]]];
+  return [self firstObjectForEntity:EntityNameTrack
+                          predicate:[NSPredicate predicateWithFormat:@"fileURL == %@", [url path]]];
 }
 
 - (BFTask<NSArray<Track *> *> *)searchTracks:(NSString *)query {

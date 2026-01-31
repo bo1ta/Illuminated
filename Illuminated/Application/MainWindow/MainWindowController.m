@@ -6,6 +6,7 @@
 //
 
 #import "MainWindowController.h"
+#import "ContentTabViewController.h"
 #import "MusicViewController.h"
 #import "PlayerBarViewController.h"
 #import "SidebarViewController.h"
@@ -13,12 +14,15 @@
 NSString *const ToolbarSearchDidChangeNotification = @"ToolbarSearchDidChangeNotification";
 NSString *const ToolbarSearchUserInfo = @"ToolbarSearch";
 
-@interface MainWindowController () <NSToolbarDelegate, NSSearchFieldDelegate>
+@interface MainWindowController ()<NSToolbarDelegate, NSSearchFieldDelegate>
 
 @property(strong) MusicViewController *musicViewController;
 @property(strong) PlayerBarViewController *playerBarViewController;
 @property(strong) NSSplitViewController *splitViewController;
 @property(nonatomic, strong) NSSearchField *searchField;
+@property(nonatomic, strong) ContentTabViewController *contentTabViewController;
+
+@property(nonatomic, strong) NSSegmentedControl *tabSegmentedControl;
 
 @end
 
@@ -26,7 +30,7 @@ NSString *const ToolbarSearchUserInfo = @"ToolbarSearch";
 
 - (void)windowDidLoad {
   [super windowDidLoad];
-  
+
   [self setupToolbar];
 
   self.splitViewController = [[NSSplitViewController alloc] init];
@@ -38,11 +42,18 @@ NSString *const ToolbarSearchUserInfo = @"ToolbarSearch";
   sidebarItem.maximumThickness = 300;
   [self.splitViewController addSplitViewItem:sidebarItem];
 
-  self.musicViewController = [[MusicViewController alloc] initWithNibName:@"MusicViewController" bundle:nil];
+  //  self.musicViewController = [[MusicViewController alloc] initWithNibName:@"MusicViewController" bundle:nil];
+  //
+  //  NSSplitViewItem *contentItem = [NSSplitViewItem splitViewItemWithViewController:self.musicViewController];
+  //  contentItem.minimumThickness = 400;
+  //  [self.splitViewController addSplitViewItem:contentItem];
 
-  NSSplitViewItem *contentItem = [NSSplitViewItem splitViewItemWithViewController:self.musicViewController];
+  ContentTabViewController *contentTabVC = [[ContentTabViewController alloc] init];
+  NSSplitViewItem *contentItem = [NSSplitViewItem splitViewItemWithViewController:contentTabVC];
   contentItem.minimumThickness = 400;
   [self.splitViewController addSplitViewItem:contentItem];
+
+  self.contentTabViewController = contentTabVC;
 
   // Force split view to load its view
   [self.splitViewController loadView];
@@ -94,39 +105,63 @@ NSString *const ToolbarSearchUserInfo = @"ToolbarSearch";
 #pragma mark - NSToolbarDelegate
 
 - (NSArray<NSToolbarItemIdentifier> *)toolbarAllowedItemIdentifiers:(NSToolbar *)toolbar {
-  return @[
-    NSToolbarFlexibleSpaceItemIdentifier,
-    @"SearchField"
-  ];
+  return
+      @[ NSToolbarFlexibleSpaceItemIdentifier, @"TabSwitcher", NSToolbarFlexibleSpaceItemIdentifier, @"SearchField" ];
 }
 
 - (NSArray<NSToolbarItemIdentifier> *)toolbarDefaultItemIdentifiers:(NSToolbar *)toolbar {
-  return @[
-    NSToolbarFlexibleSpaceItemIdentifier,
-    @"SearchField"
-  ];
+  return
+      @[ NSToolbarFlexibleSpaceItemIdentifier, @"TabSwitcher", NSToolbarFlexibleSpaceItemIdentifier, @"SearchField" ];
 }
 
 - (NSToolbarItem *)toolbar:(NSToolbar *)toolbar
-     itemForItemIdentifier:(NSToolbarItemIdentifier)itemIdentifier
- willBeInsertedIntoToolbar:(BOOL)flag {
-  
+        itemForItemIdentifier:(NSToolbarItemIdentifier)itemIdentifier
+    willBeInsertedIntoToolbar:(BOOL)flag {
+
   if ([itemIdentifier isEqualToString:@"SearchField"]) {
     NSToolbarItem *item = [[NSToolbarItem alloc] initWithItemIdentifier:itemIdentifier];
-    
+
     self.searchField = [[NSSearchField alloc] initWithFrame:NSMakeRect(0, 0, 200, 22)];
     self.searchField.placeholderString = @"Search";
     self.searchField.delegate = self;
     self.searchField.target = self;
     self.searchField.action = @selector(searchFieldDidChange:);
-    
+
     item.view = self.searchField;
     item.label = @"Search";
-    
+
+    return item;
+  } else if ([itemIdentifier isEqualToString:@"TabSwitcher"]) {
+    NSToolbarItem *item = [[NSToolbarItem alloc] initWithItemIdentifier:itemIdentifier];
+
+    self.tabSegmentedControl = [[NSSegmentedControl alloc] initWithFrame:NSMakeRect(0, 0, 220, 24)];
+    [self.tabSegmentedControl setSegmentCount:2];
+    [self.tabSegmentedControl setLabel:@"Music" forSegment:0];
+    [self.tabSegmentedControl setLabel:@"Visualizer" forSegment:1];
+    [self.tabSegmentedControl setSelectedSegment:0]; // start on Music
+    self.tabSegmentedControl.target = self;
+    self.tabSegmentedControl.action = @selector(tabSegmentChanged:);
+
+    // Optional: make it look nicer
+    self.tabSegmentedControl.segmentDistribution = NSSegmentDistributionFit;
+    // self.tabSegmentedControl.segmentStyle = NSSegmentStyleRounded; // macOS 14+
+
+    item.view = self.tabSegmentedControl;
+    item.label = @"View Mode";
+
     return item;
   }
-  
+
   return nil;
+}
+
+- (void)tabSegmentChanged:(NSSegmentedControl *)sender {
+  NSInteger index = sender.selectedSegment;
+  if (index == 0) {
+    [self.contentTabViewController switchToMusic];
+  } else {
+    [self.contentTabViewController switchToVizualizer];
+  }
 }
 
 #pragma mark - Search
@@ -134,7 +169,7 @@ NSString *const ToolbarSearchUserInfo = @"ToolbarSearch";
 - (void)searchFieldDidChange:(NSSearchField *)sender {
   NSString *searchText = sender.stringValue;
   [[NSNotificationCenter defaultCenter] postNotificationName:ToolbarSearchDidChangeNotification
-                                                        object:nil
-                                                      userInfo:@{ToolbarSearchUserInfo: searchText}];
+                                                      object:nil
+                                                    userInfo:@{ToolbarSearchUserInfo : searchText}];
 }
 @end

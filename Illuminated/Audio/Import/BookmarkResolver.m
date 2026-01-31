@@ -15,16 +15,16 @@ NSString *const BookmarkResolverErrorDomain = @"com.illuminated.BookmarkResolver
 + (NSData *)bookmarkForURL:(NSURL *)url error:(NSError **)error {
   NSError *bookmarkError = nil;
   NSData *bookmark = [url bookmarkDataWithOptions:NSURLBookmarkCreationWithSecurityScope
-                       includingResourceValuesForKeys:nil
-                                        relativeToURL:nil
-                                                error:&bookmarkError];
+                   includingResourceValuesForKeys:nil
+                                    relativeToURL:nil
+                                            error:&bookmarkError];
   if (bookmarkError) {
     *error = [NSError errorWithDomain:BookmarkResolverErrorDomain
                                  code:BookmarkResolverErrorDomainBookmarkDataCreationFailed
                              userInfo:@{NSLocalizedDescriptionKey : @"Track has stale data"}];
     return nil;
   }
-  
+
   return bookmark;
 }
 

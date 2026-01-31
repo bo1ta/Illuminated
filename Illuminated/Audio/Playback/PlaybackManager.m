@@ -40,6 +40,8 @@ static const NSTimeInterval kProgressTimerInterval = 0.5;
 @property(nonatomic) NSTimeInterval seekOffset;
 @property(atomic, assign) NSInteger playbackGeneration;
 
+@property(nonatomic, copy) AudioBufferCallback audioBufferCallback;
+
 @end
 
 @implementation PlaybackManager
@@ -70,9 +72,45 @@ static const NSTimeInterval kProgressTimerInterval = 0.5;
     NSError *error;
     if (![_engine startAndReturnError:&error]) {
       NSLog(@"Engine failed to start: %@", error);
+      return self;
     }
+
+    [self installAudioTap];
   }
   return self;
+}
+
+- (void)installAudioTap {
+  [self.engine.mainMixerNode installTapOnBus:0
+                                  bufferSize:2048
+                                      format:nil
+                                       block:^(AVAudioPCMBuffer *_Nonnull buffer, AVAudioTime *_Nonnull _) {
+                                         AVAudioFrameCount frames = buffer.frameLength;
+                                         if (frames == 0) return;
+
+                                         float *mono = (float *)malloc(frames * sizeof(float));
+                                         if (!mono) return;
+
+                                         if (buffer.format.channelCount == 1) {
+                                           memcpy(mono, buffer.floatChannelData[0], frames * sizeof(float));
+                                         } else if (buffer.format.channelCount >= 2) {
+                                           float *left = buffer.floatChannelData[0];
+                                           float *right = buffer.floatChannelData[1];
+                                           for (AVAudioFrameCount i = 0; i < frames; i++) {
+                                             mono[i] = (left[i] + right[i]) * 0.5f;
+                                           }
+                                         } else {
+                                           free(mono);
+                                           return;
+                                         }
+
+                                         dispatch_async(dispatch_get_main_queue(), ^{
+                                           if (self.audioBufferCallback) {
+                                             self.audioBufferCallback(mono, frames);
+                                           }
+                                           free(mono);
+                                         });
+                                       }];
 }
 
 #pragma mark - Public API
@@ -222,6 +260,16 @@ static const NSTimeInterval kProgressTimerInterval = 0.5;
   [self.playerNode stop];
 }
 
+#pragma mark - AudioBufferCallback
+
+- (void)registerAudioBufferCallback:(AudioBufferCallback)callback {
+  self.audioBufferCallback = callback;
+}
+
+- (void)unregisterAudioBufferCallback {
+  self.audioBufferCallback = nil;
+}
+
 #pragma mark - Notifications
 
 - (void)notifyProgressDidChange {
@@ -264,25 +312,25 @@ static const NSTimeInterval kProgressTimerInterval = 0.5;
 
 - (void)handleTrackCompletion {
   switch (self.repeatMode) {
-    case RepeatModeOne:
-      [self playTrack:self.currentTrack];
-      break;
-      
-    case RepeatModeAll: {
-      Track *next = [self.queue nextTrack];
-      if (next) {
-        [self playTrack:next];
-      } else if (self.queue.tracks.count > 0) {
-        [self playTrack:self.queue.tracks.firstObject];
-      }
-      break;
+  case RepeatModeOne:
+    [self playTrack:self.currentTrack];
+    break;
+
+  case RepeatModeAll: {
+    Track *next = [self.queue nextTrack];
+    if (next) {
+      [self playTrack:next];
+    } else if (self.queue.tracks.count > 0) {
+      [self playTrack:self.queue.tracks.firstObject];
     }
-      
-    case RepeatModeOff:
-    default:
-      // Just play next (existing behavior)
-      [self playNext];
-      break;
+    break;
+  }
+
+  case RepeatModeOff:
+  default:
+    // Just play next (existing behavior)
+    [self playNext];
+    break;
   }
 }
 

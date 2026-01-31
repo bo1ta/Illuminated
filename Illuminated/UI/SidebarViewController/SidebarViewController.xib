@@ -21,11 +21,11 @@
                     <rect key="frame" x="0.0" y="0.0" width="195" height="340"/>
                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                     <clipView key="contentView" id="1Bv-dk-P7q">
-                        <rect key="frame" x="1" y="1" width="193" height="323"/>
+                        <rect key="frame" x="1" y="1" width="193" height="338"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <outlineView verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="lastColumnOnly" multipleSelection="NO" autosaveColumns="NO" rowHeight="24" rowSizeStyle="automatic" headerView="VE9-K9-ozh" viewBased="YES" indentationPerLevel="13" outlineTableColumn="uAF-BP-JhV" id="fR5-u7-wRG">
-                                <rect key="frame" x="0.0" y="0.0" width="195" height="295"/>
+                                <rect key="frame" x="0.0" y="0.0" width="195" height="310"/>
                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                 <size key="intercellSpacing" width="17" height="0.0"/>
                                 <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
@@ -68,7 +68,7 @@
                         </subviews>
                     </clipView>
                     <scroller key="horizontalScroller" wantsLayer="YES" verticalHuggingPriority="750" horizontal="YES" id="0Hr-rc-oAs">
-                        <rect key="frame" x="1" y="324" width="193" height="15"/>
+                        <rect key="frame" x="1" y="323" width="193" height="16"/>
                         <autoresizingMask key="autoresizingMask"/>
                     </scroller>
                     <scroller key="verticalScroller" hidden="YES" wantsLayer="YES" verticalHuggingPriority="750" horizontal="NO" id="gex-lf-jWs">

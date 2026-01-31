@@ -8,14 +8,14 @@
 #import "TrackImportService.h"
 #import "Album.h"
 #import "Artist.h"
+#import "ArtworkManager.h"
 #import "BPMAnalyzer.h"
 #import "BookmarkResolver.h"
 #import "CoreDataStore.h"
+#import "MetadataExtractor.h"
 #import "Track.h"
 #import <AVFoundation/AVFoundation.h>
 #import <Foundation/Foundation.h>
-#import "MetadataExtractor.h"
-#import "ArtworkManager.h"
 
 @implementation TrackImportService
 
@@ -29,7 +29,7 @@
     if (task.error) {
       NSLog(@"Error analyzing bpm for track: %@", task.error.localizedDescription);
     }
-    
+
     return task;
   }];
 }
@@ -40,10 +40,10 @@
   if (error) {
     return [BFTask taskWithError:error];
   }
-  
+
   NSDictionary *metadata = [MetadataExtractor extractMetadataFromFileAtURL:fileURL];
-  return [[self saveTrackWithMetadata:metadata bookmark:bookmark fileURL:fileURL playlist:playlist]
-          continueOnMainThreadWithBlock:^id(BFTask<Track *> *task) {
+  return [[self saveTrackWithMetadata:metadata bookmark:bookmark fileURL:fileURL
+                             playlist:playlist] continueOnMainThreadWithBlock:^id(BFTask<Track *> *task) {
     if (task.result) {
       return [[CoreDataStore reader] fetchObjectWithID:task.result.objectID];
     }
@@ -72,7 +72,10 @@
                                   playlist:(nullable Playlist *)playlist {
   return [[CoreDataStore writer] performWrite:^id(NSManagedObjectContext *context) {
     Artist *artist = [self findOrCreateArtist:metadata[@"artist"] inContext:context];
-    Album *album = [self findOrCreateAlbum:metadata[@"album"] artist:artist artwork: metadata[@"artwork"] inContext:context];
+    Album *album = [self findOrCreateAlbum:metadata[@"album"]
+                                    artist:artist
+                                   artwork:metadata[@"artwork"]
+                                 inContext:context];
 
     Track *track =
         [context firstObjectForEntityName:EntityNameTrack
@@ -91,7 +94,7 @@
       track.urlBookmark = bookmark;
       track.artist = artist;
       track.album = album;
-      
+
       if (playlist) {
         [track addPlaylistsObject:playlist];
       }
@@ -110,11 +113,14 @@
     artist.uniqueID = [NSUUID new];
     artist.name = artistName;
   }
-  
+
   return artist;
 }
 
-- (Album *)findOrCreateAlbum:(NSString *)albumName artist:(Artist *)artist artwork:(NSData *)artworkData inContext:(NSManagedObjectContext *)context {
+- (Album *)findOrCreateAlbum:(NSString *)albumName
+                      artist:(Artist *)artist
+                     artwork:(NSData *)artworkData
+                   inContext:(NSManagedObjectContext *)context {
   if (!albumName) return nil;
 
   NSPredicate *predicate;
@@ -131,12 +137,12 @@
     album.title = albumName;
     album.artist = artist;
   }
-  
+
   if (artworkData) {
     NSString *artworkPath = [ArtworkManager saveArtwork:artworkData forUUID:album.uniqueID];
     album.artworkPath = artworkPath;
   }
-  
+
   return album;
 }
 
@@ -144,18 +150,19 @@
 
 - (BFTask<AVAssetTrack *> *)loadAudioTrackFromAsset:(AVURLAsset *)asset {
   BFTaskCompletionSource *source = [BFTaskCompletionSource taskCompletionSource];
-  
-  [asset loadTracksWithMediaType:AVMediaTypeAudio completionHandler:^(NSArray<AVAssetTrack *> *tracks, NSError *error) {
-    if (error) {
-      [source setError:error];
-    } else if (tracks.firstObject) {
-      [source setResult:tracks.firstObject];
-    } else {
-      [source setError:[NSError errorWithDomain:@"ImportError"
-                                           code:-1
-                                       userInfo:@{NSLocalizedDescriptionKey : @"No audio track found"}]];
-    }
-  }];
+
+  [asset loadTracksWithMediaType:AVMediaTypeAudio
+               completionHandler:^(NSArray<AVAssetTrack *> *tracks, NSError *error) {
+                 if (error) {
+                   [source setError:error];
+                 } else if (tracks.firstObject) {
+                   [source setResult:tracks.firstObject];
+                 } else {
+                   [source setError:[NSError errorWithDomain:@"ImportError"
+                                                        code:-1
+                                                    userInfo:@{NSLocalizedDescriptionKey : @"No audio track found"}]];
+                 }
+               }];
 
   return source.task;
 }
