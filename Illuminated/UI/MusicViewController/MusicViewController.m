@@ -16,6 +16,8 @@
 #import "Track.h"
 #import "TrackImportService.h"
 
+#pragma mark - Constants
+
 @interface MusicViewController ()
 
 @property(atomic, strong) NSArray<Track *> *tracks;
@@ -259,9 +261,9 @@
   } else if ([columnIdentifier isEqualToString:@"ArtistColumn"]) {
     cell.textField.stringValue = track.artist.name ?: @"Unknown";
     cell.textField.alignment = NSTextAlignmentLeft;
-  } else if ([columnIdentifier isEqualToString:@"AlbumColumn"]) {
-    cell.textField.stringValue = track.album.title ?: @"Unknown";
-    cell.textField.alignment = NSTextAlignmentLeft;
+  } else if ([columnIdentifier isEqualToString:@"BPMColumn"]) {
+    cell.textField.stringValue = track.roundedBPM ? [NSString stringWithFormat:@"%@", track.roundedBPM] : @"";
+    cell.textField.alignment = NSTextAlignmentCenter;
   } else if ([columnIdentifier isEqualToString:@"TimeColumn"]) {
     cell.textField.stringValue = [self formatTime:track.duration];
     cell.textField.alignment = NSTextAlignmentRight;

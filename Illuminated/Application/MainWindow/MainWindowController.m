@@ -162,6 +162,8 @@ NSString *const ToolbarSearchUserInfo = @"ToolbarSearch";
   } else {
     [self.contentTabViewController switchToVizualizer];
   }
+  
+  [self.splitViewController toggleSidebar:self];
 }
 
 #pragma mark - Search
