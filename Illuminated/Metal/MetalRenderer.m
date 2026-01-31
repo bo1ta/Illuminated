@@ -227,6 +227,10 @@ static const float kAmplitudeBoost = 5.0f;
   [renderEncoder setVertexBytes:&sampleCount length:sizeof(NSUInteger) atIndex:0];
   [renderEncoder setVertexBuffer:_audioBuffer offset:0 atIndex:1];
   [renderEncoder setVertexBuffer:_uniformBuffer offset:0 atIndex:2];
+  
+  [renderEncoder setFragmentBytes:&sampleCount length:sizeof(NSUInteger) atIndex:0];
+  [renderEncoder setFragmentBuffer:_audioBuffer offset:0 atIndex:1];
+  [renderEncoder setFragmentBuffer:_uniformBuffer offset:0 atIndex:2];
 
   // Calculate vertex count (preset can override)
   NSUInteger vertexCount = sampleCount;
