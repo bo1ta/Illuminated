@@ -212,9 +212,13 @@ static MusicColumn const MusicColumnTime = @"TimeColumn";
     }
   }
 
-  if (resolvedURLs.count == 0) return NO;
-
-  [self importURL:resolvedURLs.firstObject];
+  if (resolvedURLs.count == 0) {
+    return NO;
+  } else if (resolvedURLs.count == 1) {
+    [self importURL:resolvedURLs.firstObject];
+  } else {
+    [self importURLs:resolvedURLs];
+  }
 
   return YES;
 }
@@ -367,6 +371,13 @@ static MusicColumn const MusicColumnTime = @"TimeColumn";
     [[PlaybackManager sharedManager] updateQueue:self.tracks];
     [[PlaybackManager sharedManager] playTrack:selectedTrack];
   }
+}
+
+- (void)importURLs:(NSArray<NSURL *> *)urls {
+  [[self.importService importAudioFilesAtURLs:urls withPlaylist:self.currentPlaylist] continueWithSuccessBlock:^id(BFTask *_) {
+    NSLog(@"Imported file urls");
+    return nil;
+  }];
 }
 
 - (void)importURL:(NSURL *)url {
