@@ -13,6 +13,8 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
+typedef NSString *EntityName NS_STRING_ENUM;
+
 #pragma mark - EntityName
 
 typedef NSString *EntityName NS_STRING_ENUM;

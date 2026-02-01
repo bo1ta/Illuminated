@@ -7,7 +7,6 @@
 
 #import "PlaybackManager.h"
 #import "BookmarkResolver.h"
-#import "CoreDataStore.h"
 #import "Track.h"
 #import "TrackQueue.h"
 #import <AVFoundation/AVFoundation.h>
@@ -181,7 +180,6 @@ static const NSTimeInterval kProgressTimerInterval = 0.5;
   [self notifyProgressDidChange];
   [self notifyDidChangeTrack:track];
   [self startProgressTimer];
-  [[CoreDataStore writer] incrementPlayCountForTrack:track];
 }
 
 - (void)playNext {
@@ -328,7 +326,6 @@ static const NSTimeInterval kProgressTimerInterval = 0.5;
 
   case RepeatModeOff:
   default:
-    // Just play next (existing behavior)
     [self playNext];
     break;
   }

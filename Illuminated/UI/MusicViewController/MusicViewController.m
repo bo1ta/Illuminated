@@ -18,6 +18,15 @@
 
 #pragma mark - Constants
 
+typedef NSString *MusicColumn;
+static MusicColumn const MusicColumnNumber = @"NumberColumn";
+static MusicColumn const MusicColumnSong = @"SongColumn";
+static MusicColumn const MusicColumnArtist = @"ArtistColumn";
+static MusicColumn const MusicColumnBPM = @"BPMColumn";
+static MusicColumn const MusicColumnTime = @"TimeColumn";
+
+#pragma mark - Private Interface
+
 @interface MusicViewController ()
 
 @property(atomic, strong) NSArray<Track *> *tracks;
@@ -27,6 +36,8 @@
 @property(nonatomic, strong, nullable) Album *currentAlbum;
 
 @end
+
+#pragma mark - Implementation
 
 @implementation MusicViewController
 
@@ -129,6 +140,8 @@
   dispatch_async(dispatch_get_main_queue(), ^{ [self.tableView reloadData]; });
 
   Track *playingTrack = [[PlaybackManager sharedManager] currentTrack];
+  [[CoreDataStore writer] incrementPlayCountForTrack:playingTrack];
+  
   if (playingTrack.bpm <= 0) {
     NSURL *currentURL = [[PlaybackManager sharedManager] currentPlaybackURL];
     [[BFTask taskFromExecutor:[BFExecutor defaultExecutor]
@@ -248,25 +261,25 @@
   Track *playingTrack = [[PlaybackManager sharedManager] currentTrack];
   BOOL isPlaying = track && playingTrack && [track.objectID isEqual:playingTrack.objectID];
 
-  if ([columnIdentifier isEqualToString:@"NumberColumn"]) {
+  if ([columnIdentifier isEqualToString:MusicColumnNumber]) {
     cell.textField.alignment = NSTextAlignmentCenter;
     if (isPlaying) {
       cell.textField.stringValue = @"▶";
     } else {
       cell.textField.stringValue = [NSString stringWithFormat:@"%ld", (long)row + 1];
     }
-  } else if ([columnIdentifier isEqualToString:@"SongColumn"]) {
+  } else if ([columnIdentifier isEqualToString:MusicColumnSong]) {
     cell.textField.stringValue = track.title;
     cell.textField.alignment = NSTextAlignmentLeft;
-  } else if ([columnIdentifier isEqualToString:@"ArtistColumn"]) {
+  } else if ([columnIdentifier isEqualToString:MusicColumnArtist]) {
     cell.textField.stringValue = track.artist.name ?: @"Unknown";
     cell.textField.alignment = NSTextAlignmentLeft;
-  } else if ([columnIdentifier isEqualToString:@"BPMColumn"]) {
-    cell.textField.stringValue = track.roundedBPM ? [NSString stringWithFormat:@"%@", track.roundedBPM] : @"";
+  } else if ([columnIdentifier isEqualToString:MusicColumnBPM]) {
+    cell.textField.stringValue = track.roundedBPM ? [NSString stringWithFormat:@"%@", track.roundedBPM] : @"-";
     cell.textField.alignment = NSTextAlignmentCenter;
-  } else if ([columnIdentifier isEqualToString:@"TimeColumn"]) {
+  } else if ([columnIdentifier isEqualToString:MusicColumnTime]) {
     cell.textField.stringValue = [self formatTime:track.duration];
-    cell.textField.alignment = NSTextAlignmentRight;
+    cell.textField.alignment = NSTextAlignmentLeft;
   }
 
   cell.textField.font = isPlaying ? [NSFont boldSystemFontOfSize:13] : [NSFont systemFontOfSize:13];
@@ -282,6 +295,52 @@
 
 - (CGFloat)tableView:(NSTableView *)tableView heightOfRow:(NSInteger)row {
   return 24.0;
+}
+
+- (void)tableView:(NSTableView *)tableView didClickTableColumn:(NSTableColumn *)tableColumn {
+  NSString *columnIdentifier = tableColumn.identifier;
+  NSMutableArray<NSSortDescriptor *> *sortDescriptors = [NSMutableArray array];
+  
+  NSArray<NSSortDescriptor *> *existingDescriptors = [self.fetchedResultsController.fetchRequest.sortDescriptors copy];
+  
+  if ([columnIdentifier isEqualToString:MusicColumnSong]) {
+    [sortDescriptors addObject:[NSSortDescriptor sortDescriptorWithKey:@"title" ascending:![self isSortDescriptorForKey:@"title" ascendingInArray:existingDescriptors]]];
+  } else if ([columnIdentifier isEqualToString:MusicColumnArtist]) {
+    [sortDescriptors addObject:[NSSortDescriptor sortDescriptorWithKey:@"artist.name" ascending:![self isSortDescriptorForKey:@"artist.name" ascendingInArray:existingDescriptors]]];
+  } else if ([columnIdentifier isEqualToString:MusicColumnBPM]) {
+    [sortDescriptors addObject:[NSSortDescriptor sortDescriptorWithKey:@"bpm" ascending:![self isSortDescriptorForKey:@"bpm" ascendingInArray:existingDescriptors]]];
+  } else if ([columnIdentifier isEqualToString:MusicColumnTime]) {
+    [sortDescriptors addObject:[NSSortDescriptor sortDescriptorWithKey:@"duration" ascending:![self isSortDescriptorForKey:@"duration" ascendingInArray:existingDescriptors]]];
+  } else if ([columnIdentifier isEqualToString:MusicColumnNumber]) {
+    // do nothing here and let the empty array propagate to sort descriptors for reset
+  } else {
+    return;
+  }
+  
+  self.fetchedResultsController.fetchRequest.sortDescriptors = sortDescriptors;
+  
+  NSError *error = nil;
+  if (![self.fetchedResultsController performFetch:&error]) {
+    NSLog(@"Error performing fetch request. Error: %@", error);
+    return;
+  }
+  
+  self.tracks = (NSArray<Track *> *)[self.fetchedResultsController fetchedObjects];
+  [self.tableView reloadData];
+}
+
+- (BOOL)isSortDescriptorForKey:(NSString *)key ascendingInArray:(NSArray<NSSortDescriptor *> *)descriptors {
+    for (NSSortDescriptor *descriptor in descriptors) {
+        if ([descriptor.key isEqualToString:key]) {
+            return descriptor.ascending;
+        }
+    }
+    return NO;
+}
+
+- (void)reloadData {
+  self.tracks = (NSArray<Track *> *)[self.fetchedResultsController fetchedObjects];
+  [self.tableView reloadData];
 }
 
 #pragma mark - Private Helpers

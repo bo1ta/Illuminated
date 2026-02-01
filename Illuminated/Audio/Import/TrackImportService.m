@@ -42,8 +42,11 @@
   }
 
   NSDictionary *metadata = [MetadataExtractor extractMetadataFromFileAtURL:fileURL];
-  return [[self saveTrackWithMetadata:metadata bookmark:bookmark fileURL:fileURL
-                             playlist:playlist] continueOnMainThreadWithBlock:^id(BFTask<Track *> *task) {
+  return [[self saveTrackWithMetadata:metadata
+                             bookmark:bookmark
+                              fileURL:fileURL
+                             playlist:playlist]
+          continueOnMainThreadWithBlock:^id(BFTask<Track *> *task) {
     if (task.result) {
       return [[CoreDataStore reader] fetchObjectWithID:task.result.objectID];
     }
