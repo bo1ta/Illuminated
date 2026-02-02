@@ -7,9 +7,9 @@
 
 #import "MetalRenderer.h"
 #import "AudioProcessor.h"
-#import "BarGraphPreset.h"
 #import "CircularWavePreset.h"
 #import "ShaderTypes.h"
+#import "AlienCorePreset.h"
 #import "VisualizationPreset.h"
 
 #pragma mark - Constants
@@ -76,7 +76,7 @@ static const float kAmplitudeBoost = 5.0f;
     }
 
     // Set default preset
-    _currentPreset = [[BarGraphPreset alloc] init];
+    _currentPreset = [[AlienCorePreset alloc] init];
 
     if (![self buildPipelineStateForPreset:_currentPreset]) {
       return nil;

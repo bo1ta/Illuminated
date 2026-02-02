@@ -74,7 +74,7 @@ fragment float4 alienCoreFragmentShader(RaymarchVertexOut in [[stage_in]],
   float3 color = float3(0.0);
   
   // Raymarching parameters
-  const int maxSteps = 64; // Reduced from 1024 for better performance
+  const int maxSteps = 64;
   float maxDist = 8.0;
   
   // Ray position starts behind camera

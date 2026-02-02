@@ -6,13 +6,14 @@
 //
 
 #import "VisualizationPresetManager.h"
-#import "BarGraphPreset.h"
 #import "CircularWavePreset.h"
 #import "VisualizationPreset.h"
 #import "TriangleFractalPreset.h"
 #import "SineVoronoiPreset.h"
 #import "NeuralPulsePreset.h"
 #import "AlienCorePreset.h"
+#import "CosmicVoidPreset.h"
+#import "SpaceCentipedePreset.h"
 
 @interface VisualizationPresetManager ()
 
@@ -48,10 +49,11 @@
 - (void)registerBuiltInPresets {
   [self registerPreset:[[CircularWavePreset alloc] init]];
   [self registerPreset:[[NeuralPulsePreset alloc] init]];
-  [self registerPreset:[[BarGraphPreset alloc] init]];
   [self registerPreset:[[TriangleFractalPreset alloc] init]];
   [self registerPreset:[[SineVoronoiPreset alloc] init]];
   [self registerPreset:[[AlienCorePreset alloc] init]];
+  [self registerPreset:[[CosmicVoidPreset alloc] init]];
+  [self registerPreset:[[SpaceCentipedePreset alloc] init]];
 }
 
 #pragma mark - Properties
