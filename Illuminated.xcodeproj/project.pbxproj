@@ -7,12 +7,12 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		505DCD222F31210000E187C2 /* libtag.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 505DCD212F31210000E187C2 /* libtag.a */; };
+		505DCD242F312D1A00E187C2 /* libtag.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 505DCD232F312D1A00E187C2 /* libtag.a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		505A7A2D2F1C4E6D00984897 /* Illuminated.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Illuminated.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		505DCD212F31210000E187C2 /* libtag.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libtag.a; sourceTree = "<group>"; };
+		505DCD232F312D1A00E187C2 /* libtag.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libtag.a; path = Frameworks/libtag.a; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -41,7 +41,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				505DCD222F31210000E187C2 /* libtag.a in Frameworks */,
+				505DCD242F312D1A00E187C2 /* libtag.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -51,7 +51,7 @@
 		504098F42F25A01B001077D9 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				505DCD212F31210000E187C2 /* libtag.a */,
+				505DCD232F312D1A00E187C2 /* libtag.a */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -314,6 +314,7 @@
 					/opt/homebrew/Cellar/taglib/2.1.1/lib,
 					"$(PROJECT_DIR)/Illuminated/ThirdParty",
 					"$(PROJECT_DIR)",
+					"$(PROJECT_DIR)/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.genvera.Illuminated;
@@ -362,6 +363,7 @@
 					/opt/homebrew/Cellar/taglib/2.1.1/lib,
 					"$(PROJECT_DIR)/Illuminated/ThirdParty",
 					"$(PROJECT_DIR)",
+					"$(PROJECT_DIR)/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.genvera.Illuminated;
