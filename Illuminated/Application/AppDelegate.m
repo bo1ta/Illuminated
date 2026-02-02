@@ -46,4 +46,10 @@
   return NSTerminateNow;
 }
 
+- (BOOL)application:(NSApplication *)sender openFile:(NSString *)filename {
+  NSURL *url = [NSURL fileURLWithPath:filename];
+  [self.mainWindowController openAudioFileURL:url];
+  return YES;
+}
+
 @end

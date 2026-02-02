@@ -174,4 +174,11 @@ NSString *const ToolbarSearchUserInfo = @"ToolbarSearch";
                                                       object:nil
                                                     userInfo:@{ToolbarSearchUserInfo : searchText}];
 }
+
+#pragma mark - Open URL
+
+- (void)openAudioFileURL:(NSURL *)url {
+  [self.contentTabViewController.musicViewController importURL:url];
+}
+  
 @end

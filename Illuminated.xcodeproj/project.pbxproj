@@ -7,17 +7,30 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		504098F62F25A01B001077D9 /* libtag.2.1.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 504098F52F25A01B001077D9 /* libtag.2.1.1.dylib */; };
+		505DCD222F31210000E187C2 /* libtag.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 505DCD212F31210000E187C2 /* libtag.a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		504098F52F25A01B001077D9 /* libtag.2.1.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libtag.2.1.1.dylib; path = ../../../../../opt/homebrew/Cellar/taglib/2.1.1/lib/libtag.2.1.1.dylib; sourceTree = "<group>"; };
 		505A7A2D2F1C4E6D00984897 /* Illuminated.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Illuminated.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		505DCD212F31210000E187C2 /* libtag.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libtag.a; sourceTree = "<group>"; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		505DCD202F31166100E187C2 /* Exceptions for "Illuminated" folder in "Illuminated" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 505A7A2C2F1C4E6D00984897 /* Illuminated */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		505A7A2F2F1C4E6D00984897 /* Illuminated */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				505DCD202F31166100E187C2 /* Exceptions for "Illuminated" folder in "Illuminated" target */,
+			);
 			path = Illuminated;
 			sourceTree = "<group>";
 		};
@@ -28,7 +41,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				504098F62F25A01B001077D9 /* libtag.2.1.1.dylib in Frameworks */,
+				505DCD222F31210000E187C2 /* libtag.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -38,7 +51,7 @@
 		504098F42F25A01B001077D9 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				504098F52F25A01B001077D9 /* libtag.2.1.1.dylib */,
+				505DCD212F31210000E187C2 /* libtag.a */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -142,6 +155,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
@@ -192,10 +206,14 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MACOSX_DEPLOYMENT_TARGET = 15.5;
+				MACOSX_DEPLOYMENT_TARGET = 14.6;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
+				OTHER_LDFLAGS = (
+					"-ObjC",
+					"-lc++",
+				);
 				SDKROOT = macosx;
 			};
 			name = Debug;
@@ -204,6 +222,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
@@ -248,9 +267,13 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MACOSX_DEPLOYMENT_TARGET = 15.5;
+				MACOSX_DEPLOYMENT_TARGET = 14.6;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
+				OTHER_LDFLAGS = (
+					"-ObjC",
+					"-lc++",
+				);
 				SDKROOT = macosx;
 			};
 			name = Release;
@@ -277,6 +300,7 @@
 				GCC_WARN_UNUSED_VARIABLE = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				HEADER_SEARCH_PATHS = /opt/homebrew/include/taglib;
+				INFOPLIST_FILE = Illuminated/Info.plist;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INFOPLIST_KEY_NSMainNibFile = MainMenu;
 				INFOPLIST_KEY_NSPrincipalClass = NSApplication;
@@ -288,6 +312,8 @@
 				LIBRARY_SEARCH_PATHS = (
 					/opt/homebrew/include/taglib,
 					/opt/homebrew/Cellar/taglib/2.1.1/lib,
+					"$(PROJECT_DIR)/Illuminated/ThirdParty",
+					"$(PROJECT_DIR)",
 				);
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.genvera.Illuminated;
@@ -322,6 +348,7 @@
 				GCC_WARN_UNUSED_VARIABLE = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				HEADER_SEARCH_PATHS = /opt/homebrew/include/taglib;
+				INFOPLIST_FILE = Illuminated/Info.plist;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INFOPLIST_KEY_NSMainNibFile = MainMenu;
 				INFOPLIST_KEY_NSPrincipalClass = NSApplication;
@@ -333,6 +360,8 @@
 				LIBRARY_SEARCH_PATHS = (
 					/opt/homebrew/include/taglib,
 					/opt/homebrew/Cellar/taglib/2.1.1/lib,
+					"$(PROJECT_DIR)/Illuminated/ThirdParty",
+					"$(PROJECT_DIR)",
 				);
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.genvera.Illuminated;

@@ -301,4 +301,78 @@ NSString *const PasteboardItemTypeTrack = @"com.illuminated.track";
   }
 }
 
+#pragma mark - Editing on Return key
+
+- (BOOL)outlineView:(NSOutlineView *)outlineView shouldEditTableColumn:(NSTableColumn *)tableColumn item:(id)item {
+  if ([self outlineView:outlineView isGroupItem:item]) {
+    return NO;
+  }
+  return YES;
+}
+
+- (void)outlineView:(NSOutlineView *)outlineView willDisplayCell:(id)cell forTableColumn:(NSTableColumn *)tableColumn item:(id)item {
+  if ([cell isKindOfClass:[NSTableCellView class]]) {
+    NSTableCellView *tableCell = (NSTableCellView *)cell;
+    tableCell.textField.editable = YES;
+    tableCell.textField.selectable = YES;
+  }
+}
+
+- (void)keyDown:(NSEvent *)event {
+  // Return or Enter
+  if (event.keyCode == 36 || event.keyCode == 52) {
+          NSInteger row = self.outlineView.selectedRow;
+          if (row == -1) return;
+          
+          id item = [self.outlineView itemAtRow:row];
+          if ([self outlineView:self.outlineView isGroupItem:item]) return;
+          
+          [self.outlineView editColumn:0
+                                   row:row
+                             withEvent:event
+                                select:YES];
+      } else {
+          [super keyDown:event];
+      }
+}
+
+- (void)controlTextDidEndEditing:(NSNotification *)obj {
+  NSTextField *textField = obj.object;
+  if (![textField isKindOfClass:[NSTextField class]]) return;
+  
+  NSInteger row = [self.outlineView rowForView:textField];
+  if (row == -1) return;
+  
+  SidebarItem *item = [self.outlineView itemAtRow:row];
+  if (!item || [item.representedObject isKindOfClass:[NSNull class]]) return;
+  
+  NSString *newName = [textField.stringValue stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+  if (newName.length == 0 || [newName isEqualToString:item.title]) {
+    // Revert if empty or no change
+    textField.stringValue = item.title;
+    return;
+  }
+  
+  id represented = item.representedObject;
+  if ([represented isKindOfClass:[Playlist class]]) {
+    Playlist *playlist = (Playlist *)represented;
+    [self renamePlaylist:playlist toName:newName];
+  } else {
+    return;
+  }
+  
+  item.title = newName;
+  [self.outlineView reloadItem:item];
+}
+
+- (void)renamePlaylist:(Playlist *)playlist toName:(NSString *)name {
+  [[CoreDataStore writer] performWrite:^id(NSManagedObjectContext *context) {
+      Playlist *existingPlaylist = [context objectWithID:playlist.objectID];
+      if (!existingPlaylist) return nil;
+      
+      existingPlaylist.name = name;
+      return nil;
+  }];
+}
+
 @end
