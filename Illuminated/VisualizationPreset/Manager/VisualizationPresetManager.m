@@ -12,6 +12,7 @@
 #import "TriangleFractalPreset.h"
 #import "SineVoronoiPreset.h"
 #import "NeuralPulsePreset.h"
+#import "AlienCorePreset.h"
 
 @interface VisualizationPresetManager ()
 
@@ -50,6 +51,7 @@
   [self registerPreset:[[BarGraphPreset alloc] init]];
   [self registerPreset:[[TriangleFractalPreset alloc] init]];
   [self registerPreset:[[SineVoronoiPreset alloc] init]];
+  [self registerPreset:[[AlienCorePreset alloc] init]];
 }
 
 #pragma mark - Properties

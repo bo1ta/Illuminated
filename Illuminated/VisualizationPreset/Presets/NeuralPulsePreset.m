@@ -9,31 +9,43 @@
 #import "NeuralPulsePreset.h"
 
 @implementation NeuralPulsePreset
+
 - (NSString *)identifier {
-  return @"neural_pulse";
+    return @"neural_pulse";
 }
 
 - (NSString *)displayName {
-  return @"Void Tunnel";
+    return @"Neural Pulse";
 }
 
 - (NSString *)vertexFunctionName {
-  return @"neuralPulseVertexShader";
+    return @"neuralPulseVertexShader";
 }
 
 - (NSString *)fragmentFunctionName {
-  return @"neuralPulseFragmentShader";
+    return @"neuralPulseFragmentShader";
 }
 
 - (MTLPrimitiveType)primitiveType {
-  return MTLPrimitiveTypeTriangleStrip;
+    return MTLPrimitiveTypeTriangleStrip;
 }
 
 - (BOOL)requiresBlending {
-  return YES;
+    return YES;
 }
 
 - (NSUInteger)vertexCountForAudioBufferSize:(NSUInteger)bufferSize {
-  return 4;
+    return 4;
 }
+
+- (void)configureBlending:(MTLRenderPipelineColorAttachmentDescriptor *)attachment {
+    attachment.blendingEnabled = YES;
+    attachment.rgbBlendOperation = MTLBlendOperationAdd;
+    attachment.alphaBlendOperation = MTLBlendOperationAdd;
+    attachment.sourceRGBBlendFactor = MTLBlendFactorSourceAlpha;
+    attachment.destinationRGBBlendFactor = MTLBlendFactorOne;
+    attachment.sourceAlphaBlendFactor = MTLBlendFactorOne;
+    attachment.destinationAlphaBlendFactor = MTLBlendFactorOne;
+}
+
 @end
