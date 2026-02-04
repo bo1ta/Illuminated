@@ -47,11 +47,10 @@
 }
 
 - (void)commonInit {
-  // Create Metal view
   _metalView = [[MTKView alloc] initWithFrame:self.bounds];
   _metalView.device = MTLCreateSystemDefaultDevice();
   _metalView.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
-  _metalView.paused = YES; // We'll control rendering manually
+  _metalView.paused = YES;
   _metalView.enableSetNeedsDisplay = NO;
 
   if (!_metalView.device) {
@@ -63,7 +62,6 @@
 
   [self setupControlButtons];
 
-  // Create renderer
   _renderer = [[MetalRenderer alloc] initWithMetalKitView:_metalView audioBufferSize:1024];
 
   if (!_renderer) {
@@ -74,24 +72,22 @@
   _metalView.delegate = _renderer;
 
   _presetQueue = [VisualizationPresetQueue queueWithAllAvailablePresets];
-
-  NSLog(@"VizualizationView: Initialized with %lu presets", (unsigned long)_presetQueue.count);
 }
 
 - (void)setupControlButtons {
-  // Previous button
   NSButton *previousButton = [NSButton buttonWithTitle:@"◀" target:self action:@selector(previousPreset)];
   previousButton.frame = CGRectMake(20, 20, 44, 44);
-  previousButton.bordered = NO; // For a cleaner look
+  previousButton.bordered = NO;
   previousButton.bezelStyle = NSBezelStyleRoundRect;
+  previousButton.contentTintColor = [NSColor controlColor];
   [self addSubview:previousButton];
   _previousButton = previousButton;
 
-  // Next button
   NSButton *nextButton = [NSButton buttonWithTitle:@"▶" target:self action:@selector(nextPreset)];
   nextButton.frame = CGRectMake(74, 20, 44, 44);
   nextButton.bordered = NO;
   nextButton.bezelStyle = NSBezelStyleRoundRect;
+  nextButton.contentTintColor = [NSColor controlColor];
   [self addSubview:nextButton];
   _nextButton = nextButton;
 }
@@ -157,10 +153,8 @@
     return NO;
   }
 
-  // Update the queue's current index to match
   [_presetQueue selectPresetWithIdentifier:preset.identifier];
 
-  // Switch in the renderer
   return [_renderer switchToPreset:preset];
 }
 

@@ -7,12 +7,14 @@
 
 #import "AppDelegate.h"
 #import "CoreDataStore.h"
+#import <MediaPlayer/MediaPlayer.h>
 #import "MainWindowController.h"
 
 @interface AppDelegate ()
 
 @property(strong) IBOutlet NSWindow *window;
 @property(strong) MainWindowController *mainWindowController;
+@property(strong) NSURL *pendingFileURL;
 
 @end
 
@@ -26,6 +28,11 @@
   [self.mainWindowController.window center];
   [self.mainWindowController showWindow:nil];
   [self.mainWindowController.window makeKeyAndOrderFront:nil];
+  
+  if (self.pendingFileURL) {
+    [self.mainWindowController openAudioFileURL:self.pendingFileURL];
+    self.pendingFileURL = nil;
+  }
 }
 
 - (void)applicationWillTerminate:(NSNotification *)aNotification {
@@ -48,7 +55,13 @@
 
 - (BOOL)application:(NSApplication *)sender openFile:(NSString *)filename {
   NSURL *url = [NSURL fileURLWithPath:filename];
-  [self.mainWindowController openAudioFileURL:url];
+  
+  if (self.mainWindowController) {
+    [self.mainWindowController openAudioFileURL:url];
+  } else {
+    // Window not ready yet, queue it
+    self.pendingFileURL = url;
+  }
   return YES;
 }
 

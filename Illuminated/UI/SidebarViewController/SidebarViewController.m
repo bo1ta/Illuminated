@@ -10,6 +10,7 @@
 #import "CoreDataStore.h"
 #import "Playlist.h"
 #import "SidebarCellFactory.h"
+#import "Carbon/Carbon.h"
 #import "SidebarItem.h"
 
 #pragma mark - Constants
@@ -19,7 +20,7 @@ NSString *const PasteboardItemTypeTrack = @"com.illuminated.track";
 
 #pragma mark - Interface
 
-@interface SidebarViewController ()<NSFetchedResultsControllerDelegate>
+@interface SidebarViewController ()<NSFetchedResultsControllerDelegate, NSTextFieldDelegate>
 
 @property(nonatomic, strong) NSFetchedResultsController *playlistFetchedResultsController;
 @property(nonatomic, strong) NSFetchedResultsController *albumFetchedResultsController;
@@ -42,6 +43,7 @@ NSString *const PasteboardItemTypeTrack = @"com.illuminated.track";
   self.outlineView.delegate = self;
   self.outlineView.style = NSTableViewStyleSourceList;
   self.outlineView.floatsGroupRows = NO;
+  self.outlineView.target = self;
 
   [self setupHeaderView];
 
@@ -62,10 +64,11 @@ NSString *const PasteboardItemTypeTrack = @"com.illuminated.track";
 
   NSScrollView *scrollView = self.outlineView.enclosingScrollView;
 
-  NSView *headerView = [[NSView alloc] initWithFrame:NSMakeRect(0, 0, 200, 28)];
+  NSVisualEffectView *headerView = [[NSVisualEffectView alloc] initWithFrame:NSMakeRect(0, 0, 200, 28)];
   headerView.translatesAutoresizingMaskIntoConstraints = NO;
-  headerView.wantsLayer = YES;
-  headerView.layer.backgroundColor = [NSColor controlBackgroundColor].CGColor;
+  headerView.material = NSVisualEffectMaterialContentBackground;
+  headerView.blendingMode = NSVisualEffectBlendingModeWithinWindow;
+  headerView.state = NSVisualEffectStateFollowsWindowActiveState;
 
   NSTextField *titleLabel = [NSTextField labelWithString:@"PLAYLISTS"];
   titleLabel.font = [NSFont systemFontOfSize:11 weight:NSFontWeightSemibold];
@@ -272,15 +275,14 @@ NSString *const PasteboardItemTypeTrack = @"com.illuminated.track";
 
 - (NSView *)outlineView:(NSOutlineView *)outlineView viewForTableColumn:(NSTableColumn *)tableColumn item:(id)item {
   BOOL isGroupItem = [self outlineView:outlineView isGroupItem:item];
-
   SidebarItem *sidebarItem = (SidebarItem *)item;
 
   if (isGroupItem) {
     return [SidebarCellFactory headerCellForOutlineView:self.outlineView title:sidebarItem.title];
   } else {
     return [SidebarCellFactory itemCellForOutlineView:self.outlineView
-                                                title:sidebarItem.title
-                                           systemIcon:sidebarItem.iconName];
+                                                                 title:sidebarItem.title
+                                                            systemIcon:sidebarItem.iconName];
   }
 }
 
@@ -307,59 +309,74 @@ NSString *const PasteboardItemTypeTrack = @"com.illuminated.track";
   if ([self outlineView:outlineView isGroupItem:item]) {
     return NO;
   }
-  return YES;
-}
-
-- (void)outlineView:(NSOutlineView *)outlineView willDisplayCell:(id)cell forTableColumn:(NSTableColumn *)tableColumn item:(id)item {
-  if ([cell isKindOfClass:[NSTableCellView class]]) {
-    NSTableCellView *tableCell = (NSTableCellView *)cell;
-    tableCell.textField.editable = YES;
-    tableCell.textField.selectable = YES;
-  }
+  
+  SidebarItem *sidebarItem = (SidebarItem *)item;
+  return [sidebarItem.representedObject isKindOfClass:[Playlist class]];
 }
 
 - (void)keyDown:(NSEvent *)event {
-  // Return or Enter
-  if (event.keyCode == 36 || event.keyCode == 52) {
-          NSInteger row = self.outlineView.selectedRow;
-          if (row == -1) return;
-          
-          id item = [self.outlineView itemAtRow:row];
-          if ([self outlineView:self.outlineView isGroupItem:item]) return;
-          
-          [self.outlineView editColumn:0
-                                   row:row
-                             withEvent:event
-                                select:YES];
-      } else {
-          [super keyDown:event];
-      }
+  if (event.keyCode != kVK_Return) {
+    [super keyDown:event];
+    return;
+  }
+  
+  NSInteger row = self.outlineView.selectedRow;
+  if (row == -1) {
+    [super keyDown:event];
+    return;
+  }
+  
+  id item = [self.outlineView itemAtRow:row];
+  if ([self outlineView:self.outlineView isGroupItem:item]) {
+    [super keyDown:event];
+    return;
+  }
+  
+  SidebarItem *sidebarItem = (SidebarItem *)item;
+  if (![sidebarItem.representedObject isKindOfClass:[Playlist class]]) {
+    [super keyDown:event];
+    return;
+  }
+  
+  NSTableCellView *cell = [self.outlineView viewAtColumn:0 row:row makeIfNecessary:NO];
+  if (cell && cell.textField) {
+    cell.textField.editable = YES;
+    cell.textField.selectable = YES;
+    cell.textField.delegate = self;
+  }
+  
+  [self.outlineView editColumn:0 row:row withEvent:event select:YES];
 }
 
 - (void)controlTextDidEndEditing:(NSNotification *)obj {
   NSTextField *textField = obj.object;
-  if (![textField isKindOfClass:[NSTextField class]]) return;
+  if (![textField isKindOfClass:[NSTextField class]]) {
+    return;
+  }
   
   NSInteger row = [self.outlineView rowForView:textField];
-  if (row == -1) return;
+  if (row == -1) {
+    return;
+  }
   
   SidebarItem *item = [self.outlineView itemAtRow:row];
-  if (!item || [item.representedObject isKindOfClass:[NSNull class]]) return;
+  if (!item || [item.representedObject isKindOfClass:[NSNull class]]) {
+    return;
+  }
   
   NSString *newName = [textField.stringValue stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
   if (newName.length == 0 || [newName isEqualToString:item.title]) {
-    // Revert if empty or no change
     textField.stringValue = item.title;
     return;
   }
   
   id represented = item.representedObject;
-  if ([represented isKindOfClass:[Playlist class]]) {
-    Playlist *playlist = (Playlist *)represented;
-    [self renamePlaylist:playlist toName:newName];
-  } else {
+  if (![represented isKindOfClass:[Playlist class]]) {
     return;
   }
+  
+  Playlist *playlist = (Playlist *)represented;
+  [self renamePlaylist:playlist toName:newName];
   
   item.title = newName;
   [self.outlineView reloadItem:item];

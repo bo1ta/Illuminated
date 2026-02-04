@@ -62,7 +62,7 @@
     [cell addSubview:textField];
 
     [NSLayoutConstraint activateConstraints:@[
-      [cell.heightAnchor constraintEqualToConstant:20],
+      [cell.heightAnchor constraintEqualToConstant:24],
       [imageView.leadingAnchor constraintEqualToAnchor:cell.leadingAnchor constant:16],
       [imageView.centerYAnchor constraintEqualToAnchor:cell.centerYAnchor constant:0],
       [imageView.widthAnchor constraintEqualToConstant:16],
@@ -74,10 +74,13 @@
     ]];
   }
 
-  cell.textField.stringValue = title;
   cell.imageView.image = [NSImage imageWithSystemSymbolName:systemIcon accessibilityDescription:nil];
   cell.imageView.contentTintColor = [NSColor secondaryLabelColor];
-
+  
+  cell.textField.stringValue = title;
+  cell.textField.editable = NO;
+  cell.textField.selectable = NO;
+  
   return cell;
 }
 
