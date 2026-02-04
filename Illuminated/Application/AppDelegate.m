@@ -7,7 +7,6 @@
 
 #import "AppDelegate.h"
 #import "CoreDataStore.h"
-#import <MediaPlayer/MediaPlayer.h>
 #import "MainWindowController.h"
 
 @interface AppDelegate ()
