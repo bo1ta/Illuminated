@@ -134,10 +134,14 @@ static MusicColumn const MusicColumnTime = @"TimeColumn";
 
   self.tracks = (NSArray<Track *> *)[self.fetchedResultsController fetchedObjects];
   [self.tableView reloadData];
+  [self selectRowForTrack:[[PlaybackManager sharedManager] currentTrack] scroll:NO];
 }
 
 - (void)selectCurrentTrack {
-  dispatch_async(dispatch_get_main_queue(), ^{ [self.tableView reloadData]; });
+  dispatch_async(dispatch_get_main_queue(), ^{
+    [self.tableView reloadData];
+    [self selectRowForTrack:[[PlaybackManager sharedManager] currentTrack] scroll:YES];
+  });
 
   Track *playingTrack = [[PlaybackManager sharedManager] currentTrack];
   [[CoreDataStore writer] incrementPlayCountForTrack:playingTrack];
@@ -228,6 +232,7 @@ static MusicColumn const MusicColumnTime = @"TimeColumn";
 - (void)controllerDidChangeContent:(NSFetchedResultsController *)controller {
   self.tracks = (NSArray<Track *> *)[controller fetchedObjects];
   [self.tableView reloadData];
+  [self selectRowForTrack:[[PlaybackManager sharedManager] currentTrack] scroll:NO];
 }
 
 #pragma mark - NSTableViewDataSource
@@ -267,11 +272,7 @@ static MusicColumn const MusicColumnTime = @"TimeColumn";
 
   if ([columnIdentifier isEqualToString:MusicColumnNumber]) {
     cell.textField.alignment = NSTextAlignmentCenter;
-    if (isPlaying) {
-      cell.textField.stringValue = @"▶";
-    } else {
-      cell.textField.stringValue = [NSString stringWithFormat:@"%ld", (long)row + 1];
-    }
+    cell.textField.stringValue = [NSString stringWithFormat:@"%ld", (long)row + 1];
   } else if ([columnIdentifier isEqualToString:MusicColumnSong]) {
     cell.textField.stringValue = track.title;
     cell.textField.alignment = NSTextAlignmentLeft;
@@ -340,9 +341,8 @@ static MusicColumn const MusicColumnTime = @"TimeColumn";
     NSLog(@"Error performing fetch request. Error: %@", error);
     return;
   }
-
-  self.tracks = (NSArray<Track *> *)[self.fetchedResultsController fetchedObjects];
-  [self.tableView reloadData];
+  
+  [self reloadData];
 }
 
 - (BOOL)isSortDescriptorForKey:(NSString *)key ascendingInArray:(NSArray<NSSortDescriptor *> *)descriptors {
@@ -357,9 +357,38 @@ static MusicColumn const MusicColumnTime = @"TimeColumn";
 - (void)reloadData {
   self.tracks = (NSArray<Track *> *)[self.fetchedResultsController fetchedObjects];
   [self.tableView reloadData];
+
+  [self selectRowForTrack:[[PlaybackManager sharedManager] currentTrack] scroll:NO];
 }
 
 #pragma mark - Private Helpers
+
+- (void)selectRowForTrack:(Track *)track scroll:(BOOL)scroll {
+  if (track == nil) {
+    [self.tableView deselectAll:nil];
+    return;
+  }
+
+  NSUInteger rowIndex = [self.tracks indexOfObjectPassingTest:^BOOL(Track *obj, NSUInteger _, BOOL *stop) {
+    BOOL matches = [obj.objectID isEqual:track.objectID];
+    if (matches) {
+      *stop = YES;
+    }
+    return matches;
+  }];
+
+  if (rowIndex == NSNotFound) {
+    [self.tableView deselectAll:nil];
+    return;
+  }
+
+  NSIndexSet *row = [NSIndexSet indexSetWithIndex:rowIndex];
+  [self.tableView selectRowIndexes:row byExtendingSelection:NO];
+
+  if (scroll) {
+    [self.tableView scrollRowToVisible:(NSInteger)rowIndex];
+  }
+}
 
 - (void)updateFetchedResultsControllerForCurrentPlaylist {
   NSPredicate *predicate = nil;
@@ -372,8 +401,7 @@ static MusicColumn const MusicColumnTime = @"TimeColumn";
   self.fetchedResultsController.fetchRequest.predicate = predicate;
   [self.fetchedResultsController performFetch:nil];
 
-  self.tracks = (NSArray<Track *> *)[self.fetchedResultsController fetchedObjects];
-  [self.tableView reloadData];
+  [self reloadData];
 }
 
 - (void)tableViewClicked:(id)sender {
