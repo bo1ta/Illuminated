@@ -162,7 +162,7 @@ NSString *const ToolbarSearchUserInfo = @"ToolbarSearch";
   } else {
     [self.contentTabViewController switchToVizualizer];
   }
-  
+
   [self.splitViewController toggleSidebar:self];
 }
 
@@ -180,5 +180,5 @@ NSString *const ToolbarSearchUserInfo = @"ToolbarSearch";
 - (void)openAudioFileURL:(NSURL *)url {
   [self.contentTabViewController.musicViewController importURL:url];
 }
-  
+
 @end

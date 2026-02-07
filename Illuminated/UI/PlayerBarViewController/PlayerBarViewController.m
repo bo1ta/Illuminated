@@ -70,19 +70,19 @@
 
 - (void)setupMediaKeyControls {
   MPRemoteCommandCenter *commandCenter = [MPRemoteCommandCenter sharedCommandCenter];
-  
+
   [commandCenter.togglePlayPauseCommand setEnabled:YES];
   [commandCenter.togglePlayPauseCommand addTargetWithHandler:^MPRemoteCommandHandlerStatus(MPRemoteCommandEvent *_) {
     [[PlaybackManager sharedManager] togglePlayPause];
     return MPRemoteCommandHandlerStatusSuccess;
   }];
-  
+
   [commandCenter.nextTrackCommand setEnabled:YES];
   [commandCenter.nextTrackCommand addTargetWithHandler:^MPRemoteCommandHandlerStatus(MPRemoteCommandEvent *_) {
     [[PlaybackManager sharedManager] playNext];
     return MPRemoteCommandHandlerStatusSuccess;
   }];
-  
+
   [commandCenter.previousTrackCommand setEnabled:YES];
   [commandCenter.previousTrackCommand addTargetWithHandler:^MPRemoteCommandHandlerStatus(MPRemoteCommandEvent *_) {
     [[PlaybackManager sharedManager] playPrevious];
@@ -96,17 +96,17 @@
   nowPlayingInfo[MPMediaItemPropertyArtist] = track.artist.name ?: @"Unknown Artist";
   nowPlayingInfo[MPMediaItemPropertyAlbumTitle] = track.album.title ?: @"Unknown Album";
   nowPlayingInfo[MPMediaItemPropertyPlaybackDuration] = @(track.duration);
-  
+
   nowPlayingInfo[MPNowPlayingInfoPropertyElapsedPlaybackTime] = @([[PlaybackManager sharedManager] currentTime]);
   nowPlayingInfo[MPNowPlayingInfoPropertyPlaybackRate] = @([[PlaybackManager sharedManager] isPlaying] ? 1.0 : 0.0);
-  
+
   if (artwork) {
-    MPMediaItemArtwork *mediaArtwork = [[MPMediaItemArtwork alloc] initWithBoundsSize:artwork.size requestHandler:^NSImage *(CGSize _) {
-      return artwork;
-    }];
+    MPMediaItemArtwork *mediaArtwork =
+        [[MPMediaItemArtwork alloc] initWithBoundsSize:artwork.size
+                                        requestHandler:^NSImage *(CGSize _) { return artwork; }];
     nowPlayingInfo[MPMediaItemPropertyArtwork] = mediaArtwork;
   }
-  
+
   [MPNowPlayingInfoCenter defaultCenter].nowPlayingInfo = nowPlayingInfo;
 }
 

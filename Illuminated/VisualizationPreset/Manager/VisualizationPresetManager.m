@@ -6,14 +6,15 @@
 //
 
 #import "VisualizationPresetManager.h"
-#import "CircularWavePreset.h"
-#import "VisualizationPreset.h"
-#import "TriangleFractalPreset.h"
-#import "SineVoronoiPreset.h"
-#import "NeuralPulsePreset.h"
 #import "AlienCorePreset.h"
+#import "CircularWavePreset.h"
 #import "CosmicVoidPreset.h"
+#import "IndustrialGhost.h"
+#import "NeuralPulsePreset.h"
+#import "SineVoronoiPreset.h"
 #import "SpaceCentipedePreset.h"
+#import "TriangleFractalPreset.h"
+#import "VisualizationPreset.h"
 
 @interface VisualizationPresetManager ()
 
@@ -48,6 +49,7 @@
 
 - (void)registerBuiltInPresets {
   [self registerPreset:[[CircularWavePreset alloc] init]];
+  [self registerPreset:[[IndustrialGhost alloc] init]];
   [self registerPreset:[[NeuralPulsePreset alloc] init]];
   [self registerPreset:[[TriangleFractalPreset alloc] init]];
   [self registerPreset:[[SineVoronoiPreset alloc] init]];

@@ -141,7 +141,7 @@ static MusicColumn const MusicColumnTime = @"TimeColumn";
 
   Track *playingTrack = [[PlaybackManager sharedManager] currentTrack];
   [[CoreDataStore writer] incrementPlayCountForTrack:playingTrack];
-  
+
   if (playingTrack.bpm <= 0) {
     NSURL *currentURL = [[PlaybackManager sharedManager] currentPlaybackURL];
     [[BFTask taskFromExecutor:[BFExecutor defaultExecutor]
@@ -304,42 +304,54 @@ static MusicColumn const MusicColumnTime = @"TimeColumn";
 - (void)tableView:(NSTableView *)tableView didClickTableColumn:(NSTableColumn *)tableColumn {
   NSString *columnIdentifier = tableColumn.identifier;
   NSMutableArray<NSSortDescriptor *> *sortDescriptors = [NSMutableArray array];
-  
+
   NSArray<NSSortDescriptor *> *existingDescriptors = [self.fetchedResultsController.fetchRequest.sortDescriptors copy];
-  
+
   if ([columnIdentifier isEqualToString:MusicColumnSong]) {
-    [sortDescriptors addObject:[NSSortDescriptor sortDescriptorWithKey:@"title" ascending:![self isSortDescriptorForKey:@"title" ascendingInArray:existingDescriptors]]];
+    [sortDescriptors
+        addObject:[NSSortDescriptor sortDescriptorWithKey:@"title"
+                                                ascending:![self isSortDescriptorForKey:@"title"
+                                                                       ascendingInArray:existingDescriptors]]];
   } else if ([columnIdentifier isEqualToString:MusicColumnArtist]) {
-    [sortDescriptors addObject:[NSSortDescriptor sortDescriptorWithKey:@"artist.name" ascending:![self isSortDescriptorForKey:@"artist.name" ascendingInArray:existingDescriptors]]];
+    [sortDescriptors
+        addObject:[NSSortDescriptor sortDescriptorWithKey:@"artist.name"
+                                                ascending:![self isSortDescriptorForKey:@"artist.name"
+                                                                       ascendingInArray:existingDescriptors]]];
   } else if ([columnIdentifier isEqualToString:MusicColumnBPM]) {
-    [sortDescriptors addObject:[NSSortDescriptor sortDescriptorWithKey:@"bpm" ascending:![self isSortDescriptorForKey:@"bpm" ascendingInArray:existingDescriptors]]];
+    [sortDescriptors
+        addObject:[NSSortDescriptor sortDescriptorWithKey:@"bpm"
+                                                ascending:![self isSortDescriptorForKey:@"bpm"
+                                                                       ascendingInArray:existingDescriptors]]];
   } else if ([columnIdentifier isEqualToString:MusicColumnTime]) {
-    [sortDescriptors addObject:[NSSortDescriptor sortDescriptorWithKey:@"duration" ascending:![self isSortDescriptorForKey:@"duration" ascendingInArray:existingDescriptors]]];
+    [sortDescriptors
+        addObject:[NSSortDescriptor sortDescriptorWithKey:@"duration"
+                                                ascending:![self isSortDescriptorForKey:@"duration"
+                                                                       ascendingInArray:existingDescriptors]]];
   } else if ([columnIdentifier isEqualToString:MusicColumnNumber]) {
     // do nothing here and let the empty array propagate to sort descriptors for reset
   } else {
     return;
   }
-  
+
   self.fetchedResultsController.fetchRequest.sortDescriptors = sortDescriptors;
-  
+
   NSError *error = nil;
   if (![self.fetchedResultsController performFetch:&error]) {
     NSLog(@"Error performing fetch request. Error: %@", error);
     return;
   }
-  
+
   self.tracks = (NSArray<Track *> *)[self.fetchedResultsController fetchedObjects];
   [self.tableView reloadData];
 }
 
 - (BOOL)isSortDescriptorForKey:(NSString *)key ascendingInArray:(NSArray<NSSortDescriptor *> *)descriptors {
-    for (NSSortDescriptor *descriptor in descriptors) {
-        if ([descriptor.key isEqualToString:key]) {
-            return descriptor.ascending;
-        }
+  for (NSSortDescriptor *descriptor in descriptors) {
+    if ([descriptor.key isEqualToString:key]) {
+      return descriptor.ascending;
     }
-    return NO;
+  }
+  return NO;
 }
 
 - (void)reloadData {
@@ -374,7 +386,8 @@ static MusicColumn const MusicColumnTime = @"TimeColumn";
 }
 
 - (void)importURLs:(NSArray<NSURL *> *)urls {
-  [[self.importService importAudioFilesAtURLs:urls withPlaylist:self.currentPlaylist] continueWithSuccessBlock:^id(BFTask *_) {
+  [[self.importService importAudioFilesAtURLs:urls
+                                 withPlaylist:self.currentPlaylist] continueWithSuccessBlock:^id(BFTask *_) {
     NSLog(@"Imported file urls");
     return nil;
   }];

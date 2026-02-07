@@ -7,6 +7,6 @@
 
 #import "VisualizationPreset.h"
 
-@interface SineVoronoiPreset : NSObject <VisualizationPreset>
+@interface SineVoronoiPreset : NSObject<VisualizationPreset>
 
 @end

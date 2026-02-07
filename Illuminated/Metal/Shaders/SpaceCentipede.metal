@@ -52,12 +52,12 @@ float3x3 rotateZ(float angle) {
 }
 
 // Sphere SDF
-float sdSphere(float3 p, float r) {
+inline float sdSphere(float3 p, float r) {
     return length(p) - r;
 }
 
 // Capsule SDF (for centipede segments)
-float sdCapsule(float3 p, float3 a, float3 b, float r) {
+inline float sdCapsule(float3 p, float3 a, float3 b, float r) {
     float3 pa = p - a;
     float3 ba = b - a;
     float h = clamp(dot(pa, ba) / dot(ba, ba), 0.0, 1.0);
@@ -65,7 +65,7 @@ float sdCapsule(float3 p, float3 a, float3 b, float r) {
 }
 
 // Box SDF
-float sdBox(float3 p, float3 b) {
+inline float sdBox(float3 p, float3 b) {
     float3 d = abs(p) - b;
     return min(max(d.x, max(d.y, d.z)), 0.0) + length(max(d, 0.0));
 }

@@ -10,6 +10,6 @@
 /**
  * Triangle Fractal Preset - Sourced from GLSL Sandbox
  */
-@interface TriangleFractalPreset : NSObject <VisualizationPreset>
+@interface TriangleFractalPreset : NSObject<VisualizationPreset>
 
 @end

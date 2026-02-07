@@ -6,10 +6,10 @@
 //
 
 #import "MetalRenderer.h"
+#import "AlienCorePreset.h"
 #import "AudioProcessor.h"
 #import "CircularWavePreset.h"
 #import "ShaderTypes.h"
-#import "AlienCorePreset.h"
 #import "VisualizationPreset.h"
 
 #pragma mark - Constants
@@ -28,6 +28,7 @@ static const float kAmplitudeBoost = 5.0f;
 @property(nonatomic, strong) id<MTLBuffer> uniformBuffer;
 @property(nonatomic, strong) AudioProcessor *audioProcessor;
 @property(nonatomic, weak) MTKView *mtkView;
+@property(nonatomic, strong) NSMutableArray<id<MTLTexture>> *currentTextures;
 
 @property(nonatomic, assign) CFTimeInterval startTime;
 
@@ -71,6 +72,8 @@ static const float kAmplitudeBoost = 5.0f;
 
     _startTime = CACurrentMediaTime();
 
+    _currentTextures = [NSMutableArray array];
+
     if (![self createMetalBuffersWithSize:bufferSize]) {
       return nil;
     }
@@ -105,6 +108,8 @@ static const float kAmplitudeBoost = 5.0f;
     return NO;
   }
 
+  [self loadTexturesForPreset:preset];
+
   if (![self buildPipelineStateForPreset:preset]) {
     NSLog(@"MetalRenderer: Failed to build pipeline for preset '%@'", preset.displayName);
     return NO;
@@ -113,6 +118,53 @@ static const float kAmplitudeBoost = 5.0f;
   _currentPreset = preset;
   NSLog(@"MetalRenderer: Switched to preset '%@'", preset.displayName);
   return YES;
+}
+
+- (void)loadTexturesForPreset:(id<VisualizationPreset>)preset {
+  [_currentTextures removeAllObjects];
+
+  if (![preset respondsToSelector:@selector(textureNames)]) {
+    return;
+  }
+
+  NSArray<NSString *> *textureNames = [preset textureNames];
+  if (!textureNames || textureNames.count == 0) {
+    return;
+  }
+
+  MTKTextureLoader *textureLoader = [[MTKTextureLoader alloc] initWithDevice:_device];
+  for (NSString *textureName in textureNames) {
+    NSError *error = nil;
+    NSURL *textureURL = [[NSBundle mainBundle] URLForResource:textureName withExtension:@"png"];
+    if (!textureURL) {
+      textureURL = [[NSBundle mainBundle] URLForResource:textureName withExtension:@"jpg"];
+    }
+
+    if (!textureURL) {
+      NSLog(@"MetalRenderer: Texture '%@' not found in bundle", textureName);
+      continue;
+    }
+
+    NSDictionary *options = @{
+      MTKTextureLoaderOptionTextureUsage : @(MTLTextureUsageShaderRead),
+      MTKTextureLoaderOptionTextureStorageMode : @(MTLStorageModePrivate)
+    };
+
+    id<MTLTexture> texture = [textureLoader newTextureWithContentsOfURL:textureURL options:options error:&error];
+    if (texture) {
+      [_currentTextures addObject:texture];
+      NSLog(@"MetalRenderer: Loaded texture '%@' (%lux%lu)",
+            textureName,
+            (unsigned long)texture.width,
+            (unsigned long)texture.height);
+    } else {
+      NSLog(@"MetalRenderer: Failed to load texture '%@': %@", textureName, error);
+    }
+  }
+
+  if ([preset respondsToSelector:@selector(texturesDidLoad:)]) {
+    [preset texturesDidLoad:[_currentTextures copy]];
+  }
 }
 
 #pragma mark - Setup
@@ -227,10 +279,14 @@ static const float kAmplitudeBoost = 5.0f;
   [renderEncoder setVertexBytes:&sampleCount length:sizeof(NSUInteger) atIndex:0];
   [renderEncoder setVertexBuffer:_audioBuffer offset:0 atIndex:1];
   [renderEncoder setVertexBuffer:_uniformBuffer offset:0 atIndex:2];
-  
+
   [renderEncoder setFragmentBytes:&sampleCount length:sizeof(NSUInteger) atIndex:0];
   [renderEncoder setFragmentBuffer:_audioBuffer offset:0 atIndex:1];
   [renderEncoder setFragmentBuffer:_uniformBuffer offset:0 atIndex:2];
+
+  for (NSUInteger i = 0; i < _currentTextures.count; i++) {
+    [renderEncoder setFragmentTexture:_currentTextures[i] atIndex:i];
+  }
 
   // Calculate vertex count (preset can override)
   NSUInteger vertexCount = sampleCount;

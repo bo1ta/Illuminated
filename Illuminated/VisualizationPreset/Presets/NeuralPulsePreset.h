@@ -7,6 +7,6 @@
 
 #import "VisualizationPreset.h"
 
-@interface NeuralPulsePreset : NSObject <VisualizationPreset>
+@interface NeuralPulsePreset : NSObject<VisualizationPreset>
 
 @end

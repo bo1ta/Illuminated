@@ -5,47 +5,47 @@
 //  Created by Alexandru Solomon on 02.02.2026.
 //
 
-#import <Foundation/Foundation.h>
 #import "CosmicVoidPreset.h"
+#import <Foundation/Foundation.h>
 
 @implementation CosmicVoidPreset
 
 - (NSString *)identifier {
-    return @"cosmic_void";
+  return @"cosmic_void";
 }
 
 - (NSString *)displayName {
-    return @"Cosmic Void";
+  return @"Cosmic Void";
 }
 
 - (NSString *)vertexFunctionName {
-    return @"cosmicVoidVertexShader";
+  return @"cosmicVoidVertexShader";
 }
 
 - (NSString *)fragmentFunctionName {
-    return @"cosmicVoidFragmentShader";
+  return @"cosmicVoidFragmentShader";
 }
 
 - (MTLPrimitiveType)primitiveType {
-    return MTLPrimitiveTypeTriangleStrip;
+  return MTLPrimitiveTypeTriangleStrip;
 }
 
 - (BOOL)requiresBlending {
-    return YES;
+  return YES;
 }
 
 - (NSUInteger)vertexCountForAudioBufferSize:(NSUInteger)bufferSize {
-    return 4;
+  return 4;
 }
 
 - (void)configureBlending:(MTLRenderPipelineColorAttachmentDescriptor *)attachment {
-    attachment.blendingEnabled = YES;
-    attachment.rgbBlendOperation = MTLBlendOperationAdd;
-    attachment.alphaBlendOperation = MTLBlendOperationAdd;
-    attachment.sourceRGBBlendFactor = MTLBlendFactorSourceAlpha;
-    attachment.destinationRGBBlendFactor = MTLBlendFactorOne;
-    attachment.sourceAlphaBlendFactor = MTLBlendFactorOne;
-    attachment.destinationAlphaBlendFactor = MTLBlendFactorOne;
+  attachment.blendingEnabled = YES;
+  attachment.rgbBlendOperation = MTLBlendOperationAdd;
+  attachment.alphaBlendOperation = MTLBlendOperationAdd;
+  attachment.sourceRGBBlendFactor = MTLBlendFactorSourceAlpha;
+  attachment.destinationRGBBlendFactor = MTLBlendFactorOne;
+  attachment.sourceAlphaBlendFactor = MTLBlendFactorOne;
+  attachment.destinationAlphaBlendFactor = MTLBlendFactorOne;
 }
 
 @end

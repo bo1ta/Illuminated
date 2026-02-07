@@ -27,7 +27,7 @@
   [self.mainWindowController.window center];
   [self.mainWindowController showWindow:nil];
   [self.mainWindowController.window makeKeyAndOrderFront:nil];
-  
+
   if (self.pendingFileURL) {
     [self.mainWindowController openAudioFileURL:self.pendingFileURL];
     self.pendingFileURL = nil;
@@ -54,7 +54,7 @@
 
 - (BOOL)application:(NSApplication *)sender openFile:(NSString *)filename {
   NSURL *url = [NSURL fileURLWithPath:filename];
-  
+
   if (self.mainWindowController) {
     [self.mainWindowController openAudioFileURL:url];
   } else {

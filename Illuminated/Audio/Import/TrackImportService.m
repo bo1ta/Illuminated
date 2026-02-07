@@ -37,41 +37,39 @@
 - (BFTask *)importAudioFilesAtURLs:(NSArray<NSURL *> *)filesURLs withPlaylist:(nullable Playlist *)playlist {
   return [[self filterExistingURLs:filesURLs] continueWithSuccessBlock:^id(BFTask *task) {
     NSArray<NSURL *> *urls = task.result;
-    
+
     NSMutableArray<BFTask *> *tasks = [NSMutableArray array];
     for (NSURL *url in urls) {
       NSError *error = nil;
       NSData *bookmark = [BookmarkResolver bookmarkForURL:url error:&error];
       if (error) {
         [tasks addObject:[BFTask taskWithError:error]];
-        continue;;
+        continue;
+        ;
       }
-      
+
       NSDictionary *metadata = [MetadataExtractor extractMetadataFromFileAtURL:url];
-      [tasks addObject:[self saveTrackWithMetadata:metadata
-                                          bookmark:bookmark
-                                           fileURL:url
-                                          playlist:playlist]];
+      [tasks addObject:[self saveTrackWithMetadata:metadata bookmark:bookmark fileURL:url playlist:playlist]];
     }
-    
+
     return [BFTask taskForCompletionOfAllTasks:tasks];
   }];
 }
 
 - (BFTask<NSArray<NSURL *> *> *)filterExistingURLs:(NSArray<NSURL *> *)urls {
-    return [[CoreDataStore writer] performWrite:^id(NSManagedObjectContext *context) {
-        NSMutableArray<NSURL *> *nonExisting = [NSMutableArray array];
-        
-        for (NSURL *url in urls) {
-            BOOL exists = [context objectExistsForEntityName:EntityNameTrack
-                                                   predicate:[NSPredicate predicateWithFormat:@"fileURL == %@", [url path]]];
-            if (!exists) {
-                [nonExisting addObject:url];
-            }
-        }
-        
-        return [nonExisting copy];
-    }];
+  return [[CoreDataStore writer] performWrite:^id(NSManagedObjectContext *context) {
+    NSMutableArray<NSURL *> *nonExisting = [NSMutableArray array];
+
+    for (NSURL *url in urls) {
+      BOOL exists = [context objectExistsForEntityName:EntityNameTrack
+                                             predicate:[NSPredicate predicateWithFormat:@"fileURL == %@", [url path]]];
+      if (!exists) {
+        [nonExisting addObject:url];
+      }
+    }
+
+    return [nonExisting copy];
+  }];
 }
 
 - (BFTask<Track *> *)importAudioFileAtURL:(NSURL *)fileURL withPlaylist:(nullable Playlist *)playlist {
@@ -82,11 +80,8 @@
   }
 
   NSDictionary *metadata = [MetadataExtractor extractMetadataFromFileAtURL:fileURL];
-  return [[self saveTrackWithMetadata:metadata
-                             bookmark:bookmark
-                              fileURL:fileURL
-                             playlist:playlist]
-          continueOnMainThreadWithBlock:^id(BFTask<Track *> *task) {
+  return [[self saveTrackWithMetadata:metadata bookmark:bookmark fileURL:fileURL
+                             playlist:playlist] continueOnMainThreadWithBlock:^id(BFTask<Track *> *task) {
     if (task.result) {
       return [[CoreDataStore reader] fetchObjectWithID:task.result.objectID];
     }

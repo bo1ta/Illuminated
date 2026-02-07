@@ -11,8 +11,8 @@
 
 @interface VisualizationPresetQueue ()
 
-@property (nonatomic, copy) NSArray<id<VisualizationPreset>> *presets;
-@property (nonatomic, assign) NSInteger currentIndex;
+@property(nonatomic, copy) NSArray<id<VisualizationPreset>> *presets;
+@property(nonatomic, assign) NSInteger currentIndex;
 
 @end
 

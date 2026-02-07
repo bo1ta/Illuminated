@@ -12,14 +12,14 @@
 using namespace metal;
 
 struct VertexOut {
-    float4 position [[position]];
-    float4 color;
+  float4 position [[position]];
+  float4 color;
 };
 
 struct RaymarchVertexOut {
-    float4 position [[position]];
-    float2 uv;
-    float4 color;
+  float4 position [[position]];
+  float2 uv;
+  float4 color;
 };
 
 float hash(uint n);
@@ -33,6 +33,5 @@ float distfunc(float2 p, float time, float amplitude);
 float3 rotateY(float3 v, float t);
 float noisePattern(float3 p, float time);
 float sceneMap(float3 p, float time, float audioAmplitude);
-
 
 #endif /* Common_h */

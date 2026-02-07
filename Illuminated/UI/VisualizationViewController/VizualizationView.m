@@ -13,12 +13,12 @@
 
 @interface VizualizationView ()
 
-@property (nonatomic, strong) MTKView *metalView;
-@property (nonatomic, strong, nullable) MetalRenderer *renderer;
-@property (nonatomic, strong) VisualizationPresetQueue *presetQueue;
+@property(nonatomic, strong) MTKView *metalView;
+@property(nonatomic, strong, nullable) MetalRenderer *renderer;
+@property(nonatomic, strong) VisualizationPresetQueue *presetQueue;
 
-@property (nonatomic, strong, nullable) NSButton *previousButton;
-@property (nonatomic, strong, nullable) NSButton *nextButton;
+@property(nonatomic, strong, nullable) NSButton *previousButton;
+@property(nonatomic, strong, nullable) NSButton *nextButton;
 
 @end
 

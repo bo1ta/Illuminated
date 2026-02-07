@@ -7,10 +7,10 @@
 
 #import "SidebarViewController.h"
 #import "Album.h"
+#import "Carbon/Carbon.h"
 #import "CoreDataStore.h"
 #import "Playlist.h"
 #import "SidebarCellFactory.h"
-#import "Carbon/Carbon.h"
 #import "SidebarItem.h"
 
 #pragma mark - Constants
@@ -281,8 +281,8 @@ NSString *const PasteboardItemTypeTrack = @"com.illuminated.track";
     return [SidebarCellFactory headerCellForOutlineView:self.outlineView title:sidebarItem.title];
   } else {
     return [SidebarCellFactory itemCellForOutlineView:self.outlineView
-                                                                 title:sidebarItem.title
-                                                            systemIcon:sidebarItem.iconName];
+                                                title:sidebarItem.title
+                                           systemIcon:sidebarItem.iconName];
   }
 }
 
@@ -309,7 +309,7 @@ NSString *const PasteboardItemTypeTrack = @"com.illuminated.track";
   if ([self outlineView:outlineView isGroupItem:item]) {
     return NO;
   }
-  
+
   SidebarItem *sidebarItem = (SidebarItem *)item;
   return [sidebarItem.representedObject isKindOfClass:[Playlist class]];
 }
@@ -319,32 +319,32 @@ NSString *const PasteboardItemTypeTrack = @"com.illuminated.track";
     [super keyDown:event];
     return;
   }
-  
+
   NSInteger row = self.outlineView.selectedRow;
   if (row == -1) {
     [super keyDown:event];
     return;
   }
-  
+
   id item = [self.outlineView itemAtRow:row];
   if ([self outlineView:self.outlineView isGroupItem:item]) {
     [super keyDown:event];
     return;
   }
-  
+
   SidebarItem *sidebarItem = (SidebarItem *)item;
   if (![sidebarItem.representedObject isKindOfClass:[Playlist class]]) {
     [super keyDown:event];
     return;
   }
-  
+
   NSTableCellView *cell = [self.outlineView viewAtColumn:0 row:row makeIfNecessary:NO];
   if (cell && cell.textField) {
     cell.textField.editable = YES;
     cell.textField.selectable = YES;
     cell.textField.delegate = self;
   }
-  
+
   [self.outlineView editColumn:0 row:row withEvent:event select:YES];
 }
 
@@ -353,42 +353,43 @@ NSString *const PasteboardItemTypeTrack = @"com.illuminated.track";
   if (![textField isKindOfClass:[NSTextField class]]) {
     return;
   }
-  
+
   NSInteger row = [self.outlineView rowForView:textField];
   if (row == -1) {
     return;
   }
-  
+
   SidebarItem *item = [self.outlineView itemAtRow:row];
   if (!item || [item.representedObject isKindOfClass:[NSNull class]]) {
     return;
   }
-  
-  NSString *newName = [textField.stringValue stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+
+  NSString *newName =
+      [textField.stringValue stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
   if (newName.length == 0 || [newName isEqualToString:item.title]) {
     textField.stringValue = item.title;
     return;
   }
-  
+
   id represented = item.representedObject;
   if (![represented isKindOfClass:[Playlist class]]) {
     return;
   }
-  
+
   Playlist *playlist = (Playlist *)represented;
   [self renamePlaylist:playlist toName:newName];
-  
+
   item.title = newName;
   [self.outlineView reloadItem:item];
 }
 
 - (void)renamePlaylist:(Playlist *)playlist toName:(NSString *)name {
   [[CoreDataStore writer] performWrite:^id(NSManagedObjectContext *context) {
-      Playlist *existingPlaylist = [context objectWithID:playlist.objectID];
-      if (!existingPlaylist) return nil;
-      
-      existingPlaylist.name = name;
-      return nil;
+    Playlist *existingPlaylist = [context objectWithID:playlist.objectID];
+    if (!existingPlaylist) return nil;
+
+    existingPlaylist.name = name;
+    return nil;
   }];
 }
 

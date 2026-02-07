@@ -62,6 +62,21 @@ NS_ASSUME_NONNULL_BEGIN
  */
 - (void)prepareForDrawingWithEncoder:(id<MTLRenderCommandEncoder>)encoder time:(float)time amplitude:(float)amplitude;
 
+/**
+ * Array of texture filenames (without extension) to load for this preset.
+ * Return nil or empty array if no textures needed.
+ * Textures should be in the app bundle's Resources folder.
+ * Supported formats: PNG, JPG, KTX, PVR
+ */
+- (nullable NSArray<NSString *> *)textureNames;
+
+/**
+ * Called after textures are loaded. Store references if needed.
+ * Textures are bound to indices 0, 1, 2, etc. in order of textureNames array.
+ * @param textures Array of MTLTexture objects corresponding to textureNames
+ */
+- (void)texturesDidLoad:(NSArray<id<MTLTexture>> *)textures;
+
 @end
 
 NS_ASSUME_NONNULL_END

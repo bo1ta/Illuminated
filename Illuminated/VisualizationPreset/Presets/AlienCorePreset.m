@@ -12,31 +12,31 @@
 @implementation AlienCorePreset
 
 - (NSString *)identifier {
-    return @"alien_core";
+  return @"alien_core";
 }
 
 - (NSString *)displayName {
-    return @"Alien Core";
+  return @"Alien Core";
 }
 
 - (NSString *)vertexFunctionName {
-    return @"alienCoreVertexShader";
+  return @"alienCoreVertexShader";
 }
 
 - (NSString *)fragmentFunctionName {
-    return @"alienCoreFragmentShader";
+  return @"alienCoreFragmentShader";
 }
 
 - (MTLPrimitiveType)primitiveType {
-    return MTLPrimitiveTypeTriangleStrip;
+  return MTLPrimitiveTypeTriangleStrip;
 }
 
 - (BOOL)requiresBlending {
-    return NO;
+  return NO;
 }
 
 - (NSUInteger)vertexCountForAudioBufferSize:(NSUInteger)bufferSize {
-    return 4;
+  return 4;
 }
 
 @end

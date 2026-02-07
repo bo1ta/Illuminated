@@ -10,31 +10,31 @@
 @implementation SpaceCentipedePreset
 
 - (NSString *)identifier {
-    return @"space_centipede";
+  return @"space_centipede";
 }
 
 - (NSString *)displayName {
-    return @"Space Centipede";
+  return @"Space Centipede";
 }
 
 - (NSString *)vertexFunctionName {
-    return @"spaceCentipedeVertexShader";
+  return @"spaceCentipedeVertexShader";
 }
 
 - (NSString *)fragmentFunctionName {
-    return @"spaceCentipedeFragmentShader";
+  return @"spaceCentipedeFragmentShader";
 }
 
 - (MTLPrimitiveType)primitiveType {
-    return MTLPrimitiveTypeTriangleStrip;
+  return MTLPrimitiveTypeTriangleStrip;
 }
 
 - (BOOL)requiresBlending {
-    return NO;
+  return NO;
 }
 
 - (NSUInteger)vertexCountForAudioBufferSize:(NSUInteger)bufferSize {
-    return 4;
+  return 4;
 }
 
 @end

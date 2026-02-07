@@ -12,32 +12,32 @@
 @implementation TriangleFractalPreset
 
 - (NSString *)identifier {
-    return @"triangle_fractal";
+  return @"triangle_fractal";
 }
 
 - (NSString *)displayName {
-    return @"Triangle Fractal";
+  return @"Triangle Fractal";
 }
 
 - (NSString *)vertexFunctionName {
-    return @"triangleFractalVertexShader";
+  return @"triangleFractalVertexShader";
 }
 
 - (NSString *)fragmentFunctionName {
-    return @"triangleFractalFragmentShader";
+  return @"triangleFractalFragmentShader";
 }
 
 - (MTLPrimitiveType)primitiveType {
-    return MTLPrimitiveTypeTriangleStrip;
+  return MTLPrimitiveTypeTriangleStrip;
 }
 
 - (BOOL)requiresBlending {
-    return NO;
+  return NO;
 }
 
 - (NSUInteger)vertexCountForAudioBufferSize:(NSUInteger)bufferSize {
-    // Fullscreen quad: 4 vertices
-    return 4;
+  // Fullscreen quad: 4 vertices
+  return 4;
 }
 
 @end

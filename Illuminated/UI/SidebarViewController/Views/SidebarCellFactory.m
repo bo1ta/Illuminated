@@ -76,11 +76,11 @@
 
   cell.imageView.image = [NSImage imageWithSystemSymbolName:systemIcon accessibilityDescription:nil];
   cell.imageView.contentTintColor = [NSColor secondaryLabelColor];
-  
+
   cell.textField.stringValue = title;
   cell.textField.editable = NO;
   cell.textField.selectable = NO;
-  
+
   return cell;
 }
 
