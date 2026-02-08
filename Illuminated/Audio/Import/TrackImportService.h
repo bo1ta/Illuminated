@@ -5,11 +5,8 @@
 //  Created by Alexandru Solomon on 20.01.2026.
 //
 
-#import "BFExecutor.h"
-#import "BFTaskCompletionSource.h"
-#import "CoreDataStore.h"
-#import "NSManagedObjectContext+Helpers.h"
 #import <Foundation/Foundation.h>
+#import "BFTask.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -17,11 +14,13 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface TrackImportService : NSObject
 
-- (BFTask *)importAudioFilesAtURLs:(NSArray<NSURL *> *)filesURLs withPlaylist:(nullable Playlist *)playlist;
++ (BFTask *)importAudioFilesAtURLs:(NSArray<NSURL *> *)filesURLs withPlaylist:(nullable Playlist *)playlist;
 
-- (BFTask *)importAudioFileAtURL:(NSURL *)fileURL withPlaylist:(nullable Playlist *)playlist;
++ (BFTask *)importAudioFileAtURL:(NSURL *)fileURL playlist:(nullable Playlist *)playlist;
 
-- (BFTask *)analyzeBPMForTrackURL:(NSURL *)trackURL;
++ (BFTask *)importAudioFileAtURL:(NSURL *)fileURL bookmarkData:(NSData *)bookmarkData;
+
++ (BFTask *)analyzeBPMForTrackURL:(NSURL *)trackURL;
 
 @end
 

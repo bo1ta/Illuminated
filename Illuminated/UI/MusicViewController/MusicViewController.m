@@ -13,6 +13,8 @@
 #import "PlaybackManager.h"
 #import "Playlist.h"
 #import "SidebarViewController.h"
+#import "TrackDataStore.h"
+#import "BFExecutor.h"
 #import "Track.h"
 #import "TrackImportService.h"
 
@@ -149,7 +151,7 @@ static MusicColumn const MusicColumnTime = @"TimeColumn";
   if (playingTrack.bpm <= 0) {
     NSURL *currentURL = [[PlaybackManager sharedManager] currentPlaybackURL];
     [[BFTask taskFromExecutor:[BFExecutor defaultExecutor]
-                    withBlock:^id { return [self.importService analyzeBPMForTrackURL:currentURL]; }]
+                    withBlock:^id { return [TrackImportService analyzeBPMForTrackURL:currentURL]; }]
         continueOnMainThreadWithBlock:^id(BFTask<Track *> *task) {
           if (!task.error) {
             [[NSNotificationCenter defaultCenter] postNotificationName:PlaybackManagerTrackDidChangeNotification
@@ -414,21 +416,13 @@ static MusicColumn const MusicColumnTime = @"TimeColumn";
 }
 
 - (void)importURLs:(NSArray<NSURL *> *)urls {
-  [[self.importService importAudioFilesAtURLs:urls
-                                 withPlaylist:self.currentPlaylist] continueWithSuccessBlock:^id(BFTask *_) {
-    NSLog(@"Imported file urls");
-    return nil;
-  }];
+  [TrackDataStore importTracksFromAudioURLs:urls playlist:self.currentPlaylist];
 }
 
 - (void)importURL:(NSURL *)url {
-  [[[[CoreDataStore reader] trackWithURL:url] continueWithBlock:^id(BFTask<Track *> *task) {
-    Track *track = task.result;
-    if (track) {
-      return task;
-    }
-    return [self.importService importAudioFileAtURL:url withPlaylist:self.currentPlaylist];
-  }] continueWithSuccessBlock:^id(BFTask<Track *> *task) {
+  [[TrackDataStore findOrInsertByURL:url
+                            playlist:self.currentPlaylist]
+   continueWithSuccessBlock:^id(BFTask<Track *> *task) {
     Track *track = task.result;
     if (track) {
       [[PlaybackManager sharedManager] playTrack:track];

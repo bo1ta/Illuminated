@@ -41,7 +41,7 @@
                              NSString *typeIdentifier = values[NSURLTypeIdentifierKey];
 
                              NSImage *icon = [workspace iconForFile:url.path];
-//                             if (icon == nil) {
+//                             if (icon  == nil) {
 //                               NSString *fileType = typeIdentifier ?: url.pathExtension;
 //                               if (fileType.length == 0) {
 //                                 fileType = UTTypeData.identifier;

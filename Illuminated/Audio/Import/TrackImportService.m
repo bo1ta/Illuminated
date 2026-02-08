@@ -11,6 +11,8 @@
 #import "ArtworkManager.h"
 #import "BPMAnalyzer.h"
 #import "BookmarkResolver.h"
+#import "BFExecutor.h"
+#import "BFTaskCompletionSource.h"
 #import "CoreDataStore.h"
 #import "MetadataExtractor.h"
 #import "Track.h"
@@ -19,7 +21,7 @@
 
 @implementation TrackImportService
 
-- (BFTask<Track *> *)analyzeBPMForTrackURL:(NSURL *)trackURL {
++ (BFTask<Track *> *)analyzeBPMForTrackURL:(NSURL *)trackURL {
   AVURLAsset *asset = [AVURLAsset URLAssetWithURL:trackURL options:nil];
   return [[[[self loadAudioTrackFromAsset:asset] continueWithSuccessBlock:^id(BFTask<AVAssetTrack *> *task) {
     return [BPMAnalyzer analyzeBPMForAssetTrack:task.result];
@@ -34,7 +36,7 @@
   }];
 }
 
-- (BFTask *)importAudioFilesAtURLs:(NSArray<NSURL *> *)filesURLs withPlaylist:(nullable Playlist *)playlist {
++ (BFTask *)importAudioFilesAtURLs:(NSArray<NSURL *> *)filesURLs withPlaylist:(nullable Playlist *)playlist {
   return [[self filterExistingURLs:filesURLs] continueWithSuccessBlock:^id(BFTask *task) {
     NSArray<NSURL *> *urls = task.result;
 
@@ -56,7 +58,7 @@
   }];
 }
 
-- (BFTask<NSArray<NSURL *> *> *)filterExistingURLs:(NSArray<NSURL *> *)urls {
++ (BFTask<NSArray<NSURL *> *> *)filterExistingURLs:(NSArray<NSURL *> *)urls {
   return [[CoreDataStore writer] performWrite:^id(NSManagedObjectContext *context) {
     NSMutableArray<NSURL *> *nonExisting = [NSMutableArray array];
 
@@ -72,7 +74,7 @@
   }];
 }
 
-- (BFTask<Track *> *)importAudioFileAtURL:(NSURL *)fileURL withPlaylist:(nullable Playlist *)playlist {
++ (BFTask<Track *> *)importAudioFileAtURL:(NSURL *)fileURL playlist:(nullable Playlist *)playlist {
   NSError *error = nil;
   NSData *bookmark = [BookmarkResolver bookmarkForURL:fileURL error:&error];
   if (error) {
@@ -80,8 +82,25 @@
   }
 
   NSDictionary *metadata = [MetadataExtractor extractMetadataFromFileAtURL:fileURL];
-  return [[self saveTrackWithMetadata:metadata bookmark:bookmark fileURL:fileURL
-                             playlist:playlist] continueOnMainThreadWithBlock:^id(BFTask<Track *> *task) {
+  return [[self saveTrackWithMetadata:metadata
+                             bookmark:bookmark
+                              fileURL:fileURL
+                             playlist:playlist]
+          continueOnMainThreadWithBlock:^id(BFTask<Track *> *task) {
+    if (task.result) {
+      return [[CoreDataStore reader] fetchObjectWithID:task.result.objectID];
+    }
+    return task;
+  }];
+}
+
++ (BFTask *)importAudioFileAtURL:(NSURL *)fileURL bookmarkData:(NSData *)bookmarkData {
+  NSDictionary *metadata = [MetadataExtractor extractMetadataFromFileAtURL:fileURL];
+  return [[self saveTrackWithMetadata:metadata
+                             bookmark:bookmarkData
+                              fileURL:fileURL
+                             playlist:nil]
+          continueOnMainThreadWithBlock:^id(BFTask<Track *> *task) {
     if (task.result) {
       return [[CoreDataStore reader] fetchObjectWithID:task.result.objectID];
     }
@@ -91,7 +110,7 @@
 
 #pragma mark - Core Data Saving
 
-- (BFTask<Track *> *)updateBPMForTrackWithFileURL:(NSURL *)fileURL bpm:(NSNumber *)bpm {
++ (BFTask<Track *> *)updateBPMForTrackWithFileURL:(NSURL *)fileURL bpm:(NSNumber *)bpm {
   return [[CoreDataStore writer] performWrite:^id(NSManagedObjectContext *context) {
     Track *track =
         [context firstObjectForEntityName:EntityNameTrack
@@ -104,7 +123,7 @@
   }];
 }
 
-- (BFTask<Track *> *)saveTrackWithMetadata:(NSDictionary *)metadata
++ (BFTask<Track *> *)saveTrackWithMetadata:(NSDictionary *)metadata
                                   bookmark:(NSData *)bookmark
                                    fileURL:(NSURL *)fileURL
                                   playlist:(nullable Playlist *)playlist {
@@ -141,7 +160,7 @@
   }];
 }
 
-- (Artist *)findOrCreateArtist:(NSString *)artistName inContext:(NSManagedObjectContext *)context {
++ (Artist *)findOrCreateArtist:(NSString *)artistName inContext:(NSManagedObjectContext *)context {
   if (!artistName) return nil;
 
   Artist *artist = [context firstObjectForEntityName:EntityNameArtist
@@ -155,7 +174,7 @@
   return artist;
 }
 
-- (Album *)findOrCreateAlbum:(NSString *)albumName
++ (Album *)findOrCreateAlbum:(NSString *)albumName
                       artist:(Artist *)artist
                      artwork:(NSData *)artworkData
                    inContext:(NSManagedObjectContext *)context {
@@ -186,7 +205,7 @@
 
 #pragma mark - Async Wrappers
 
-- (BFTask<AVAssetTrack *> *)loadAudioTrackFromAsset:(AVURLAsset *)asset {
++ (BFTask<AVAssetTrack *> *)loadAudioTrackFromAsset:(AVURLAsset *)asset {
   BFTaskCompletionSource *source = [BFTaskCompletionSource taskCompletionSource];
 
   [asset loadTracksWithMediaType:AVMediaTypeAudio

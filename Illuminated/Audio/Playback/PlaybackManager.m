@@ -137,20 +137,38 @@ static const NSTimeInterval kProgressTimerInterval = 0.5;
 
 #pragma mark - Playback
 
+- (NSURL *)resolveTrackURL:(Track *)track {
+  if (track.urlBookmark) {
+    NSError *error = nil;
+    NSURL *resolvedURL = [BookmarkResolver URLForBookmarkData:track.urlBookmark error:&error];
+    if (error) {
+      NSLog(@"PlaybackManager: Failed to resolve bookmark for track. Error: %@", error.localizedDescription);
+    } else {
+
+
+      if (!resolvedURL.hasDirectoryPath) {
+        [resolvedURL startAccessingSecurityScopedResource];
+        return resolvedURL;
+      } else {
+        [resolvedURL startAccessingSecurityScopedResource];
+        return [resolvedURL URLByAppendingPathComponent:track.fileURL];
+      }
+    }
+  }
+  
+  return nil;
+}
+
 - (void)playTrack:(Track *)track {
   NSParameterAssert(track);
 
-  NSError *error;
-  NSURL *url = [BookmarkResolver resolveAndAccessBookmarkData:track.urlBookmark error:&error];
-  if (error) {
-    NSLog(@"PlaybackManager: Failed to resolve bookmark for track. Error: %@", error.localizedDescription);
-    return;
-  }
+  NSURL *url = [self resolveTrackURL:track];
 
   if (self.currentFile) {
     [BookmarkResolver releaseAccessedURL:self.currentFile.url];
   }
 
+  NSError *error = nil;
   AVAudioFile *newFile = [[AVAudioFile alloc] initForReading:url error:&error];
   if (!newFile) {
     NSLog(@"PlaybackManager: Error loading track with url: %@. Error: %@", url, error);
