@@ -7,13 +7,13 @@
 
 #import "SidebarViewController.h"
 #import "Album.h"
+#import "AlbumDataStore.h"
 #import "Carbon/Carbon.h"
 #import "Playlist.h"
 #import "PlaylistDataStore.h"
 #import "SidebarCellFactory.h"
 #import "SidebarItem.h"
 #import "TrackDataStore.h"
-#import "AlbumDataStore.h"
 
 #pragma mark - Constants
 
@@ -187,7 +187,7 @@ NSString *const PasteboardItemTypeTrack = @"com.illuminated.track";
   if (![self.playlistFetchedResultsController performFetch:&error]) {
     NSLog(@"SidebarViewController: Error performing Playlist fetch: %@", error.localizedDescription);
   }
-  
+
   error = nil;
   _albumFetchedResultsController = [AlbumDataStore fetchedResultsController];
   _albumFetchedResultsController.delegate = self;

@@ -60,7 +60,7 @@ static const NSTimeInterval kProgressTimerInterval = 0.5;
   self = [super init];
   if (self) {
     NSLog(@"Initialized playbackmanager");
-    
+
     _repeatMode = RepeatModeOff;
     _queue = [[TrackQueue alloc] init];
 

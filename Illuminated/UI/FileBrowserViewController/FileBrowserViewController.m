@@ -105,11 +105,11 @@
   BOOL hasScope = [directoryURL startAccessingSecurityScopedResource];
 
   __weak typeof(self) weakSelf = self;
-  
+
   [[self.browserService contentsOfDirectory:directoryURL]
-   continueOnMainThreadWithBlock:^id(BFTask<NSArray<FileBrowserItem *> *> *task) {
-    __strong typeof(weakSelf) strongSelf = weakSelf;
-    
+      continueOnMainThreadWithBlock:^id(BFTask<NSArray<FileBrowserItem *> *> *task) {
+        __strong typeof(weakSelf) strongSelf = weakSelf;
+
         if (task.error) {
           [strongSelf presentError:task.error];
           if (hasScope) {

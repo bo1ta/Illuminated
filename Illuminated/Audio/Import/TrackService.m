@@ -146,8 +146,6 @@
 
 #pragma mark - Core Data Saving
 
-
-
 + (BFTask<Track *> *)saveTrackWithMetadata:(NSDictionary *)metadata
                                   bookmark:(NSData *)bookmark
                                    fileURL:(NSURL *)fileURL
@@ -213,8 +211,7 @@
       return [BFTask taskWithResult:cachedImage];
     }
   }
-  return [[WaveformGenerator generateWaveformForTrack:track
-                                                  url:resolvedURL
+  return [[WaveformGenerator generateWaveformForTrack:track url:resolvedURL
                                                  size:size] continueWithSuccessBlock:^id(BFTask<NSImage *> *task) {
     NSImage *image = task.result;
     NSString *path = [WaveformCacheManager saveWaveformImage:image forTrackUUID:track.uniqueID];

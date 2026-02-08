@@ -7,6 +7,7 @@
 
 #import "VizualizationViewController.h"
 #import "PlaybackManager.h"
+#import "ProjectMView.h"
 #import "VisualizationPreset.h"
 #import "VizualizationView.h"
 
@@ -14,9 +15,44 @@
 
 @property(strong) IBOutlet VizualizationView *vizualizationView;
 
+@property(nonatomic, strong) ProjectMHandler *projectMView;
+
 @end
 
 @implementation VizualizationViewController
+
+- (void)loadView {
+  NSOpenGLPixelFormatAttribute attrs[] = {NSOpenGLPFAOpenGLProfile,
+                                          NSOpenGLProfileVersion3_2Core, // or Legacy if needed
+                                          NSOpenGLPFADoubleBuffer,
+                                          NSOpenGLPFAColorSize,
+                                          24,
+                                          NSOpenGLPFAAlphaSize,
+                                          8,
+                                          NSOpenGLPFADepthSize,
+                                          24,
+                                          NSOpenGLPFAAccelerated,
+                                          0};
+
+  NSOpenGLPixelFormat *pixelFormat = [[NSOpenGLPixelFormat alloc] initWithAttributes:attrs];
+  if (!pixelFormat) {
+    NSLog(@"Failed to create OpenGL pixel format");
+    // fallback or error handling
+  }
+
+  NSRect initialFrame = NSMakeRect(0, 0, 800, 600); // will be resized by constraints
+  self.projectMView = [[ProjectMHandler alloc] initWithFrame:initialFrame pixelFormat:pixelFormat];
+
+  NSString *bundle = [[NSBundle mainBundle] resourcePath];
+
+  if (!bundle) {
+    NSLog(@"Presets folder not found in bundle");
+    return;
+  }
+
+  self.view = self.projectMView;
+  self.view.wantsLayer = YES;
+}
 
 #pragma mark - Lifecycle
 
@@ -43,7 +79,8 @@
         __strong typeof(weakSelf) strongSelf = weakSelf;
 
         if (!strongSelf) return;
-        [strongSelf.vizualizationView updateAudioData:monoData length:length];
+        [strongSelf.projectMView addPCMData:monoData length:length];
+        //        [strongSelf.vizualizationView updateAudioData:monoData length:length];
       }];
 
   [self.vizualizationView startRendering];

@@ -6,12 +6,12 @@
 //
 
 #import "PlayerBarViewController.h"
-#import "TrackService.h"
 #import "Album.h"
 #import "Artist.h"
 #import "ArtworkManager.h"
 #import "PlaybackManager.h"
 #import "Track.h"
+#import "TrackService.h"
 #import "WaveformView.h"
 #import <AVFoundation/AVFoundation.h>
 #import <MediaPlayer/MediaPlayer.h>
@@ -165,22 +165,19 @@
 
   NSURL *url = [[PlaybackManager sharedManager] currentPlaybackURL];
   if (!url) return;
-  
+
   __weak typeof(self) weakSelf = self;
 
-  [[TrackService getWaveformForTrack:track
-                         resolvedURL:url
-                                size:self.waveformView.bounds.size]
-   continueOnMainThreadWithBlock:^id(BFTask<NSImage *> *task) {
-    
-    __strong typeof(weakSelf) strongSelf = weakSelf;
-    if (task.result) {
-      strongSelf.waveformView.waveformImage = task.result;
-    } else {
-      NSLog(@"Error loading waveform image: %@", task.error);
-    }
-    return nil;
-  }];
+  [[TrackService getWaveformForTrack:track resolvedURL:url size:self.waveformView.bounds.size]
+      continueOnMainThreadWithBlock:^id(BFTask<NSImage *> *task) {
+        __strong typeof(weakSelf) strongSelf = weakSelf;
+        if (task.result) {
+          strongSelf.waveformView.waveformImage = task.result;
+        } else {
+          NSLog(@"Error loading waveform image: %@", task.error);
+        }
+        return nil;
+      }];
 }
 
 - (void)updatePlaybackState {
