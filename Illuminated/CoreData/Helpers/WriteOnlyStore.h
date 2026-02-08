@@ -10,8 +10,6 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-@class Track, Album, Playlist, Artist;
-
 typedef id _Nullable (^WriteBlock)(NSManagedObjectContext *context);
 
 @protocol WriteOnlyStore<NSObject>
@@ -19,26 +17,6 @@ typedef id _Nullable (^WriteBlock)(NSManagedObjectContext *context);
 - (BFTask *)performWrite:(WriteBlock)writeBlock;
 
 - (BFTask *)deleteObjectWithEntityName:(NSString *)entityName uniqueID:(NSUUID *)uniqueID;
-
-- (BFTask *)createAlbumWithTitle:(NSString *)title
-                            year:(nullable NSNumber *)year
-                     artworkPath:(nullable NSString *)artworkPath
-                        duration:(double)duration
-                           genre:(nullable NSString *)genre;
-
-- (BFTask *)createArtistWithName:(NSString *)name;
-
-- (BFTask *)createTrackWithTitle:(nullable NSString *)title
-                     trackNumber:(int16_t)trackNumber
-                         fileURL:(nullable NSString *)fileURL
-                        fileType:(nullable NSString *)fileType
-                         bitrate:(int16_t)bitrate
-                      sampleRate:(int16_t)sampleRate
-                        duration:(double)duration;
-- (BFTask *)incrementPlayCountForTrack:(Track *)track;
-
-- (BFTask *)createPlaylistWithName:(NSString *)name;
-- (BFTask *)addTrackWithUUID:(NSUUID *)uuid toPlaylist:(Playlist *)playlist;
 
 @end
 

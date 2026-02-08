@@ -22,8 +22,10 @@ NS_ASSUME_NONNULL_BEGIN
 + (BFTask<Track *> *)findOrInsertByURL:(nonnull NSURL *)url
                               playlist:(Playlist *)playlist;
 
-+ (BFTask *)importTracksFromAudioURLs:(NSArray<NSURL *> *)audioURLs
++ (BFTask<BFVoid> *)importTracksFromAudioURLs:(NSArray<NSURL *> *)audioURLs
                              playlist:(Playlist *)playlist;
+
++ (BFTask<BFVoid> *)incrementPlayCountForTrack:(Track *)track;
 
 @end
 

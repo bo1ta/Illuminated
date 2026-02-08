@@ -11,7 +11,9 @@
 #import "CoreDataStore.h"
 #import "Playlist.h"
 #import "SidebarCellFactory.h"
+#import "TrackDataStore.h"
 #import "SidebarItem.h"
+#import "PlaylistDataStore.h"
 
 #pragma mark - Constants
 
@@ -126,7 +128,7 @@ NSString *const PasteboardItemTypeTrack = @"com.illuminated.track";
                   if (returnCode == NSAlertFirstButtonReturn) {
                     NSString *playlistName = input.stringValue;
                     if (playlistName.length > 0) {
-                      [[CoreDataStore writer] createPlaylistWithName:playlistName];
+                      [PlaylistDataStore createPlaylistWithName:playlistName];
                     }
                   }
                 }];
@@ -266,7 +268,7 @@ NSString *const PasteboardItemTypeTrack = @"com.illuminated.track";
 
   NSUUID *trackUUID = [[NSUUID alloc] initWithUUIDString:trackUUIDString];
 
-  [[CoreDataStore writer] addTrackWithUUID:trackUUID toPlaylist:targetPlaylist];
+  [PlaylistDataStore addToPlaylist:targetPlaylist trackWithUUID:trackUUID];
 
   return YES;
 }
@@ -377,20 +379,10 @@ NSString *const PasteboardItemTypeTrack = @"com.illuminated.track";
   }
 
   Playlist *playlist = (Playlist *)represented;
-  [self renamePlaylist:playlist toName:newName];
+  [PlaylistDataStore renamePlaylist:playlist toName:newName];
 
   item.title = newName;
   [self.outlineView reloadItem:item];
-}
-
-- (void)renamePlaylist:(Playlist *)playlist toName:(NSString *)name {
-  [[CoreDataStore writer] performWrite:^id(NSManagedObjectContext *context) {
-    Playlist *existingPlaylist = [context objectWithID:playlist.objectID];
-    if (!existingPlaylist) return nil;
-
-    existingPlaylist.name = name;
-    return nil;
-  }];
 }
 
 @end

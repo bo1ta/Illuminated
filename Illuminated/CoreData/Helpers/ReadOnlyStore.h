@@ -10,8 +10,6 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-@class Track, Album, Playlist, Artist;
-
 typedef id _Nullable (^ReadBlock)(NSManagedObjectContext *context);
 typedef id _Nullable (^ReadBlockWithError)(NSManagedObjectContext *context, NSError **error);
 
@@ -34,33 +32,6 @@ typedef id _Nullable (^ReadBlockWithError)(NSManagedObjectContext *context, NSEr
                                                         predicate:(nullable NSPredicate *)predicate
                                                   sortDescriptors:
                                                       (nullable NSArray<NSSortDescriptor *> *)sortDescriptors;
-
-#pragma mark - Albums
-
-- (BFTask<Album *> *)albumWithUniqueID:(NSUUID *)uniqueID;
-- (BFTask<NSArray<Album *> *> *)allAlbums;
-- (BFTask<NSArray<Album *> *> *)albumsWithTitle:(NSString *)title artist:(nullable NSString *)artistName;
-- (BFTask<NSNumber *> *)albumsCount;
-
-#pragma mark - Tracks
-
-- (BFTask<Track *> *)trackWithUniqueID:(NSUUID *)uniqueID;
-- (BFTask<NSArray<Track *> *> *)allTracks;
-- (BFTask<NSArray<Track *> *> *)searchTracks:(NSString *)query;
-- (BFTask<NSNumber *> *)tracksCount;
-- (BFTask<Track *> *)trackWithURL:(NSURL *)url;
-
-#pragma mark - Artists
-- (BFTask<Artist *> *)artistWithUniqueID:(NSUUID *)uniqueID;
-- (BFTask<NSArray<Artist *> *> *)allArtists;
-- (BFTask<Artist *> *)artistWithName:(NSString *)name;
-- (BFTask<NSNumber *> *)artistsCount;
-
-#pragma mark - Playlists
-- (BFTask<Playlist *> *)playlistWithUniqueID:(NSUUID *)uniqueID;
-- (BFTask<NSArray<Playlist *> *> *)allPlaylists;
-- (BFTask<Playlist *> *)playlistWithName:(NSString *)name;
-
 @end
 
 NS_ASSUME_NONNULL_END

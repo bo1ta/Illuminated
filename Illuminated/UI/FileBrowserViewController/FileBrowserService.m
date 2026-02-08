@@ -41,14 +41,6 @@
                              NSString *typeIdentifier = values[NSURLTypeIdentifierKey];
 
                              NSImage *icon = [workspace iconForFile:url.path];
-//                             if (icon  == nil) {
-//                               NSString *fileType = typeIdentifier ?: url.pathExtension;
-//                               if (fileType.length == 0) {
-//                                 fileType = UTTypeData.identifier;
-//                               }
-//                               icon = [workspace iconForFileType:fileType];
-//                             }
-
                              FileBrowserItem *item = [[FileBrowserItem alloc] initWithURL:url
                                                                                 displayName:displayName
                                                                                   directory:isDirectory

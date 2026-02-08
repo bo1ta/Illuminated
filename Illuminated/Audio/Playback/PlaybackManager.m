@@ -41,6 +41,8 @@ static const NSTimeInterval kProgressTimerInterval = 0.5;
 
 @property(nonatomic, copy) AudioBufferCallback audioBufferCallback;
 
+@property(strong) NSURL *activeSecurityScopedURL;
+
 @end
 
 @implementation PlaybackManager
@@ -138,35 +140,40 @@ static const NSTimeInterval kProgressTimerInterval = 0.5;
 #pragma mark - Playback
 
 - (NSURL *)resolveTrackURL:(Track *)track {
-  if (track.urlBookmark) {
-    NSError *error = nil;
-    NSURL *resolvedURL = [BookmarkResolver URLForBookmarkData:track.urlBookmark error:&error];
-    if (error) {
-      NSLog(@"PlaybackManager: Failed to resolve bookmark for track. Error: %@", error.localizedDescription);
-    } else {
-
-
-      if (!resolvedURL.hasDirectoryPath) {
-        [resolvedURL startAccessingSecurityScopedResource];
-        return resolvedURL;
-      } else {
-        [resolvedURL startAccessingSecurityScopedResource];
-        return [resolvedURL URLByAppendingPathComponent:track.fileURL];
-      }
-    }
+  if (!track.urlBookmark) {
+    return nil;
   }
   
-  return nil;
+  NSError *error = nil;
+  NSURL *resolvedURL = [BookmarkResolver URLForBookmarkData:track.urlBookmark error:&error];
+  if (error) {
+    NSLog(@"PlaybackManager: Failed to resolve bookmark for track. Error: %@", error.localizedDescription);
+    return nil;
+  } else {
+    if ([resolvedURL startAccessingSecurityScopedResource]) {
+      self.activeSecurityScopedURL = resolvedURL;
+    }
+    
+    NSNumber *isDirectory = nil;
+    [resolvedURL getResourceValue:&isDirectory forKey:NSURLIsDirectoryKey error:nil];
+    
+    if (isDirectory.boolValue) {
+      return [NSURL fileURLWithPath:track.fileURL];
+    } else {
+      return resolvedURL;
+    }
+  }
 }
 
 - (void)playTrack:(Track *)track {
   NSParameterAssert(track);
 
-  NSURL *url = [self resolveTrackURL:track];
-
-  if (self.currentFile) {
-    [BookmarkResolver releaseAccessedURL:self.currentFile.url];
+  if (self.activeSecurityScopedURL) {
+    [self.activeSecurityScopedURL stopAccessingSecurityScopedResource];
+    self.activeSecurityScopedURL = nil;
   }
+
+  NSURL *url = [self resolveTrackURL:track];
 
   NSError *error = nil;
   AVAudioFile *newFile = [[AVAudioFile alloc] initForReading:url error:&error];

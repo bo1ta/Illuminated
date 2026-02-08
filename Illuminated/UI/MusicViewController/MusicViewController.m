@@ -33,7 +33,6 @@ static MusicColumn const MusicColumnTime = @"TimeColumn";
 
 @property(atomic, strong) NSArray<Track *> *tracks;
 @property(nonatomic, strong) NSFetchedResultsController *fetchedResultsController;
-@property(nonatomic, strong) TrackImportService *importService;
 @property(nonatomic, strong, nullable) Playlist *currentPlaylist;
 @property(nonatomic, strong, nullable) Album *currentAlbum;
 
@@ -42,13 +41,6 @@ static MusicColumn const MusicColumnTime = @"TimeColumn";
 #pragma mark - Implementation
 
 @implementation MusicViewController
-
-- (TrackImportService *)importService {
-  if (!_importService) {
-    _importService = [[TrackImportService alloc] init];
-  }
-  return _importService;
-}
 
 #pragma mark - Lifecycle
 
@@ -146,7 +138,7 @@ static MusicColumn const MusicColumnTime = @"TimeColumn";
   });
 
   Track *playingTrack = [[PlaybackManager sharedManager] currentTrack];
-  [[CoreDataStore writer] incrementPlayCountForTrack:playingTrack];
+  [TrackDataStore incrementPlayCountForTrack:playingTrack];
 
   if (playingTrack.bpm <= 0) {
     NSURL *currentURL = [[PlaybackManager sharedManager] currentPlaybackURL];

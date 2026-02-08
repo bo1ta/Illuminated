@@ -159,10 +159,13 @@
   if (_isScrubbing) return;
 
   PlaybackManager *manager = [PlaybackManager sharedManager];
+  
   if (manager.currentTrack.duration > 0) {
-    double progress = manager.currentTime / manager.currentTrack.duration;
-    progressSlider.doubleValue = progress;
-    currentTimeLabel.stringValue = [self formatTime:manager.currentTime];
+    dispatch_async(dispatch_get_main_queue(), ^{
+      double progress = manager.currentTime / manager.currentTrack.duration;
+      self->progressSlider.doubleValue = progress;
+      self->currentTimeLabel.stringValue = [self formatTime:manager.currentTime];
+    });
   }
 }
 
