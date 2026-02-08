@@ -296,17 +296,23 @@ static const NSTimeInterval kProgressTimerInterval = 0.5;
 #pragma mark - Notifications
 
 - (void)notifyProgressDidChange {
-  [[NSNotificationCenter defaultCenter] postNotificationName:PlaybackManagerPlaybackProgressDidChangeNotification
-                                                      object:nil];
+  dispatch_async(dispatch_get_main_queue(), ^{
+    [[NSNotificationCenter defaultCenter] postNotificationName:PlaybackManagerPlaybackProgressDidChangeNotification
+                                                        object:nil];
+  });
 }
 
 - (void)notifyDidChangeTrack:(Track *)track {
-  [[NSNotificationCenter defaultCenter] postNotificationName:PlaybackManagerTrackDidChangeNotification object:track];
+  dispatch_async(dispatch_get_main_queue(), ^{
+    [[NSNotificationCenter defaultCenter] postNotificationName:PlaybackManagerTrackDidChangeNotification object:track];
+  });
 }
 
 - (void)notifyPlaybackStateDidChange {
-  [[NSNotificationCenter defaultCenter] postNotificationName:PlaybackManagerPlaybackStateDidChangeNotification
-                                                      object:nil];
+  dispatch_async(dispatch_get_main_queue(), ^{
+    [[NSNotificationCenter defaultCenter] postNotificationName:PlaybackManagerPlaybackStateDidChangeNotification
+                                                        object:nil];
+  });
 }
 
 #pragma mark - Private Methods

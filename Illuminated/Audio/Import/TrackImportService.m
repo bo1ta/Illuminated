@@ -16,6 +16,8 @@
 #import "CoreDataStore.h"
 #import "MetadataExtractor.h"
 #import "Track.h"
+#import "ArtistDataStore.h"
+#import "AlbumDataStore.h"
 #import <AVFoundation/AVFoundation.h>
 #import <Foundation/Foundation.h>
 
@@ -161,45 +163,27 @@
 }
 
 + (Artist *)findOrCreateArtist:(NSString *)artistName inContext:(NSManagedObjectContext *)context {
-  if (!artistName) return nil;
-
-  Artist *artist = [context firstObjectForEntityName:EntityNameArtist
-                                           predicate:[NSPredicate predicateWithFormat:@"name == %@", artistName]];
-  if (!artist) {
-    artist = [context insertNewObjectForEntityName:EntityNameArtist];
-    artist.uniqueID = [NSUUID new];
-    artist.name = artistName;
+  if (!artistName) {
+    return nil;
   }
-
-  return artist;
+  return [ArtistDataStore findOrCreateArtistWithName:artistName inContext:context];
 }
 
 + (Album *)findOrCreateAlbum:(NSString *)albumName
                       artist:(Artist *)artist
                      artwork:(NSData *)artworkData
                    inContext:(NSManagedObjectContext *)context {
-  if (!albumName) return nil;
-
-  NSPredicate *predicate;
-  if (artist) {
-    predicate = [NSPredicate predicateWithFormat:@"title == %@ AND artist == %@", albumName, artist];
-  } else {
-    predicate = [NSPredicate predicateWithFormat:@"title == %@", albumName];
+  if (!albumName) {
+    return nil;
   }
 
-  Album *album = [context firstObjectForEntityName:EntityNameAlbum predicate:predicate];
-  if (!album) {
-    album = [context insertNewObjectForEntityName:EntityNameAlbum];
-    album.uniqueID = [NSUUID new];
-    album.title = albumName;
-    album.artist = artist;
+  Album *album = [AlbumDataStore findOrCreateAlbumWithName:albumName
+                                            artist:artist
+                                         inContext:context];
+  if (!album.artworkPath) {
+    album.artworkPath = [ArtworkManager saveArtwork:artworkData forUUID:album.uniqueID];
   }
-
-  if (artworkData) {
-    NSString *artworkPath = [ArtworkManager saveArtwork:artworkData forUUID:album.uniqueID];
-    album.artworkPath = artworkPath;
-  }
-
+  
   return album;
 }
 
