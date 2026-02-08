@@ -7,11 +7,11 @@
 
 #import "MainWindowController.h"
 #import "ContentTabViewController.h"
+#import "FileBrowserViewController.h"
 #import "MusicViewController.h"
 #import "PlayerBarViewController.h"
-#import "SidebarViewController.h"
-#import "FileBrowserViewController.h"
 #import "SidebarContainerViewController.h"
+#import "SidebarViewController.h"
 
 NSString *const ToolbarSearchDidChangeNotification = @"ToolbarSearchDidChangeNotification";
 NSString *const ToolbarSearchUserInfo = @"ToolbarSearch";

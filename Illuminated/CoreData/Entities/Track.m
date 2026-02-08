@@ -41,5 +41,6 @@
 @dynamic artist;
 @dynamic playlists;
 @dynamic urlBookmark;
+@dynamic waveformPath;
 
 @end

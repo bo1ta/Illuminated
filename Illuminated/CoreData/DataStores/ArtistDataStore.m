@@ -5,15 +5,14 @@
 //  Created by Alexandru Solomon on 08.02.2026.
 //
 
-#import <Foundation/Foundation.h>
-#import "CoreDataStore.h"
 #import "ArtistDataStore.h"
 #import "Artist.h"
+#import "CoreDataStore.h"
+#import <Foundation/Foundation.h>
 
 @implementation ArtistDataStore
 
-+ (Artist *)findOrCreateArtistWithName:(NSString *)artistName
-                             inContext:(NSManagedObjectContext *)context {
++ (Artist *)findOrCreateArtistWithName:(NSString *)artistName inContext:(NSManagedObjectContext *)context {
   Artist *artist = [context firstObjectForEntityName:EntityNameArtist
                                            predicate:[NSPredicate predicateWithFormat:@"name == %@", artistName]];
   if (!artist) {

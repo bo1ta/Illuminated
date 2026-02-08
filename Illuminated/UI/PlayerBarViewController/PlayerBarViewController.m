@@ -6,13 +6,18 @@
 //
 
 #import "PlayerBarViewController.h"
+#import "TrackService.h"
 #import "Album.h"
 #import "Artist.h"
 #import "ArtworkManager.h"
 #import "PlaybackManager.h"
 #import "Track.h"
+#import "WaveformView.h"
 #import <AVFoundation/AVFoundation.h>
 #import <MediaPlayer/MediaPlayer.h>
+
+@interface PlayerBarViewController ()<WaveformViewDelegate>
+@end
 
 @implementation PlayerBarViewController {
   __weak IBOutlet NSButton *previousButton;
@@ -25,7 +30,7 @@
   __weak IBOutlet NSButton *playPauseButton;
   __weak IBOutlet NSTextField *currentTimeLabel;
   __weak IBOutlet NSTextField *totalTimeLabel;
-  __weak IBOutlet NSSlider *progressSlider;
+  __weak IBOutlet WaveformView *waveformView;
   __weak IBOutlet NSSlider *volumeSlider;
   __weak IBOutlet NSTextField *bpmLabel;
 
@@ -45,6 +50,8 @@
   [self updateTrackUI];
   [self updateRepeatButton];
   [self setupMediaKeyControls];
+
+  waveformView.delegate = self;
 }
 
 - (void)dealloc {
@@ -146,6 +153,28 @@
 
   [self updatePlaybackState];
   [self updateNowPlayingInfoWithTrack:track artworkImage:trackArtwork.image];
+  [self updatePlaybackState];
+  [self updateNowPlayingInfoWithTrack:track artworkImage:trackArtwork.image];
+
+  [self generateWaveformForTrack:track];
+}
+
+- (void)generateWaveformForTrack:(Track *)track {
+  waveformView.waveformImage = nil;
+
+  NSURL *url = [[PlaybackManager sharedManager] currentPlaybackURL];
+  if (!url) return;
+
+  [[TrackService getWaveformForTrack:track
+                         resolvedURL:url
+                                size:waveformView.bounds.size] continueOnMainThreadWithBlock:^id(BFTask<NSImage *> *task) {
+    if (task.result) {
+      self->waveformView.waveformImage = task.result;
+    } else {
+      NSLog(@"Error loading waveform image: %@", task.error);
+    }
+    return nil;
+  }];
 }
 
 - (void)updatePlaybackState {
@@ -159,11 +188,11 @@
   if (_isScrubbing) return;
 
   PlaybackManager *manager = [PlaybackManager sharedManager];
-  
+
   if (manager.currentTrack.duration > 0) {
     dispatch_async(dispatch_get_main_queue(), ^{
       double progress = manager.currentTime / manager.currentTrack.duration;
-      self->progressSlider.doubleValue = progress;
+      self->waveformView.progress = progress;
       self->currentTimeLabel.stringValue = [self formatTime:manager.currentTime];
     });
   }
@@ -192,11 +221,13 @@
 
 #pragma mark - IBActions
 
-- (IBAction)progressDidChange:(NSSlider *)sender {
+#pragma mark - WaveformViewDelegate
+
+- (void)waveformView:(WaveformView *)waveformView didSeekToProgress:(double)progress {
   _isScrubbing = YES;
 
   PlaybackManager *manager = [PlaybackManager sharedManager];
-  NSTimeInterval newTime = sender.doubleValue * manager.currentTrack.duration;
+  NSTimeInterval newTime = progress * manager.currentTrack.duration;
   [manager seekToTime:newTime];
 
   currentTimeLabel.stringValue = [self formatTime:newTime];

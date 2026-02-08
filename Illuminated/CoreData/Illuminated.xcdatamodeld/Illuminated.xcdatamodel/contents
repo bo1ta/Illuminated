@@ -40,6 +40,7 @@
         <attribute name="trackNumber" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="uniqueID" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
         <attribute name="urlBookmark" optional="YES" attributeType="Binary"/>
+        <attribute name="waveformPath" optional="YES" attributeType="String"/>
         <attribute name="year" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
         <relationship name="album" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Album" inverseName="tracks" inverseEntity="Album"/>
         <relationship name="artist" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Artist" inverseName="tracks" inverseEntity="Artist"/>

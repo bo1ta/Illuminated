@@ -7,20 +7,19 @@
 
 #import "TrackService.h"
 #import "Album.h"
+#import "AlbumDataStore.h"
 #import "Artist.h"
+#import "ArtistDataStore.h"
 #import "ArtworkManager.h"
 #import "BPMAnalyzer.h"
 #import "BookmarkResolver.h"
-#import "BFExecutor.h"
-#import "BFTaskCompletionSource.h"
 #import "CoreDataStore.h"
 #import "MetadataExtractor.h"
 #import "Track.h"
-#import "ArtistDataStore.h"
 #import "TrackDataStore.h"
-#import "AlbumDataStore.h"
+#import "WaveformCacheManager.h"
+#import "WaveformGenerator.h"
 #import <AVFoundation/AVFoundation.h>
-#import <Foundation/Foundation.h>
 
 @implementation TrackService
 
@@ -63,6 +62,19 @@
     }
 
     return task;
+  }];
+}
+
++ (BFTask<Track *> *)updateBPMForTrackWithFileURL:(NSURL *)fileURL bpm:(NSNumber *)bpm {
+  return [[CoreDataStore writer] performWrite:^id(NSManagedObjectContext *context) {
+    Track *track =
+        [context firstObjectForEntityName:EntityNameTrack
+                                predicate:[NSPredicate predicateWithFormat:@"fileURL == %@", [fileURL path]]];
+    if (track) {
+      track.bpm = [bpm floatValue];
+      return track;
+    }
+    return nil;
   }];
 }
 
@@ -112,11 +124,8 @@
   }
 
   NSDictionary *metadata = [MetadataExtractor extractMetadataFromFileAtURL:fileURL];
-  return [[self saveTrackWithMetadata:metadata
-                             bookmark:bookmark
-                              fileURL:fileURL
-                             playlist:playlist]
-          continueOnMainThreadWithBlock:^id(BFTask<Track *> *task) {
+  return [[self saveTrackWithMetadata:metadata bookmark:bookmark fileURL:fileURL
+                             playlist:playlist] continueOnMainThreadWithBlock:^id(BFTask<Track *> *task) {
     if (task.result) {
       return [[CoreDataStore reader] fetchObjectWithID:task.result.objectID];
     }
@@ -126,11 +135,8 @@
 
 + (BFTask *)importAudioFileAtURL:(NSURL *)fileURL bookmarkData:(NSData *)bookmarkData {
   NSDictionary *metadata = [MetadataExtractor extractMetadataFromFileAtURL:fileURL];
-  return [[self saveTrackWithMetadata:metadata
-                             bookmark:bookmarkData
-                              fileURL:fileURL
-                             playlist:nil]
-          continueOnMainThreadWithBlock:^id(BFTask<Track *> *task) {
+  return [[self saveTrackWithMetadata:metadata bookmark:bookmarkData fileURL:fileURL
+                             playlist:nil] continueOnMainThreadWithBlock:^id(BFTask<Track *> *task) {
     if (task.result) {
       return [[CoreDataStore reader] fetchObjectWithID:task.result.objectID];
     }
@@ -140,18 +146,7 @@
 
 #pragma mark - Core Data Saving
 
-+ (BFTask<Track *> *)updateBPMForTrackWithFileURL:(NSURL *)fileURL bpm:(NSNumber *)bpm {
-  return [[CoreDataStore writer] performWrite:^id(NSManagedObjectContext *context) {
-    Track *track =
-        [context firstObjectForEntityName:EntityNameTrack
-                                predicate:[NSPredicate predicateWithFormat:@"fileURL == %@", [fileURL path]]];
-    if (track) {
-      track.bpm = [bpm floatValue];
-      return track;
-    }
-    return nil;
-  }];
-}
+
 
 + (BFTask<Track *> *)saveTrackWithMetadata:(NSDictionary *)metadata
                                   bookmark:(NSData *)bookmark
@@ -164,7 +159,8 @@
                                    artwork:metadata[@"artwork"]
                                  inContext:context];
 
-    Track *track = [context firstObjectForEntityName:EntityNameTrack
+    Track *track =
+        [context firstObjectForEntityName:EntityNameTrack
                                 predicate:[NSPredicate predicateWithFormat:@"fileURL == %@", [fileURL path]]];
     if (!track) {
       track = [TrackDataStore insertTrackWithTitle:metadata[@"title"] ?: [fileURL lastPathComponent]
@@ -202,14 +198,39 @@
     return nil;
   }
 
-  Album *album = [AlbumDataStore findOrCreateAlbumWithName:albumName
-                                            artist:artist
-                                         inContext:context];
+  Album *album = [AlbumDataStore findOrCreateAlbumWithName:albumName artist:artist inContext:context];
   if (!album.artworkPath) {
     album.artworkPath = [ArtworkManager saveArtwork:artworkData forUUID:album.uniqueID];
   }
-  
+
   return album;
+}
+
++ (BFTask<NSImage *> *)getWaveformForTrack:(Track *)track resolvedURL:(NSURL *)resolvedURL size:(CGSize)size {
+  if (track.waveformPath) {
+    NSImage *cachedImage = [WaveformCacheManager loadWaveformForPath:track.waveformPath];
+    if (cachedImage) {
+      return [BFTask taskWithResult:cachedImage];
+    }
+  }
+  return [[WaveformGenerator generateWaveformForTrack:track
+                                                  url:resolvedURL
+                                                 size:size] continueWithSuccessBlock:^id(BFTask<NSImage *> *task) {
+    NSImage *image = task.result;
+    NSString *path = [WaveformCacheManager saveWaveformImage:image forTrackUUID:track.uniqueID];
+
+    if (path) {
+      [[CoreDataStore writer] performWrite:^id(NSManagedObjectContext *context) {
+        Track *writeTrack = [context objectWithID:track.objectID];
+        if (writeTrack) {
+          writeTrack.waveformPath = path;
+        }
+        return nil;
+      }];
+    }
+
+    return [BFTask taskWithResult:image];
+  }];
 }
 
 #pragma mark - Async Wrappers

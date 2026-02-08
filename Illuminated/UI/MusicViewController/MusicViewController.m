@@ -8,14 +8,14 @@
 #import "MusicViewController.h"
 #import "Album.h"
 #import "Artist.h"
+#import "BFExecutor.h"
 #import "CoreDataStore.h"
 #import "MainWindowController.h"
 #import "PlaybackManager.h"
 #import "Playlist.h"
 #import "SidebarViewController.h"
-#import "TrackDataStore.h"
-#import "BFExecutor.h"
 #import "Track.h"
+#import "TrackDataStore.h"
 #import "TrackService.h"
 
 #pragma mark - Constants
@@ -335,7 +335,7 @@ static MusicColumn const MusicColumnTime = @"TimeColumn";
     NSLog(@"Error performing fetch request. Error: %@", error);
     return;
   }
-  
+
   [self reloadData];
 }
 
@@ -413,8 +413,7 @@ static MusicColumn const MusicColumnTime = @"TimeColumn";
 
 - (void)importURL:(NSURL *)url {
   [[TrackService findOrInsertByURL:url
-                            playlist:self.currentPlaylist]
-   continueWithSuccessBlock:^id(BFTask<Track *> *task) {
+                          playlist:self.currentPlaylist] continueWithSuccessBlock:^id(BFTask<Track *> *task) {
     Track *track = task.result;
     if (track) {
       [[PlaybackManager sharedManager] playTrack:track];

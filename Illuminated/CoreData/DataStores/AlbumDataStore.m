@@ -6,9 +6,9 @@
 //
 
 #import "AlbumDataStore.h"
+#import "Album.h"
 #import "ArtworkManager.h"
 #import "CoreDataStore.h"
-#import "Album.h"
 #import "Track.h"
 
 @implementation AlbumDataStore

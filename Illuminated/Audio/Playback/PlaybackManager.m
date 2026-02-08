@@ -143,7 +143,7 @@ static const NSTimeInterval kProgressTimerInterval = 0.5;
   if (!track.urlBookmark) {
     return nil;
   }
-  
+
   NSError *error = nil;
   NSURL *resolvedURL = [BookmarkResolver URLForBookmarkData:track.urlBookmark error:&error];
   if (error) {
@@ -153,10 +153,10 @@ static const NSTimeInterval kProgressTimerInterval = 0.5;
     if ([resolvedURL startAccessingSecurityScopedResource]) {
       self.activeSecurityScopedURL = resolvedURL;
     }
-    
+
     NSNumber *isDirectory = nil;
     [resolvedURL getResourceValue:&isDirectory forKey:NSURLIsDirectoryKey error:nil];
-    
+
     if (isDirectory.boolValue) {
       return [NSURL fileURLWithPath:track.fileURL];
     } else {
@@ -174,6 +174,10 @@ static const NSTimeInterval kProgressTimerInterval = 0.5;
   }
 
   NSURL *url = [self resolveTrackURL:track];
+  if (!url) {
+    [self playNext];
+    return;
+  }
 
   NSError *error = nil;
   AVAudioFile *newFile = [[AVAudioFile alloc] initForReading:url error:&error];

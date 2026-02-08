@@ -163,7 +163,7 @@
 - (void)previewTrackForURL:(NSURL *)url {
   NSURL *scopedURL = [self.currentDirectoryURL URLByAppendingPathComponent:url.lastPathComponent];
   [[TrackService findOrInsertByURL:scopedURL
-                        bookmarkData:self.currentBookmarkData] continueWithSuccessBlock:^id(BFTask<Track *> *task) {
+                      bookmarkData:self.currentBookmarkData] continueWithSuccessBlock:^id(BFTask<Track *> *task) {
     Track *track = task.result;
     [[PlaybackManager sharedManager] playTrack:track];
     return nil;

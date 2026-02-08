@@ -74,7 +74,7 @@ NSString *const MusicFolderBookmarkKey = @"MusicFolderBookmark";
                              userInfo:@{NSLocalizedDescriptionKey : @"Track failed to resolve URL"}];
     return nil;
   }
-  
+
   return resolvedURL;
 }
 

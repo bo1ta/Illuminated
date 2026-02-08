@@ -55,7 +55,7 @@
   track.urlBookmark = urlBookmark;
   track.artist = artist;
   track.album = album;
-  
+
   return track;
 }
 

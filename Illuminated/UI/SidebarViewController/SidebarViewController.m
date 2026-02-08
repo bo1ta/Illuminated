@@ -10,10 +10,10 @@
 #import "Carbon/Carbon.h"
 #import "CoreDataStore.h"
 #import "Playlist.h"
-#import "SidebarCellFactory.h"
-#import "TrackDataStore.h"
-#import "SidebarItem.h"
 #import "PlaylistDataStore.h"
+#import "SidebarCellFactory.h"
+#import "SidebarItem.h"
+#import "TrackDataStore.h"
 
 #pragma mark - Constants
 

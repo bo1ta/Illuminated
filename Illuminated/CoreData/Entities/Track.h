@@ -37,6 +37,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property(nullable, nonatomic, retain) Artist *artist;
 @property(nullable, nonatomic, retain) NSSet<Playlist *> *playlists;
 @property(nullable, nonatomic, retain) NSData *urlBookmark;
+@property(nullable, nonatomic, copy) NSString *waveformPath;
 
 - (NSNumber *)roundedBPM;
 

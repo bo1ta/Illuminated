@@ -5,8 +5,8 @@
 //  Created by Alexandru Solomon on 20.01.2026.
 //
 
-#import <Foundation/Foundation.h>
 #import "BFTask.h"
+#import <Cocoa/Cocoa.h>
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -15,6 +15,8 @@ NS_ASSUME_NONNULL_BEGIN
 @interface TrackService : NSObject
 
 + (BFTask *)importAudioFilesAtURLs:(NSArray<NSURL *> *)filesURLs withPlaylist:(nullable Playlist *)playlist;
+
++ (BFTask<NSImage *> *)getWaveformForTrack:(Track *)track resolvedURL:(NSURL *)resolvedURL size:(CGSize)size;
 
 + (BFTask *)importAudioFileAtURL:(NSURL *)fileURL playlist:(nullable Playlist *)playlist;
 

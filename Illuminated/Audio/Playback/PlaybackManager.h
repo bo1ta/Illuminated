@@ -12,13 +12,19 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
+#pragma mark - Constants
+
 extern NSString *const PlaybackManagerTrackDidChangeNotification;
 extern NSString *const PlaybackManagerPlaybackStateDidChangeNotification;
 extern NSString *const PlaybackManagerPlaybackProgressDidChangeNotification;
 
+#pragma mark - Types
+
 typedef NS_ENUM(NSInteger, RepeatMode) { RepeatModeOff, RepeatModeOne, RepeatModeAll };
 
 typedef void (^AudioBufferCallback)(const float *monoData, AVAudioFrameCount length);
+
+#pragma mark - PlaybackManager Interface
 
 @interface PlaybackManager : NSObject
 

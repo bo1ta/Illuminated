@@ -14,8 +14,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface PlaylistDataStore : NSObject
 
-+ (BFTask<Playlist *> *)addToPlaylist:(Playlist *)playlist
-                  trackWithUUID:(NSUUID *)trackUUID;
++ (BFTask<Playlist *> *)addToPlaylist:(Playlist *)playlist trackWithUUID:(NSUUID *)trackUUID;
 
 + (BFTask<Playlist *> *)createPlaylistWithName:(NSString *)name;
 

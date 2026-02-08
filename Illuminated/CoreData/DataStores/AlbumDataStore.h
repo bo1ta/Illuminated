@@ -14,8 +14,8 @@ NS_ASSUME_NONNULL_BEGIN
 @interface AlbumDataStore : NSObject
 
 + (Album *)findOrCreateAlbumWithName:(NSString *)albumName
-                               artist:(nullable Artist *)artist
-                             inContext:(NSManagedObjectContext *)context;
+                              artist:(nullable Artist *)artist
+                           inContext:(NSManagedObjectContext *)context;
 
 @end
 

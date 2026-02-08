@@ -13,8 +13,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface ArtistDataStore : NSObject
 
-+ (Artist *)findOrCreateArtistWithName:(NSString *)artistName
-                             inContext:(NSManagedObjectContext *)context;
++ (Artist *)findOrCreateArtistWithName:(NSString *)artistName inContext:(NSManagedObjectContext *)context;
 
 @end
 
