@@ -10,6 +10,7 @@
 #import "MusicViewController.h"
 #import "PlayerBarViewController.h"
 #import "SidebarViewController.h"
+#import "FileBrowserViewController.h"
 
 NSString *const ToolbarSearchDidChangeNotification = @"ToolbarSearchDidChangeNotification";
 NSString *const ToolbarSearchUserInfo = @"ToolbarSearch";
@@ -34,13 +35,22 @@ NSString *const ToolbarSearchUserInfo = @"ToolbarSearch";
   [self setupToolbar];
 
   self.splitViewController = [[NSSplitViewController alloc] init];
-
-  SidebarViewController *sidebarVC = [[SidebarViewController alloc] init];
-  NSSplitViewItem *sidebarItem = [NSSplitViewItem sidebarWithViewController:sidebarVC];
+  
+  FileBrowserViewController *browserVC = [[FileBrowserViewController alloc] init];
+  NSSplitViewItem *sidebarItem = [NSSplitViewItem sidebarWithViewController:browserVC];
   sidebarItem.canCollapse = YES;
   sidebarItem.minimumThickness = 180;
   sidebarItem.maximumThickness = 300;
   [self.splitViewController addSplitViewItem:sidebarItem];
+
+  
+
+//  SidebarViewController *sidebarVC = [[SidebarViewController alloc] init];
+//  NSSplitViewItem *sidebarItem = [NSSplitViewItem sidebarWithViewController:sidebarVC];
+//  sidebarItem.canCollapse = YES;
+//  sidebarItem.minimumThickness = 180;
+//  sidebarItem.maximumThickness = 300;
+//  [self.splitViewController addSplitViewItem:sidebarItem];
 
   //  self.musicViewController = [[MusicViewController alloc] initWithNibName:@"MusicViewController" bundle:nil];
   //

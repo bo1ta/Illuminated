@@ -24,6 +24,9 @@ typedef NS_ENUM(NSInteger, PlaybackManagerErrorCode) {
 + (NSURL *)resolveAndAccessBookmarkData:(NSData *)data error:(NSError **)error;
 + (void)releaseAccessedURL:(NSURL *)url;
 
++ (NSURL *)resolveMusicFolder;
++ (void)storeMusicFolderBookmarkForURL:(NSURL *)url error:(NSError **)error;
+
 @end
 
 NS_ASSUME_NONNULL_END

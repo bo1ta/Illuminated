@@ -10,7 +10,28 @@
 
 NSString *const BookmarkResolverErrorDomain = @"com.illuminated.BookmarkResolverErrorDomain";
 
+NSString *const MusicFolderBookmarkKey = @"MusicFolderBookmark";
+
 @implementation BookmarkResolver
+
++ (NSURL *)resolveMusicFolder {
+  NSData *bookmarkData = [[NSUserDefaults standardUserDefaults] objectForKey:MusicFolderBookmarkKey];
+  if (!bookmarkData) {
+    return nil;
+  }
+  return [self resolveAndAccessBookmarkData:bookmarkData error:nil];
+}
+
++ (void)storeMusicFolderBookmarkForURL:(NSURL *)url error:(NSError **)error {
+  NSError *bookmarkError = nil;
+  NSData *bookmarkData = [self bookmarkForURL:url error:&bookmarkError];
+  if (bookmarkData) {
+    [[NSUserDefaults standardUserDefaults] setObject:bookmarkData forKey:MusicFolderBookmarkKey];
+    
+  } else {
+    *error = bookmarkError;
+  }
+}
 
 + (NSData *)bookmarkForURL:(NSURL *)url error:(NSError **)error {
   NSError *bookmarkError = nil;

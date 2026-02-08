@@ -1,0 +1,16 @@
+//
+//  FileBrowserViewController.h
+//  Illuminated
+//
+//  Created by Alexandru Solomon on 07.02.2026.
+//
+
+#import <Cocoa/Cocoa.h>
+
+NS_ASSUME_NONNULL_BEGIN
+
+@interface FileBrowserViewController : NSViewController<NSOutlineViewDataSource, NSOutlineViewDelegate>
+
+@end
+
+NS_ASSUME_NONNULL_END
