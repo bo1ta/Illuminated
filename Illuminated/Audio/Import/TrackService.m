@@ -1,11 +1,11 @@
 //
-//  TrackImportService.m
+//  TrackService.m
 //  Illuminated
 //
 //  Created by Alexandru Solomon on 20.01.2026.
 //
 
-#import "TrackImportService.h"
+#import "TrackService.h"
 #import "Album.h"
 #import "Artist.h"
 #import "ArtworkManager.h"
@@ -17,11 +17,39 @@
 #import "MetadataExtractor.h"
 #import "Track.h"
 #import "ArtistDataStore.h"
+#import "TrackDataStore.h"
 #import "AlbumDataStore.h"
 #import <AVFoundation/AVFoundation.h>
 #import <Foundation/Foundation.h>
 
-@implementation TrackImportService
+@implementation TrackService
+
++ (BFTask<Track *> *)findOrInsertByURL:(nonnull NSURL *)url playlist:(nullable Playlist *)playlist {
+  return [[TrackDataStore trackWithURL:url] continueWithBlock:^id(BFTask<Track *> *task) {
+    Track *track = task.result;
+    if (track) {
+      return task;
+    }
+    return [TrackService importAudioFileAtURL:url playlist:playlist];
+  }];
+}
+
++ (BFTask<Track *> *)findOrInsertByURL:(NSURL *)url bookmarkData:(NSData *)bookmarkData {
+  return [[TrackDataStore trackWithURL:url] continueWithBlock:^id(BFTask<Track *> *task) {
+    Track *track = task.result;
+    if (track) {
+      if (![track.urlBookmark isEqualToData:bookmarkData]) {
+        return [[CoreDataStore writer] performWrite:^id(NSManagedObjectContext *context) {
+          Track *writeTrack = [context objectWithID:track.objectID];
+          writeTrack.urlBookmark = bookmarkData;
+          return writeTrack;
+        }];
+      }
+      return task;
+    }
+    return [self importAudioFileAtURL:url bookmarkData:bookmarkData];
+  }];
+}
 
 + (BFTask<Track *> *)analyzeBPMForTrackURL:(NSURL *)trackURL {
   AVURLAsset *asset = [AVURLAsset URLAssetWithURL:trackURL options:nil];
@@ -136,24 +164,21 @@
                                    artwork:metadata[@"artwork"]
                                  inContext:context];
 
-    Track *track =
-        [context firstObjectForEntityName:EntityNameTrack
+    Track *track = [context firstObjectForEntityName:EntityNameTrack
                                 predicate:[NSPredicate predicateWithFormat:@"fileURL == %@", [fileURL path]]];
     if (!track) {
-      track = [context insertNewObjectForEntityName:EntityNameTrack];
-      track.uniqueID = [NSUUID new];
-      track.title = metadata[@"title"] ?: [fileURL lastPathComponent];
-      track.trackNumber = [metadata[@"trackNumber"] intValue];
-      track.fileType = [fileURL pathExtension];
-      track.bitrate = [metadata[@"bitrate"] intValue];
-      track.sampleRate = [metadata[@"sampleRate"] intValue];
-      track.duration = [metadata[@"duration"] doubleValue];
-      track.bpm = [metadata[@"bpm"] floatValue];
-      track.fileURL = [fileURL path];
-      track.urlBookmark = bookmark;
-      track.artist = artist;
-      track.album = album;
-
+      track = [TrackDataStore insertTrackWithTitle:metadata[@"title"] ?: [fileURL lastPathComponent]
+                                           fileURL:[fileURL path]
+                                       urlBookmark:bookmark
+                                       trackNumber:[metadata[@"trackNumber"] intValue]
+                                          fileType:[fileURL pathExtension]
+                                           bitrate:[metadata[@"bitrate"] intValue]
+                                        sampleRate:[metadata[@"sampleRate"] intValue]
+                                          duration:[metadata[@"duration"] doubleValue]
+                                               bpm:[metadata[@"bpm"] floatValue]
+                                            artist:artist
+                                             album:album
+                                         inContext:context];
       if (playlist) {
         [track addPlaylistsObject:playlist];
       }

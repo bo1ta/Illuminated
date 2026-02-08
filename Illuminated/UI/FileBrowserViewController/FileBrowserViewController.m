@@ -14,7 +14,7 @@
 #import "FileBrowserService.h"
 #import "PlaybackManager.h"
 #import "Track.h"
-#import "TrackDataStore.h"
+#import "TrackService.h"
 
 @interface FileBrowserViewController ()
 
@@ -162,7 +162,7 @@
 
 - (void)previewTrackForURL:(NSURL *)url {
   NSURL *scopedURL = [self.currentDirectoryURL URLByAppendingPathComponent:url.lastPathComponent];
-  [[TrackDataStore findOrInsertByURL:scopedURL
+  [[TrackService findOrInsertByURL:scopedURL
                         bookmarkData:self.currentBookmarkData] continueWithSuccessBlock:^id(BFTask<Track *> *task) {
     Track *track = task.result;
     [[PlaybackManager sharedManager] playTrack:track];

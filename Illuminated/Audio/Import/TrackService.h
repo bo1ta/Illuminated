@@ -1,5 +1,5 @@
 //
-//  TrackImportService.h
+//  TrackService.h
 //  Illuminated
 //
 //  Created by Alexandru Solomon on 20.01.2026.
@@ -12,7 +12,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 @class Track, Playlist;
 
-@interface TrackImportService : NSObject
+@interface TrackService : NSObject
 
 + (BFTask *)importAudioFilesAtURLs:(NSArray<NSURL *> *)filesURLs withPlaylist:(nullable Playlist *)playlist;
 
@@ -21,6 +21,10 @@ NS_ASSUME_NONNULL_BEGIN
 + (BFTask *)importAudioFileAtURL:(NSURL *)fileURL bookmarkData:(NSData *)bookmarkData;
 
 + (BFTask *)analyzeBPMForTrackURL:(NSURL *)trackURL;
+
++ (BFTask<Track *> *)findOrInsertByURL:(nonnull NSURL *)url playlist:(nullable Playlist *)playlist;
+
++ (BFTask<Track *> *)findOrInsertByURL:(NSURL *)url bookmarkData:(NSData *)bookmarkData;
 
 @end
 

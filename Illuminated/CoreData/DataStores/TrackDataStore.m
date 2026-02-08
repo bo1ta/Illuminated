@@ -9,7 +9,6 @@
 #import "CoreDataStore.h"
 #import "Playlist.h"
 #import "Track.h"
-#import "TrackImportService.h"
 #import <Foundation/Foundation.h>
 
 @implementation TrackDataStore
@@ -17,47 +16,6 @@
 + (BFTask<Track *> *)trackWithURL:(NSURL *)url {
   return [[CoreDataStore reader] firstObjectForEntity:EntityNameTrack
                                             predicate:[NSPredicate predicateWithFormat:@"fileURL == %@", [url path]]];
-}
-
-+ (BFTask<BFVoid> *)importTracksFromAudioURLs:(NSArray<NSURL *> *)audioURLs playlist:(Playlist *)playlist {
-  return [TrackImportService importAudioFilesAtURLs:audioURLs withPlaylist:playlist];
-};
-
-+ (BFTask<Track *> *)findOrInsertByURL:(NSURL *)url bookmarkData:(NSData *)bookmarkData {
-  return [[self trackWithURL:url] continueWithBlock:^id(BFTask<Track *> *task) {
-    Track *track = task.result;
-    if (track) {
-      if (![track.urlBookmark isEqualToData:bookmarkData]) {
-        return [[CoreDataStore writer] performWrite:^id(NSManagedObjectContext *context) {
-          Track *writeTrack = [context objectWithID:track.objectID];
-          writeTrack.urlBookmark = bookmarkData;
-          return writeTrack;
-        }];
-      }
-      return task;
-    }
-    return [TrackImportService importAudioFileAtURL:url bookmarkData:bookmarkData];
-  }];
-}
-
-+ (BFTask<Track *> *)findOrInsertByURL:(nonnull NSURL *)url playlist:(Playlist *)playlist {
-  return [[self trackWithURL:url] continueWithBlock:^id(BFTask<Track *> *task) {
-    Track *track = task.result;
-    if (track) {
-      return task;
-    }
-    return [TrackImportService importAudioFileAtURL:url playlist:playlist];
-  }];
-}
-
-+ (BFTask<Track *> *)findOrInsertByURL:(nonnull NSURL *)url {
-  return [[self trackWithURL:url] continueWithBlock:^id(BFTask<Track *> *task) {
-    Track *track = task.result;
-    if (track) {
-      return task;
-    }
-    return [TrackImportService importAudioFileAtURL:url playlist:nil];
-  }];
 }
 
 + (BFTask<BFVoid> *)incrementPlayCountForTrack:(Track *)track {
@@ -70,6 +28,35 @@
     object.lastPlayed = [NSDate new];
     return nil;
   }];
+}
+
++ (Track *)insertTrackWithTitle:(NSString *)title
+                        fileURL:(NSString *)fileURL
+                    urlBookmark:(nullable NSData *)urlBookmark
+                    trackNumber:(int16_t)trackNumber
+                       fileType:(nullable NSString *)fileType
+                        bitrate:(int16_t)bitrate
+                     sampleRate:(int16_t)sampleRate
+                       duration:(double)duration
+                            bpm:(float)bpm
+                         artist:(nullable Artist *)artist
+                          album:(nullable Album *)album
+                      inContext:(NSManagedObjectContext *)context {
+  Track *track = [context insertNewObjectForEntityName:EntityNameTrack];
+  track.uniqueID = [NSUUID new];
+  track.title = title;
+  track.trackNumber = trackNumber;
+  track.fileType = fileType;
+  track.bitrate = bitrate;
+  track.sampleRate = sampleRate;
+  track.duration = duration;
+  track.bpm = bpm;
+  track.fileURL = fileURL;
+  track.urlBookmark = urlBookmark;
+  track.artist = artist;
+  track.album = album;
+  
+  return track;
 }
 
 @end

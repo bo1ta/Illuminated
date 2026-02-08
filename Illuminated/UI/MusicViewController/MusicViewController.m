@@ -16,7 +16,7 @@
 #import "TrackDataStore.h"
 #import "BFExecutor.h"
 #import "Track.h"
-#import "TrackImportService.h"
+#import "TrackService.h"
 
 #pragma mark - Constants
 
@@ -143,7 +143,7 @@ static MusicColumn const MusicColumnTime = @"TimeColumn";
   if (playingTrack.bpm <= 0) {
     NSURL *currentURL = [[PlaybackManager sharedManager] currentPlaybackURL];
     [[BFTask taskFromExecutor:[BFExecutor defaultExecutor]
-                    withBlock:^id { return [TrackImportService analyzeBPMForTrackURL:currentURL]; }]
+                    withBlock:^id { return [TrackService analyzeBPMForTrackURL:currentURL]; }]
         continueOnMainThreadWithBlock:^id(BFTask<Track *> *task) {
           if (!task.error) {
             [[NSNotificationCenter defaultCenter] postNotificationName:PlaybackManagerTrackDidChangeNotification
@@ -408,11 +408,11 @@ static MusicColumn const MusicColumnTime = @"TimeColumn";
 }
 
 - (void)importURLs:(NSArray<NSURL *> *)urls {
-  [TrackDataStore importTracksFromAudioURLs:urls playlist:self.currentPlaylist];
+  [TrackService importAudioFilesAtURLs:urls withPlaylist:self.currentPlaylist];
 }
 
 - (void)importURL:(NSURL *)url {
-  [[TrackDataStore findOrInsertByURL:url
+  [[TrackService findOrInsertByURL:url
                             playlist:self.currentPlaylist]
    continueWithSuccessBlock:^id(BFTask<Track *> *task) {
     Track *track = task.result;
