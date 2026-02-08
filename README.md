@@ -18,9 +18,9 @@ A macOS music player written in Objective-C, with real-time Metal visualizers in
 ---
 
 ### Preview
-<img width="803" height="567" alt="Screenshot 2026-02-08 at 21 14 16" src="https://github.com/user-attachments/assets/c0618a6d-2695-4d4b-8a0c-3e5729ba9b66" />
-<img width="996" height="567" alt="Screenshot 2026-02-02 at 21 08 39" src="https://github.com/user-attachments/assets/ed5672e3-b3bc-4a9e-9228-7f60b9e60da2" />
-<img width="996" height="567" alt="Screenshot 2026-02-02 at 21 09 01" src="https://github.com/user-attachments/assets/d65e4998-3a7b-442d-8f94-e2a77029a20f" />
+<img width="803" height="480" alt="Screenshot 2026-02-08 at 21 14 16" src="https://github.com/user-attachments/assets/c0618a6d-2695-4d4b-8a0c-3e5729ba9b66" />
+<img width="803" height="480" alt="Screenshot 2026-02-08 at 21 25 48" src="https://github.com/user-attachments/assets/b7ed37b3-c200-40dd-ae88-bc82872c98e3" />
+<img width="803" height="480" alt="Screenshot 2026-02-08 at 21 25 59" src="https://github.com/user-attachments/assets/5a1e646c-7929-4c66-90d3-d92b2a898422" />
 
 ---
 
