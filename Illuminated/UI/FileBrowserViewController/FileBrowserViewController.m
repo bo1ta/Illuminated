@@ -9,7 +9,6 @@
 #import "AppDelegate.h"
 #import "BFTask.h"
 #import "BookmarkResolver.h"
-#import "CoreDataStore.h"
 #import "FileBrowserItem.h"
 #import "FileBrowserService.h"
 #import "PlaybackManager.h"
@@ -105,17 +104,21 @@
 - (void)reloadDirectory:(NSURL *)directoryURL {
   BOOL hasScope = [directoryURL startAccessingSecurityScopedResource];
 
+  __weak typeof(self) weakSelf = self;
+  
   [[self.browserService contentsOfDirectory:directoryURL]
-      continueOnMainThreadWithBlock:^id(BFTask<NSArray<FileBrowserItem *> *> *task) {
+   continueOnMainThreadWithBlock:^id(BFTask<NSArray<FileBrowserItem *> *> *task) {
+    __strong typeof(weakSelf) strongSelf = weakSelf;
+    
         if (task.error) {
-          [self presentError:task.error];
+          [strongSelf presentError:task.error];
           if (hasScope) {
             [directoryURL stopAccessingSecurityScopedResource];
           }
           return nil;
         }
 
-        self.currentDirectoryURL = directoryURL;
+        strongSelf.currentDirectoryURL = directoryURL;
 
         NSMutableArray<FileBrowserItem *> *items = [NSMutableArray array];
         NSURL *parentURL = [directoryURL URLByDeletingLastPathComponent];
@@ -133,9 +136,9 @@
           [items addObjectsFromArray:task.result];
         }
 
-        self.items = items;
-        [self.outlineView reloadData];
-        [self.outlineView expandItem:nil expandChildren:YES];
+        strongSelf.items = items;
+        [strongSelf.outlineView reloadData];
+        [strongSelf.outlineView expandItem:nil expandChildren:YES];
         if (hasScope) {
           [directoryURL stopAccessingSecurityScopedResource];
         }

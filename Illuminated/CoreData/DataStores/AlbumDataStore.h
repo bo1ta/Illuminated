@@ -7,15 +7,18 @@
 
 #import <Foundation/Foundation.h>
 
-@class Album, Artist, NSManagedObjectContext;
-
 NS_ASSUME_NONNULL_BEGIN
+
+@class Album, Artist;
+@class NSManagedObjectContext, NSFetchedResultsController;
 
 @interface AlbumDataStore : NSObject
 
 + (Album *)findOrCreateAlbumWithName:(NSString *)albumName
                               artist:(nullable Artist *)artist
                            inContext:(NSManagedObjectContext *)context;
+
++ (NSFetchedResultsController *)fetchedResultsController;
 
 @end
 

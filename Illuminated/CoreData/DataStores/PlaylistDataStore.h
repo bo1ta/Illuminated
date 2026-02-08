@@ -10,6 +10,8 @@
 
 @class Playlist;
 
+@class NSFetchedResultsController;
+
 NS_ASSUME_NONNULL_BEGIN
 
 @interface PlaylistDataStore : NSObject
@@ -19,6 +21,8 @@ NS_ASSUME_NONNULL_BEGIN
 + (BFTask<Playlist *> *)createPlaylistWithName:(NSString *)name;
 
 + (BFTask<BFVoid> *)renamePlaylist:(Playlist *)playlist toName:(NSString *)name;
+
++ (NSFetchedResultsController *)fetchedResultsController;
 
 @end
 

@@ -59,6 +59,8 @@ static const NSTimeInterval kProgressTimerInterval = 0.5;
 - (instancetype)init {
   self = [super init];
   if (self) {
+    NSLog(@"Initialized playbackmanager");
+    
     _repeatMode = RepeatModeOff;
     _queue = [[TrackQueue alloc] init];
 
@@ -82,36 +84,37 @@ static const NSTimeInterval kProgressTimerInterval = 0.5;
 }
 
 - (void)installAudioTap {
-  [self.engine.mainMixerNode installTapOnBus:0
-                                  bufferSize:2048
-                                      format:nil
-                                       block:^(AVAudioPCMBuffer *_Nonnull buffer, AVAudioTime *_Nonnull _) {
-                                         AVAudioFrameCount frames = buffer.frameLength;
-                                         if (frames == 0) return;
-
-                                         float *mono = (float *)malloc(frames * sizeof(float));
-                                         if (!mono) return;
-
-                                         if (buffer.format.channelCount == 1) {
-                                           memcpy(mono, buffer.floatChannelData[0], frames * sizeof(float));
-                                         } else if (buffer.format.channelCount >= 2) {
-                                           float *left = buffer.floatChannelData[0];
-                                           float *right = buffer.floatChannelData[1];
-                                           for (AVAudioFrameCount i = 0; i < frames; i++) {
-                                             mono[i] = (left[i] + right[i]) * 0.5f;
-                                           }
-                                         } else {
-                                           free(mono);
-                                           return;
-                                         }
-
-                                         dispatch_async(dispatch_get_main_queue(), ^{
-                                           if (self.audioBufferCallback) {
-                                             self.audioBufferCallback(mono, frames);
-                                           }
-                                           free(mono);
-                                         });
-                                       }];
+  __weak typeof(self) weakSelf = self;
+  // clang-format off
+  [self.engine.mainMixerNode installTapOnBus:0 bufferSize:2048 format:nil block:^(AVAudioPCMBuffer *_Nonnull buffer, AVAudioTime *_Nonnull _) {
+    AVAudioFrameCount frames = buffer.frameLength;
+    if (frames == 0) return;
+    
+    float *mono = (float *)malloc(frames * sizeof(float));
+    if (!mono) return;
+    
+    if (buffer.format.channelCount == 1) {
+      memcpy(mono, buffer.floatChannelData[0], frames * sizeof(float));
+    } else if (buffer.format.channelCount >= 2) {
+      float *left = buffer.floatChannelData[0];
+      float *right = buffer.floatChannelData[1];
+      for (AVAudioFrameCount i = 0; i < frames; i++) {
+        mono[i] = (left[i] + right[i]) * 0.5f;
+      }
+    } else {
+      free(mono);
+      return;
+    }
+    
+    dispatch_async(dispatch_get_main_queue(), ^{
+      __strong typeof(weakSelf) strongSelf = weakSelf;
+      if (strongSelf && strongSelf.audioBufferCallback) {
+        strongSelf.audioBufferCallback(mono, frames);
+      }
+      free(mono);
+    });
+  }];
+  // clang-format on
 }
 
 #pragma mark - Public API

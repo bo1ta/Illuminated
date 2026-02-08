@@ -8,12 +8,12 @@
 #import "SidebarViewController.h"
 #import "Album.h"
 #import "Carbon/Carbon.h"
-#import "CoreDataStore.h"
 #import "Playlist.h"
 #import "PlaylistDataStore.h"
 #import "SidebarCellFactory.h"
 #import "SidebarItem.h"
 #import "TrackDataStore.h"
+#import "AlbumDataStore.h"
 
 #pragma mark - Constants
 
@@ -180,20 +180,16 @@ NSString *const PasteboardItemTypeTrack = @"com.illuminated.track";
 
 - (void)setupFetchedResultsControllers {
   NSSortDescriptor *playlistSort = [NSSortDescriptor sortDescriptorWithKey:@"name" ascending:YES];
-  _playlistFetchedResultsController = [[CoreDataStore reader] fetchedResultsControllerForEntity:EntityNamePlaylist
-                                                                                      predicate:nil
-                                                                                sortDescriptors:@[ playlistSort ]];
+  _playlistFetchedResultsController = [PlaylistDataStore fetchedResultsController];
   _playlistFetchedResultsController.delegate = self;
 
   NSError *error = nil;
   if (![self.playlistFetchedResultsController performFetch:&error]) {
     NSLog(@"SidebarViewController: Error performing Playlist fetch: %@", error.localizedDescription);
   }
-
-  NSSortDescriptor *albumSort = [NSSortDescriptor sortDescriptorWithKey:@"title" ascending:YES];
-  _albumFetchedResultsController = [[CoreDataStore reader] fetchedResultsControllerForEntity:EntityNameAlbum
-                                                                                   predicate:nil
-                                                                             sortDescriptors:@[ albumSort ]];
+  
+  error = nil;
+  _albumFetchedResultsController = [AlbumDataStore fetchedResultsController];
   _albumFetchedResultsController.delegate = self;
 
   if (![_albumFetchedResultsController performFetch:&error]) {

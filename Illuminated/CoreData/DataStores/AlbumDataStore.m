@@ -34,4 +34,11 @@
   return album;
 }
 
++ (NSFetchedResultsController *)fetchedResultsController {
+  NSSortDescriptor *albumSort = [NSSortDescriptor sortDescriptorWithKey:@"title" ascending:YES];
+  return [[CoreDataStore reader] fetchedResultsControllerForEntity:EntityNameAlbum
+                                                         predicate:nil
+                                                   sortDescriptors:@[ albumSort ]];
+}
+
 @end

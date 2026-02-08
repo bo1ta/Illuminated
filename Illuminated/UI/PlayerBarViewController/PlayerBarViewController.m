@@ -17,23 +17,24 @@
 #import <MediaPlayer/MediaPlayer.h>
 
 @interface PlayerBarViewController ()<WaveformViewDelegate>
+
+@property(weak, nonatomic) IBOutlet WaveformView *waveformView;
+@property(weak, nonatomic) IBOutlet NSButton *previousButton;
+@property(weak, nonatomic) IBOutlet NSImageView *trackArtwork;
+@property(weak, nonatomic) IBOutlet NSButton *nextButton;
+@property(weak, nonatomic) IBOutlet NSButton *repeatButton;
+@property(weak, nonatomic) IBOutlet NSTextField *trackTitle;
+@property(weak, nonatomic) IBOutlet NSTextField *artistName;
+@property(weak, nonatomic) IBOutlet NSStackView *controlsStackView;
+@property(weak, nonatomic) IBOutlet NSButton *playPauseButton;
+@property(weak, nonatomic) IBOutlet NSTextField *currentTimeLabel;
+@property(weak, nonatomic) IBOutlet NSTextField *totalTimeLabel;
+@property(weak, nonatomic) IBOutlet NSSlider *volumeSlider;
+@property(weak, nonatomic) IBOutlet NSTextField *bpmLabel;
+
 @end
 
 @implementation PlayerBarViewController {
-  __weak IBOutlet NSButton *previousButton;
-  __weak IBOutlet NSImageView *trackArtwork;
-  __weak IBOutlet NSButton *nextButton;
-  __weak IBOutlet NSButton *repeatButton;
-  __weak IBOutlet NSTextField *trackTitle;
-  __weak IBOutlet NSTextField *artistName;
-  __weak IBOutlet NSStackView *controlsStackView;
-  __weak IBOutlet NSButton *playPauseButton;
-  __weak IBOutlet NSTextField *currentTimeLabel;
-  __weak IBOutlet NSTextField *totalTimeLabel;
-  __weak IBOutlet WaveformView *waveformView;
-  __weak IBOutlet NSSlider *volumeSlider;
-  __weak IBOutlet NSTextField *bpmLabel;
-
   BOOL _isScrubbing;
 }
 
@@ -42,16 +43,16 @@
 - (void)viewDidLoad {
   [super viewDidLoad];
 
-  [controlsStackView setCustomSpacing:30.0 afterView:nextButton];
+  [self.controlsStackView setCustomSpacing:30.0 afterView:self.nextButton];
 
-  [[PlaybackManager sharedManager] setVolume:volumeSlider.floatValue];
+  [[PlaybackManager sharedManager] setVolume:self.volumeSlider.floatValue];
 
   [self setupNotifications];
   [self updateTrackUI];
   [self updateRepeatButton];
   [self setupMediaKeyControls];
 
-  waveformView.delegate = self;
+  self.waveformView.delegate = self;
 }
 
 - (void)dealloc {
@@ -122,54 +123,59 @@
 - (void)updateTrackUI {
   Track *track = [PlaybackManager sharedManager].currentTrack;
   if (!track) {
-    [trackTitle setHidden:YES];
-    [artistName setHidden:YES];
-    [totalTimeLabel setHidden:YES];
-    [currentTimeLabel setHidden:YES];
-    [bpmLabel setHidden:YES];
+    [self.trackTitle setHidden:YES];
+    [self.artistName setHidden:YES];
+    [self.totalTimeLabel setHidden:YES];
+    [self.currentTimeLabel setHidden:YES];
+    [self.bpmLabel setHidden:YES];
     return;
   }
 
-  [trackTitle setHidden:NO];
-  [artistName setHidden:NO];
-  [totalTimeLabel setHidden:NO];
-  [currentTimeLabel setHidden:NO];
+  [self.trackTitle setHidden:NO];
+  [self.artistName setHidden:NO];
+  [self.totalTimeLabel setHidden:NO];
+  [self.currentTimeLabel setHidden:NO];
 
-  trackTitle.stringValue = track.title ?: @"Not playing";
-  artistName.stringValue = track.artist.name ?: @"";
-  totalTimeLabel.stringValue = [self formatTime:track.duration];
+  self.trackTitle.stringValue = track.title ?: @"Not playing";
+  self.artistName.stringValue = track.artist.name ?: @"";
+  self.totalTimeLabel.stringValue = [self formatTime:track.duration];
   if (track.roundedBPM > 0) {
-    [bpmLabel setHidden:NO];
-    bpmLabel.stringValue = [NSString stringWithFormat:@"%@", track.roundedBPM];
+    [self.bpmLabel setHidden:NO];
+    self.bpmLabel.stringValue = [NSString stringWithFormat:@"%@", track.roundedBPM];
   } else {
-    [bpmLabel setHidden:YES];
+    [self.bpmLabel setHidden:YES];
   }
 
   if (track.album.artworkPath) {
-    trackArtwork.image = [ArtworkManager loadArtworkAtPath:track.album.artworkPath];
+    self.trackArtwork.image = [ArtworkManager loadArtworkAtPath:track.album.artworkPath];
   } else {
-    trackArtwork.image = nil;
+    self.trackArtwork.image = nil;
   }
 
   [self updatePlaybackState];
-  [self updateNowPlayingInfoWithTrack:track artworkImage:trackArtwork.image];
+  [self updateNowPlayingInfoWithTrack:track artworkImage:self.trackArtwork.image];
   [self updatePlaybackState];
-  [self updateNowPlayingInfoWithTrack:track artworkImage:trackArtwork.image];
+  [self updateNowPlayingInfoWithTrack:track artworkImage:self.trackArtwork.image];
 
   [self generateWaveformForTrack:track];
 }
 
 - (void)generateWaveformForTrack:(Track *)track {
-  waveformView.waveformImage = nil;
+  self.waveformView.waveformImage = nil;
 
   NSURL *url = [[PlaybackManager sharedManager] currentPlaybackURL];
   if (!url) return;
+  
+  __weak typeof(self) weakSelf = self;
 
   [[TrackService getWaveformForTrack:track
                          resolvedURL:url
-                                size:waveformView.bounds.size] continueOnMainThreadWithBlock:^id(BFTask<NSImage *> *task) {
+                                size:self.waveformView.bounds.size]
+   continueOnMainThreadWithBlock:^id(BFTask<NSImage *> *task) {
+    
+    __strong typeof(weakSelf) strongSelf = weakSelf;
     if (task.result) {
-      self->waveformView.waveformImage = task.result;
+      strongSelf.waveformView.waveformImage = task.result;
     } else {
       NSLog(@"Error loading waveform image: %@", task.error);
     }
@@ -181,7 +187,7 @@
   BOOL isPlaying = [PlaybackManager sharedManager].isPlaying;
 
   NSString *imgName = isPlaying ? @"pause.circle.fill" : @"play.circle.fill";
-  playPauseButton.image = [NSImage imageWithSystemSymbolName:imgName accessibilityDescription:@""];
+  self.playPauseButton.image = [NSImage imageWithSystemSymbolName:imgName accessibilityDescription:@""];
 }
 
 - (void)updateProgress {
@@ -192,8 +198,8 @@
   if (manager.currentTrack.duration > 0) {
     dispatch_async(dispatch_get_main_queue(), ^{
       double progress = manager.currentTime / manager.currentTrack.duration;
-      self->waveformView.progress = progress;
-      self->currentTimeLabel.stringValue = [self formatTime:manager.currentTime];
+      self.waveformView.progress = progress;
+      self.currentTimeLabel.stringValue = [self formatTime:manager.currentTime];
     });
   }
 }
@@ -203,18 +209,18 @@
 
   switch (manager.repeatMode) {
   case RepeatModeOff:
-    repeatButton.image = [NSImage imageWithSystemSymbolName:@"repeat" accessibilityDescription:@"Repeat Off"];
-    repeatButton.contentTintColor = [NSColor secondaryLabelColor];
+    self.repeatButton.image = [NSImage imageWithSystemSymbolName:@"repeat" accessibilityDescription:@"Repeat Off"];
+    self.repeatButton.contentTintColor = [NSColor secondaryLabelColor];
     break;
 
   case RepeatModeOne:
-    repeatButton.image = [NSImage imageWithSystemSymbolName:@"repeat.1" accessibilityDescription:@"Repeat One"];
-    repeatButton.contentTintColor = [NSColor systemBlueColor];
+    self.repeatButton.image = [NSImage imageWithSystemSymbolName:@"repeat.1" accessibilityDescription:@"Repeat One"];
+    self.repeatButton.contentTintColor = [NSColor systemBlueColor];
     break;
 
   case RepeatModeAll:
-    repeatButton.image = [NSImage imageWithSystemSymbolName:@"repeat" accessibilityDescription:@"Repeat All"];
-    repeatButton.contentTintColor = [NSColor systemBlueColor];
+    self.repeatButton.image = [NSImage imageWithSystemSymbolName:@"repeat" accessibilityDescription:@"Repeat All"];
+    self.repeatButton.contentTintColor = [NSColor systemBlueColor];
     break;
   }
 }
@@ -230,7 +236,7 @@
   NSTimeInterval newTime = progress * manager.currentTrack.duration;
   [manager seekToTime:newTime];
 
-  currentTimeLabel.stringValue = [self formatTime:newTime];
+  self.currentTimeLabel.stringValue = [self formatTime:newTime];
 
   /// reset flag after a tiny delay to allow the player to catch up
   dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{

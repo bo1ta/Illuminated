@@ -9,7 +9,6 @@
 #import "Album.h"
 #import "Artist.h"
 #import "BFExecutor.h"
-#import "CoreDataStore.h"
 #import "MainWindowController.h"
 #import "PlaybackManager.h"
 #import "Playlist.h"
@@ -64,9 +63,7 @@ static MusicColumn const MusicColumnTime = @"TimeColumn";
 }
 
 - (void)setupFetchedResultsController {
-  _fetchedResultsController = [[CoreDataStore reader] fetchedResultsControllerForEntity:EntityNameTrack
-                                                                              predicate:nil
-                                                                        sortDescriptors:nil];
+  _fetchedResultsController = [TrackDataStore fetchedResultsController];
   _fetchedResultsController.delegate = self;
 
   NSError *error = nil;

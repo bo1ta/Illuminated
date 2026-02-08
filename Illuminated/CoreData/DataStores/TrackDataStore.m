@@ -59,4 +59,10 @@
   return track;
 }
 
++ (NSFetchedResultsController *)fetchedResultsController {
+  return [[CoreDataStore reader] fetchedResultsControllerForEntity:EntityNameTrack
+                                                         predicate:nil
+                                                   sortDescriptors:nil];
+}
+
 @end

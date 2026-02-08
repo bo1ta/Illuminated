@@ -48,4 +48,11 @@
   }];
 }
 
++ (NSFetchedResultsController *)fetchedResultsController {
+  NSSortDescriptor *playlistSort = [NSSortDescriptor sortDescriptorWithKey:@"name" ascending:YES];
+  return [[CoreDataStore reader] fetchedResultsControllerForEntity:EntityNamePlaylist
+                                                         predicate:nil
+                                                   sortDescriptors:@[ playlistSort ]];
+}
+
 @end
