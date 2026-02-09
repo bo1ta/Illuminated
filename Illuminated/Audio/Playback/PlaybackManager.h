@@ -37,16 +37,27 @@ typedef void (^AudioBufferCallback)(const float *monoData, AVAudioFrameCount len
 
 @property(nonatomic) RepeatMode repeatMode;
 
+#pragma mark - KVO properties
+
+@property(nonatomic, readonly) double progress;
+
+#pragma mark - Playback
+
 - (void)playTrack:(Track *)track;
 - (void)playNext;
 - (void)playPrevious;
 - (void)togglePlayPause;
-- (void)setVolume:(float)volume;
-- (void)seekToTime:(NSTimeInterval)timeInterval;
-- (void)updateQueue:(NSArray<Track *> *)tracks;
 - (void)stop;
 
 - (NSURL *)currentPlaybackURL;
+
+#pragma mark - Controls
+
+- (void)setVolume:(float)volume;
+- (void)seekToTime:(NSTimeInterval)timeInterval;
+- (void)updateQueue:(NSArray<Track *> *)tracks;
+
+#pragma mark - Audio Buffer Registration
 
 - (void)registerAudioBufferCallback:(AudioBufferCallback)callback;
 - (void)unregisterAudioBufferCallback;

@@ -15,7 +15,7 @@
 
 @property(strong) IBOutlet VizualizationView *vizualizationView;
 
-@property(nonatomic, strong) ProjectMHandler *projectMView;
+@property(nonatomic, strong) ProjectMView *projectMView;
 
 @end
 
@@ -41,7 +41,7 @@
   }
 
   NSRect initialFrame = NSMakeRect(0, 0, 800, 600); // will be resized by constraints
-  self.projectMView = [[ProjectMHandler alloc] initWithFrame:initialFrame pixelFormat:pixelFormat];
+  self.projectMView = [[ProjectMView alloc] initWithFrame:initialFrame pixelFormat:pixelFormat];
 
   NSString *bundle = [[NSBundle mainBundle] resourcePath];
 
@@ -64,9 +64,19 @@
 
 - (void)viewDidDisappear {
   [super viewDidDisappear];
+  
 
   [[PlaybackManager sharedManager] unregisterAudioBufferCallback];
   [self.vizualizationView stopRendering];
+}
+
+- (void)dealloc {
+  NSLog(@"🔴 VizualizationViewController is being deallocated");
+  [[PlaybackManager sharedManager] unregisterAudioBufferCallback];
+  
+  if (self.projectMView) {
+    [self.projectMView cleanup];
+  }
 }
 
 #pragma mark - Audio Buffer Registration

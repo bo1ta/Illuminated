@@ -53,6 +53,12 @@
   [self setupMediaKeyControls];
 
   self.waveformView.delegate = self;
+  
+  PlaybackManager *manager = [PlaybackManager sharedManager];
+  [self.waveformView bind:@"progress"
+                     toObject:manager
+                  withKeyPath:@"progress"
+                      options:nil];
 }
 
 - (void)dealloc {

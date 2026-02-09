@@ -15,7 +15,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 @property(nonatomic, weak) id<WaveformViewDelegate> delegate;
 @property(nonatomic, strong, nullable) NSImage *waveformImage;
-@property(nonatomic) double progress; // 0.0 to 1.0
+@property(nonatomic) double progress;
 
 @end
 

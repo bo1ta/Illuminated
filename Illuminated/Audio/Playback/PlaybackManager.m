@@ -117,6 +117,18 @@ static const NSTimeInterval kProgressTimerInterval = 0.5;
   // clang-format on
 }
 
+#pragma mark - KVO
+
++ (NSSet<NSString *> *)keyPathsForValuesAffectingProgress
+{
+  return [NSSet setWithObjects:@"currentTime", @"duration", nil];
+}
+
+- (double)progress {
+  if (self.duration == 0) return 0.0;
+  return self.currentTime / self.duration;
+}
+
 #pragma mark - Public API
 
 - (void)setVolume:(float)volume {
@@ -382,6 +394,10 @@ static const NSTimeInterval kProgressTimerInterval = 0.5;
 
   NSTimeInterval currentTime = (NSTimeInterval)playerTime.sampleTime / playerTime.sampleRate;
   return self.seekOffset + currentTime;
+}
+
++ (NSSet *)keyPathsForValuesAffectingDuration {
+    return [NSSet setWithObject:@"currentFile"];
 }
 
 - (NSTimeInterval)duration {
