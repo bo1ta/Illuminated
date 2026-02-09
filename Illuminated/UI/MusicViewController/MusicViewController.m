@@ -137,9 +137,7 @@ static MusicColumn const MusicColumnTime = @"TimeColumn";
     NSURL *currentURL = [[PlaybackManager sharedManager] currentPlaybackURL];
     [[BFTask taskFromExecutor:[BFExecutor defaultExecutor]
                     withBlock:^id { return [TrackService analyzeBPMForTrackURL:currentURL]; }]
-        continueOnMainThreadWithBlock:^id(BFTask<Track *> *task) {
-          return task;
-        }];
+        continueOnMainThreadWithBlock:^id(BFTask<Track *> *task) { return task; }];
   }
 }
 
@@ -347,13 +345,14 @@ static MusicColumn const MusicColumnTime = @"TimeColumn";
     return;
   }
 
-  NSUInteger rowIndex = [self.fetchedResultsController.fetchedObjects indexOfObjectPassingTest:^BOOL(Track *obj, NSUInteger _, BOOL *stop) {
-    BOOL matches = [obj.objectID isEqual:track.objectID];
-    if (matches) {
-      *stop = YES;
-    }
-    return matches;
-  }];
+  NSUInteger rowIndex = [self.fetchedResultsController.fetchedObjects
+      indexOfObjectPassingTest:^BOOL(Track *obj, NSUInteger _, BOOL *stop) {
+        BOOL matches = [obj.objectID isEqual:track.objectID];
+        if (matches) {
+          *stop = YES;
+        }
+        return matches;
+      }];
 
   if (rowIndex == NSNotFound) {
     [self.tableView deselectAll:nil];

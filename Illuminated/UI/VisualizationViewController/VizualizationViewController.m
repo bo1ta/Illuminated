@@ -21,31 +21,31 @@
 
 - (void)viewDidLoad {
   [super viewDidLoad];
-  
-  NSOpenGLPixelFormatAttribute attrs[] = {
-     NSOpenGLPFAOpenGLProfile,
-     NSOpenGLProfileVersion3_2Core,
-     NSOpenGLPFADoubleBuffer,
-     NSOpenGLPFAColorSize, 24,
-     NSOpenGLPFAAlphaSize, 8,
-     NSOpenGLPFADepthSize, 24,
-     NSOpenGLPFAAccelerated,
-     0
-   };
-   
-   NSOpenGLPixelFormat *pixelFormat = [[NSOpenGLPixelFormat alloc] initWithAttributes:attrs];
-   if (!pixelFormat) {
-     NSLog(@"Failed to create OpenGL pixel format");
-     return;
-   }
-   
-   self.projectMView = [[ProjectMView alloc] initWithFrame:self.view.bounds
-                                               pixelFormat:pixelFormat];
-   
-   self.projectMView.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
-   
-   self.view = self.projectMView;
-   self.view.wantsLayer = YES;
+
+  NSOpenGLPixelFormatAttribute attrs[] = {NSOpenGLPFAOpenGLProfile,
+                                          NSOpenGLProfileVersion3_2Core,
+                                          NSOpenGLPFADoubleBuffer,
+                                          NSOpenGLPFAColorSize,
+                                          24,
+                                          NSOpenGLPFAAlphaSize,
+                                          8,
+                                          NSOpenGLPFADepthSize,
+                                          24,
+                                          NSOpenGLPFAAccelerated,
+                                          0};
+
+  NSOpenGLPixelFormat *pixelFormat = [[NSOpenGLPixelFormat alloc] initWithAttributes:attrs];
+  if (!pixelFormat) {
+    NSLog(@"Failed to create OpenGL pixel format");
+    return;
+  }
+
+  self.projectMView = [[ProjectMView alloc] initWithFrame:self.view.bounds pixelFormat:pixelFormat];
+
+  self.projectMView.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
+
+  self.view = self.projectMView;
+  self.view.wantsLayer = YES;
 }
 
 - (void)viewDidAppear {
@@ -62,7 +62,7 @@
 
 - (void)dealloc {
   [[PlaybackManager sharedManager] unregisterAudioBufferCallback];
-  
+
   if (self.projectMView) {
     [self.projectMView cleanup];
   }

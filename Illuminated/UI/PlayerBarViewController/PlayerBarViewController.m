@@ -45,9 +45,9 @@
   [super viewDidLoad];
 
   [self.controlsStackView setCustomSpacing:30.0 afterView:self.nextButton];
-  
+
   self.waveformView.delegate = self;
-  
+
   [self setupBindings];
   [self setupObservers];
   [self setupMediaKeyControls];
@@ -56,7 +56,7 @@
 - (void)dealloc {
   [[PlaybackManager sharedManager] removeObserver:self forKeyPath:@"playing"];
   [[PlaybackManager sharedManager] removeObserver:self forKeyPath:@"repeatMode"];
-  
+
   [[NSNotificationCenter defaultCenter] removeObserver:self];
 
   [self.trackTitle unbind:NSValueBinding];
@@ -71,17 +71,17 @@
 
 - (void)setupBindings {
   PlaybackManager *manager = [PlaybackManager sharedManager];
-  
+
   [self.trackTitle bind:NSValueBinding
                toObject:manager
             withKeyPath:@"currentTrack.title"
-                options:@{NSNullPlaceholderBindingOption: @"Not playing"}];
-  
+                options:@{NSNullPlaceholderBindingOption : @"Not playing"}];
+
   [self.artistName bind:NSValueBinding
                toObject:manager
             withKeyPath:@"currentTrack.artist.name"
-                options:@{NSNullPlaceholderBindingOption: @""}];
-  
+                options:@{NSNullPlaceholderBindingOption : @""}];
+
   [self.currentTimeLabel bind:NSValueBinding
                      toObject:manager
                   withKeyPath:@"currentTime"
@@ -99,7 +99,10 @@
 }
 
 - (void)setupObservers {
-  [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(updateTrackUI) name:PlaybackManagerTrackDidChangeNotification object:nil];
+  [[NSNotificationCenter defaultCenter] addObserver:self
+                                           selector:@selector(updateTrackUI)
+                                               name:PlaybackManagerTrackDidChangeNotification
+                                             object:nil];
 
   PlaybackManager *manager = [PlaybackManager sharedManager];
   [manager addObserver:self
@@ -205,7 +208,7 @@
   }
 
   [self updateNowPlayingInfoWithTrack:track artworkImage:self.trackArtwork.image];
-  
+
   [self generateWaveformForTrack:track];
 }
 
@@ -272,12 +275,6 @@
   dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
     self->_isScrubbing = NO;
   });
-}
-
-- (IBAction)volumeDidChange:(NSSlider *)sender {
-  // Volume is bound, but for safety in case of direct interactions we leave this empty or remove it.
-  // Actually, standard binding is two-way, so we don't strictly need this action if bound.
-  // However, PlaybackManager.volume setter updates the engine. Bindings call the setter.
 }
 
 - (IBAction)nextAction:(id)sender {
