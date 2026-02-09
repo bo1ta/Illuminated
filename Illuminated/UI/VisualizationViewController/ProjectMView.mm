@@ -8,6 +8,9 @@
 #import <Cocoa/Cocoa.h>
 #import "ProjectMView.h"
 #import <projectM-4/playlist_items.h>
+#import <projectM-4/playlist.h>
+#import <projectM-4/playlist_playback.h>
+#import <projectM-4/projectM.h>
 #import <OpenGL/gl3.h>
 
 @interface ProjectMView ()
@@ -120,10 +123,12 @@
   }
   
   const char *cPath = [resourcePath fileSystemRepresentation];
+  
+  projectm_playlist_set_shuffle(_playlistHandle, true);
+  
   uint32_t added = projectm_playlist_add_path(_playlistHandle, cPath, NO, NO);
-    
   if (added > 0) {
-    projectm_playlist_set_shuffle(_playlistHandle, true);
+    projectm_playlist_play_next(_playlistHandle, true);
   } else {
     NSString *fallback = [[NSBundle mainBundle] pathForResource:@"41" ofType:@"milk"];
     if (fallback) {

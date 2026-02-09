@@ -4,6 +4,7 @@
 //
 //  Created by Alexandru Solomon on 22.01.2026.
 //
+//
 
 #import "PlaybackManager.h"
 #import "BookmarkResolver.h"
@@ -34,7 +35,6 @@ static const NSTimeInterval kProgressTimerInterval = 0.5;
 @property(strong, nonatomic) TrackQueue *queue;
 
 @property(strong) NSTimer *progressTimer;
-@property(readwrite) float volume;
 
 @property(nonatomic) NSTimeInterval seekOffset;
 @property(atomic, assign) NSInteger playbackGeneration;
@@ -42,6 +42,8 @@ static const NSTimeInterval kProgressTimerInterval = 0.5;
 @property(nonatomic, copy) AudioBufferCallback audioBufferCallback;
 
 @property(strong) NSURL *activeSecurityScopedURL;
+
+@property(readwrite, assign, getter=isPlaying) BOOL playing;
 
 @end
 
@@ -68,6 +70,7 @@ static const NSTimeInterval kProgressTimerInterval = 0.5;
     _playerNode = [[AVAudioPlayerNode alloc] init];
     _seekOffset = 0;
     _playbackGeneration = 0;
+    _playing = NO;
 
     [_engine attachNode:_playerNode];
     [_engine connect:_playerNode to:_engine.mainMixerNode format:nil];
@@ -119,14 +122,21 @@ static const NSTimeInterval kProgressTimerInterval = 0.5;
 
 #pragma mark - KVO
 
-+ (NSSet<NSString *> *)keyPathsForValuesAffectingProgress
-{
-  return [NSSet setWithObjects:@"currentTime", @"duration", nil];
++ (NSSet<NSString *> *)keyPathsForValuesAffectingProgress {
+  return [NSSet setWithObjects:@"currentTime", @"duration", @"currentTrack", nil];
 }
 
 - (double)progress {
   if (self.duration == 0) return 0.0;
   return self.currentTime / self.duration;
+}
+
++ (NSSet<NSString *> *)keyPathsForValuesAffectingCurrentTrack {
+  return [NSSet setWithObject:@"queue.currentTrack"];
+}
+
+- (Track *)currentTrack {
+  return self.queue.currentTrack;
 }
 
 #pragma mark - Public API
@@ -136,16 +146,9 @@ static const NSTimeInterval kProgressTimerInterval = 0.5;
   self.playerNode.volume = _volume;
 }
 
-- (BOOL)isPlaying {
-  return self.playerNode.isPlaying;
-}
-
-- (Track *)currentTrack {
-  return self.queue.currentTrack;
-}
-
 - (void)updateQueue:(NSArray<Track *> *)tracks {
   [self.queue setTracks:tracks];
+  [self didChangeValueForKey:@"currentTrack"];
 }
 
 - (NSURL *)currentPlaybackURL {
@@ -190,6 +193,7 @@ static const NSTimeInterval kProgressTimerInterval = 0.5;
 
   NSURL *url = [self resolveTrackURL:track];
   if (!url) {
+    [self.queue setCurrentTrack:track];
     [self playNext];
     return;
   }
@@ -221,15 +225,19 @@ static const NSTimeInterval kProgressTimerInterval = 0.5;
 
   [self.queue setCurrentTrack:track];
 
-  [self notifyProgressDidChange];
-  [self notifyDidChangeTrack:track];
   [self startProgressTimer];
+  [self notifyDidChangeTrack:track];
+
+  self.playing = YES;
 }
 
 - (void)playNext {
   Track *nextTrack = [self.queue nextTrack];
   if (nextTrack) {
     [self playTrack:nextTrack];
+  } else {
+    self.playing = NO;
+    [self.progressTimer invalidate];
   }
 }
 
@@ -247,17 +255,17 @@ static const NSTimeInterval kProgressTimerInterval = 0.5;
 }
 
 - (void)togglePlayPause {
-  if (self.isPlaying) {
+  if (self.playing) {
     [self.playerNode pause];
     [self.progressTimer invalidate];
+    self.playing = NO;
   } else {
     if (!self.playerNode.isPlaying) {
       [self.playerNode play];
     }
     [self startProgressTimer];
+    self.playing = YES;
   }
-
-  [self notifyPlaybackStateDidChange];
 }
 
 - (void)seekToTime:(NSTimeInterval)timeInterval {
@@ -265,10 +273,14 @@ static const NSTimeInterval kProgressTimerInterval = 0.5;
 
   self.playbackGeneration++;
 
-  BOOL wasPlaying = self.isPlaying;
+  BOOL wasPlaying = self.playing;
   [self.playerNode stop];
 
   self.seekOffset = timeInterval;
+
+  // Notify KVO that currentTime changed abruptly
+  [self willChangeValueForKey:@"currentTime"];
+  [self didChangeValueForKey:@"currentTime"];
 
   AVAudioFramePosition startFrame = (AVAudioFramePosition)(timeInterval * self.currentFile.processingFormat.sampleRate);
   AVAudioFrameCount frameCount = (AVAudioFrameCount)(self.currentFile.length - startFrame);
@@ -294,12 +306,12 @@ static const NSTimeInterval kProgressTimerInterval = 0.5;
       [self.playerNode play];
     }
   }
-
-  [self notifyProgressDidChange];
 }
 
 - (void)stop {
   [self.playerNode stop];
+  self.playing = NO;
+  [self.progressTimer invalidate];
 }
 
 #pragma mark - AudioBufferCallback
@@ -397,7 +409,7 @@ static const NSTimeInterval kProgressTimerInterval = 0.5;
 }
 
 + (NSSet *)keyPathsForValuesAffectingDuration {
-    return [NSSet setWithObject:@"currentFile"];
+  return [NSSet setWithObject:@"currentFile"];
 }
 
 - (NSTimeInterval)duration {
@@ -409,7 +421,8 @@ static const NSTimeInterval kProgressTimerInterval = 0.5;
   [self.progressTimer invalidate];
   // clang-format off
   self.progressTimer = [NSTimer scheduledTimerWithTimeInterval:0.5 repeats:YES block:^(NSTimer *_) {
-    [self notifyProgressDidChange];
+       [self willChangeValueForKey:@"currentTime"];
+       [self didChangeValueForKey:@"currentTime"];
   }];
   // clang-format on
 }

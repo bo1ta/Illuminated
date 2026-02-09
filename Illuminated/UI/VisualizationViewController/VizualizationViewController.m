@@ -8,12 +8,8 @@
 #import "VizualizationViewController.h"
 #import "PlaybackManager.h"
 #import "ProjectMView.h"
-#import "VisualizationPreset.h"
-#import "VizualizationView.h"
 
 @interface VizualizationViewController ()
-
-@property(strong) IBOutlet VizualizationView *vizualizationView;
 
 @property(nonatomic, strong) ProjectMView *projectMView;
 
@@ -21,40 +17,36 @@
 
 @implementation VizualizationViewController
 
-- (void)loadView {
-  NSOpenGLPixelFormatAttribute attrs[] = {NSOpenGLPFAOpenGLProfile,
-                                          NSOpenGLProfileVersion3_2Core, // or Legacy if needed
-                                          NSOpenGLPFADoubleBuffer,
-                                          NSOpenGLPFAColorSize,
-                                          24,
-                                          NSOpenGLPFAAlphaSize,
-                                          8,
-                                          NSOpenGLPFADepthSize,
-                                          24,
-                                          NSOpenGLPFAAccelerated,
-                                          0};
-
-  NSOpenGLPixelFormat *pixelFormat = [[NSOpenGLPixelFormat alloc] initWithAttributes:attrs];
-  if (!pixelFormat) {
-    NSLog(@"Failed to create OpenGL pixel format");
-    // fallback or error handling
-  }
-
-  NSRect initialFrame = NSMakeRect(0, 0, 800, 600); // will be resized by constraints
-  self.projectMView = [[ProjectMView alloc] initWithFrame:initialFrame pixelFormat:pixelFormat];
-
-  NSString *bundle = [[NSBundle mainBundle] resourcePath];
-
-  if (!bundle) {
-    NSLog(@"Presets folder not found in bundle");
-    return;
-  }
-
-  self.view = self.projectMView;
-  self.view.wantsLayer = YES;
-}
-
 #pragma mark - Lifecycle
+
+- (void)viewDidLoad {
+  [super viewDidLoad];
+  
+  NSOpenGLPixelFormatAttribute attrs[] = {
+     NSOpenGLPFAOpenGLProfile,
+     NSOpenGLProfileVersion3_2Core,
+     NSOpenGLPFADoubleBuffer,
+     NSOpenGLPFAColorSize, 24,
+     NSOpenGLPFAAlphaSize, 8,
+     NSOpenGLPFADepthSize, 24,
+     NSOpenGLPFAAccelerated,
+     0
+   };
+   
+   NSOpenGLPixelFormat *pixelFormat = [[NSOpenGLPixelFormat alloc] initWithAttributes:attrs];
+   if (!pixelFormat) {
+     NSLog(@"Failed to create OpenGL pixel format");
+     return;
+   }
+   
+   self.projectMView = [[ProjectMView alloc] initWithFrame:self.view.bounds
+                                               pixelFormat:pixelFormat];
+   
+   self.projectMView.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
+   
+   self.view = self.projectMView;
+   self.view.wantsLayer = YES;
+}
 
 - (void)viewDidAppear {
   [super viewDidAppear];
@@ -64,14 +56,11 @@
 
 - (void)viewDidDisappear {
   [super viewDidDisappear];
-  
 
   [[PlaybackManager sharedManager] unregisterAudioBufferCallback];
-  [self.vizualizationView stopRendering];
 }
 
 - (void)dealloc {
-  NSLog(@"🔴 VizualizationViewController is being deallocated");
   [[PlaybackManager sharedManager] unregisterAudioBufferCallback];
   
   if (self.projectMView) {
@@ -90,10 +79,7 @@
 
         if (!strongSelf) return;
         [strongSelf.projectMView addPCMData:monoData length:length];
-        //        [strongSelf.vizualizationView updateAudioData:monoData length:length];
       }];
-
-  [self.vizualizationView startRendering];
 }
 
 @end

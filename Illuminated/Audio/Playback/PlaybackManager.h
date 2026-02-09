@@ -30,14 +30,13 @@ typedef void (^AudioBufferCallback)(const float *monoData, AVAudioFrameCount len
 
 + (instancetype)sharedManager;
 
-@property(strong, readonly) Track *currentTrack;
-@property(assign, readonly) BOOL isPlaying;
+@property(strong, readonly, nullable) Track *currentTrack;
+@property(assign, readonly, getter=isPlaying) BOOL playing;
 @property(assign, readonly) NSTimeInterval currentTime;
-@property(nonatomic, readonly) float volume;
+@property(assign, readonly) NSTimeInterval duration;
+@property(nonatomic, assign) float volume;
 
 @property(nonatomic) RepeatMode repeatMode;
-
-#pragma mark - KVO properties
 
 @property(nonatomic, readonly) double progress;
 
@@ -49,11 +48,10 @@ typedef void (^AudioBufferCallback)(const float *monoData, AVAudioFrameCount len
 - (void)togglePlayPause;
 - (void)stop;
 
-- (NSURL *)currentPlaybackURL;
+- (nullable NSURL *)currentPlaybackURL;
 
 #pragma mark - Controls
 
-- (void)setVolume:(float)volume;
 - (void)seekToTime:(NSTimeInterval)timeInterval;
 - (void)updateQueue:(NSArray<Track *> *)tracks;
 

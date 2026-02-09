@@ -30,7 +30,6 @@ static MusicColumn const MusicColumnTime = @"TimeColumn";
 
 @interface MusicViewController ()
 
-@property(atomic, strong) NSArray<Track *> *tracks;
 @property(nonatomic, strong) NSFetchedResultsController *fetchedResultsController;
 @property(nonatomic, strong, nullable) Playlist *currentPlaylist;
 @property(nonatomic, strong, nullable) Album *currentAlbum;
@@ -69,8 +68,6 @@ static MusicColumn const MusicColumnTime = @"TimeColumn";
   NSError *error = nil;
   if (![self.fetchedResultsController performFetch:&error]) {
     NSLog(@"MusicViewController: Error loading tracks for fetched results: %@", error.localizedDescription);
-  } else {
-    self.tracks = (NSArray<Track *> *)[self.fetchedResultsController fetchedObjects];
   }
 }
 
@@ -123,8 +120,6 @@ static MusicColumn const MusicColumnTime = @"TimeColumn";
   self.fetchedResultsController.fetchRequest.predicate = finalPredicate;
   [self.fetchedResultsController performFetch:nil];
 
-  self.tracks = (NSArray<Track *> *)[self.fetchedResultsController fetchedObjects];
-  [self.tableView reloadData];
   [self selectRowForTrack:[[PlaybackManager sharedManager] currentTrack] scroll:NO];
 }
 
@@ -135,6 +130,7 @@ static MusicColumn const MusicColumnTime = @"TimeColumn";
   });
 
   Track *playingTrack = [[PlaybackManager sharedManager] currentTrack];
+  if (!playingTrack) return;
   [TrackDataStore incrementPlayCountForTrack:playingTrack];
 
   if (playingTrack.bpm <= 0) {
@@ -142,10 +138,6 @@ static MusicColumn const MusicColumnTime = @"TimeColumn";
     [[BFTask taskFromExecutor:[BFExecutor defaultExecutor]
                     withBlock:^id { return [TrackService analyzeBPMForTrackURL:currentURL]; }]
         continueOnMainThreadWithBlock:^id(BFTask<Track *> *task) {
-          if (!task.error) {
-            [[NSNotificationCenter defaultCenter] postNotificationName:PlaybackManagerTrackDidChangeNotification
-                                                                object:nil];
-          }
           return task;
         }];
   }
@@ -171,7 +163,7 @@ static MusicColumn const MusicColumnTime = @"TimeColumn";
 #pragma mark - Drag & Drop methods
 
 - (id<NSPasteboardWriting>)tableView:(NSTableView *)tableView pasteboardWriterForRow:(NSInteger)row {
-  Track *track = self.tracks[row];
+  Track *track = self.fetchedResultsController.fetchedObjects[row];
 
   NSPasteboardItem *item = [[NSPasteboardItem alloc] init];
   [item setString:track.uniqueID.UUIDString forType:PasteboardItemTypeTrack];
@@ -221,15 +213,13 @@ static MusicColumn const MusicColumnTime = @"TimeColumn";
 #pragma mark - NSFetchedResultsControllerDelegate
 
 - (void)controllerDidChangeContent:(NSFetchedResultsController *)controller {
-  self.tracks = (NSArray<Track *> *)[controller fetchedObjects];
-  [self.tableView reloadData];
   [self selectRowForTrack:[[PlaybackManager sharedManager] currentTrack] scroll:NO];
 }
 
 #pragma mark - NSTableViewDataSource
 
 - (NSInteger)numberOfRowsInTableView:(NSTableView *)tableView {
-  return self.tracks.count;
+  return self.fetchedResultsController.fetchedObjects.count;
 }
 
 #pragma mark - NSTableViewDelegate
@@ -257,7 +247,7 @@ static MusicColumn const MusicColumnTime = @"TimeColumn";
     ]];
   }
 
-  Track *track = self.tracks[row];
+  Track *track = self.fetchedResultsController.fetchedObjects[row];
   Track *playingTrack = [[PlaybackManager sharedManager] currentTrack];
   BOOL isPlaying = track && playingTrack && [track.objectID isEqual:playingTrack.objectID];
 
@@ -346,9 +336,6 @@ static MusicColumn const MusicColumnTime = @"TimeColumn";
 }
 
 - (void)reloadData {
-  self.tracks = (NSArray<Track *> *)[self.fetchedResultsController fetchedObjects];
-  [self.tableView reloadData];
-
   [self selectRowForTrack:[[PlaybackManager sharedManager] currentTrack] scroll:NO];
 }
 
@@ -360,7 +347,7 @@ static MusicColumn const MusicColumnTime = @"TimeColumn";
     return;
   }
 
-  NSUInteger rowIndex = [self.tracks indexOfObjectPassingTest:^BOOL(Track *obj, NSUInteger _, BOOL *stop) {
+  NSUInteger rowIndex = [self.fetchedResultsController.fetchedObjects indexOfObjectPassingTest:^BOOL(Track *obj, NSUInteger _, BOOL *stop) {
     BOOL matches = [obj.objectID isEqual:track.objectID];
     if (matches) {
       *stop = YES;
@@ -397,10 +384,10 @@ static MusicColumn const MusicColumnTime = @"TimeColumn";
 
 - (void)tableViewClicked:(id)sender {
   if (self.tableView.selectedRow >= 0) {
-    Track *selectedTrack = self.tracks[self.tableView.selectedRow];
+    Track *track = self.fetchedResultsController.fetchedObjects[self.tableView.selectedRow];
 
-    [[PlaybackManager sharedManager] updateQueue:self.tracks];
-    [[PlaybackManager sharedManager] playTrack:selectedTrack];
+    [[PlaybackManager sharedManager] updateQueue:(NSArray<Track *> *)self.fetchedResultsController.fetchedObjects];
+    [[PlaybackManager sharedManager] playTrack:track];
   }
 }
 
