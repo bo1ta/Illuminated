@@ -39,6 +39,9 @@
   [super prepareOpenGL];
   [[self openGLContext] makeCurrentContext];
   
+  GLint swapInt = 1;
+  [[self openGLContext] setValues:&swapInt forParameter:NSOpenGLContextParameterSwapInterval];
+  
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   

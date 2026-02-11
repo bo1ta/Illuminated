@@ -16,10 +16,6 @@
 #pragma mark - Constants
 
 NSString *const PlaybackManagerTrackDidChangeNotification = @"PlaybackManagerTrackDidChangeNotification";
-NSString *const PlaybackManagerPlaybackStateDidChangeNotification =
-    @"PlaybackManagerPlaybackStateDidChangeNotification";
-NSString *const PlaybackManagerPlaybackProgressDidChangeNotification =
-    @"PlaybackManagerPlaybackProgressDidChangeNotification";
 
 static const NSTimeInterval kPreviousTrackThreshold = 3.0;
 static const NSTimeInterval kProgressTimerInterval = 0.5;
@@ -80,44 +76,17 @@ static const NSTimeInterval kProgressTimerInterval = 0.5;
       NSLog(@"Engine failed to start: %@", error);
       return self;
     }
-
-    [self installAudioTap];
   }
   return self;
 }
 
-- (void)installAudioTap {
-  __weak typeof(self) weakSelf = self;
-  // clang-format off
-  [self.engine.mainMixerNode installTapOnBus:0 bufferSize:2048 format:nil block:^(AVAudioPCMBuffer *_Nonnull buffer, AVAudioTime *_Nonnull _) {
-    AVAudioFrameCount frames = buffer.frameLength;
-    if (frames == 0) return;
-    
-    float *mono = (float *)malloc(frames * sizeof(float));
-    if (!mono) return;
-    
-    if (buffer.format.channelCount == 1) {
-      memcpy(mono, buffer.floatChannelData[0], frames * sizeof(float));
-    } else if (buffer.format.channelCount >= 2) {
-      float *left = buffer.floatChannelData[0];
-      float *right = buffer.floatChannelData[1];
-      for (AVAudioFrameCount i = 0; i < frames; i++) {
-        mono[i] = (left[i] + right[i]) * 0.5f;
-      }
-    } else {
-      free(mono);
-      return;
-    }
-    
-    dispatch_async(dispatch_get_main_queue(), ^{
-      __strong typeof(weakSelf) strongSelf = weakSelf;
-      if (strongSelf && strongSelf.audioBufferCallback) {
-        strongSelf.audioBufferCallback(mono, frames);
-      }
-      free(mono);
-    });
-  }];
-  // clang-format on
+- (void)dealloc {
+  [self.engine.mainMixerNode removeTapOnBus:0];
+  
+  if (self.activeSecurityScopedURL) {
+    [self.activeSecurityScopedURL stopAccessingSecurityScopedResource];
+    self.activeSecurityScopedURL = nil;
+  }
 }
 
 #pragma mark - KVO
@@ -318,31 +287,51 @@ static const NSTimeInterval kProgressTimerInterval = 0.5;
 
 - (void)registerAudioBufferCallback:(AudioBufferCallback)callback {
   self.audioBufferCallback = callback;
+  [self installAudioTap];
+}
+
+- (void)installAudioTap {
+  __weak typeof(self) weakSelf = self;
+  // clang-format off
+  [self.engine.mainMixerNode installTapOnBus:0 bufferSize:2048 format:nil block:^(AVAudioPCMBuffer *_Nonnull buffer, AVAudioTime *_Nonnull _) {
+    AVAudioFrameCount frames = buffer.frameLength;
+    if (frames == 0) return;
+    
+    float *mono = (float *)malloc(frames * sizeof(float));
+    if (!mono) return;
+    
+    if (buffer.format.channelCount == 1) {
+      memcpy(mono, buffer.floatChannelData[0], frames * sizeof(float));
+    } else if (buffer.format.channelCount >= 2) {
+      float *left = buffer.floatChannelData[0];
+      float *right = buffer.floatChannelData[1];
+      for (AVAudioFrameCount i = 0; i < frames; i++) {
+        mono[i] = (left[i] + right[i]) * 0.5f;
+      }
+    } else {
+      free(mono);
+      return;
+    }
+    
+    if (weakSelf && weakSelf.audioBufferCallback) {
+      weakSelf.audioBufferCallback(mono, frames);
+    }
+    
+    free(mono);
+  }];
+  // clang-format on
 }
 
 - (void)unregisterAudioBufferCallback {
   self.audioBufferCallback = nil;
+  [self.engine.mainMixerNode removeTapOnBus:0];
 }
 
 #pragma mark - Notifications
 
-- (void)notifyProgressDidChange {
-  dispatch_async(dispatch_get_main_queue(), ^{
-    [[NSNotificationCenter defaultCenter] postNotificationName:PlaybackManagerPlaybackProgressDidChangeNotification
-                                                        object:nil];
-  });
-}
-
 - (void)notifyDidChangeTrack:(Track *)track {
   dispatch_async(dispatch_get_main_queue(), ^{
     [[NSNotificationCenter defaultCenter] postNotificationName:PlaybackManagerTrackDidChangeNotification object:track];
-  });
-}
-
-- (void)notifyPlaybackStateDidChange {
-  dispatch_async(dispatch_get_main_queue(), ^{
-    [[NSNotificationCenter defaultCenter] postNotificationName:PlaybackManagerPlaybackStateDidChangeNotification
-                                                        object:nil];
   });
 }
 

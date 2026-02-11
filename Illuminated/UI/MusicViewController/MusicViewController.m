@@ -33,6 +33,7 @@ static MusicColumn const MusicColumnTime = @"TimeColumn";
 @property(nonatomic, strong) NSFetchedResultsController *fetchedResultsController;
 @property(nonatomic, strong, nullable) Playlist *currentPlaylist;
 @property(nonatomic, strong, nullable) Album *currentAlbum;
+@property(nonatomic, strong, nullable) Track *currentTrack;
 
 @end
 
@@ -120,24 +121,25 @@ static MusicColumn const MusicColumnTime = @"TimeColumn";
   self.fetchedResultsController.fetchRequest.predicate = finalPredicate;
   [self.fetchedResultsController performFetch:nil];
 
-  [self selectRowForTrack:[[PlaybackManager sharedManager] currentTrack] scroll:NO];
+  [self.tableView reloadData];
 }
 
 - (void)selectCurrentTrack {
-  dispatch_async(dispatch_get_main_queue(), ^{
-    [self.tableView reloadData];
-    [self selectRowForTrack:[[PlaybackManager sharedManager] currentTrack] scroll:YES];
-  });
+  _currentTrack = [[PlaybackManager sharedManager] currentTrack];
+  
+  if (!self.currentTrack) {
+    return;
+  }
+  
+  [self selectRowForTrack:self.currentTrack scroll:YES];
 
-  Track *playingTrack = [[PlaybackManager sharedManager] currentTrack];
-  if (!playingTrack) return;
-  [TrackDataStore incrementPlayCountForTrack:playingTrack];
+  [TrackDataStore incrementPlayCountForTrack:self.currentTrack];
 
-  if (playingTrack.bpm <= 0) {
+  if (self.currentTrack.bpm <= 0) {
     NSURL *currentURL = [[PlaybackManager sharedManager] currentPlaybackURL];
-    [[BFTask taskFromExecutor:[BFExecutor defaultExecutor]
-                    withBlock:^id { return [TrackService analyzeBPMForTrackURL:currentURL]; }]
-        continueOnMainThreadWithBlock:^id(BFTask<Track *> *task) { return task; }];
+    [BFTask taskFromExecutor:[BFExecutor defaultExecutor] withBlock:^id {
+      return [TrackService analyzeBPMForTrackURL:currentURL];
+    }];
   }
 }
 
@@ -211,7 +213,8 @@ static MusicColumn const MusicColumnTime = @"TimeColumn";
 #pragma mark - NSFetchedResultsControllerDelegate
 
 - (void)controllerDidChangeContent:(NSFetchedResultsController *)controller {
-  [self selectRowForTrack:[[PlaybackManager sharedManager] currentTrack] scroll:NO];
+  [self.tableView reloadData];
+  [self selectRowForTrack:self.currentTrack scroll:NO];
 }
 
 #pragma mark - NSTableViewDataSource
@@ -246,8 +249,7 @@ static MusicColumn const MusicColumnTime = @"TimeColumn";
   }
 
   Track *track = self.fetchedResultsController.fetchedObjects[row];
-  Track *playingTrack = [[PlaybackManager sharedManager] currentTrack];
-  BOOL isPlaying = track && playingTrack && [track.objectID isEqual:playingTrack.objectID];
+  BOOL isPlaying = self.currentTrack.objectID == track.objectID;
 
   if ([columnIdentifier isEqualToString:MusicColumnNumber]) {
     cell.textField.alignment = NSTextAlignmentCenter;
@@ -334,7 +336,8 @@ static MusicColumn const MusicColumnTime = @"TimeColumn";
 }
 
 - (void)reloadData {
-  [self selectRowForTrack:[[PlaybackManager sharedManager] currentTrack] scroll:NO];
+  [self.tableView reloadData];
+  [self selectRowForTrack:self.currentTrack scroll:NO];
 }
 
 #pragma mark - Private Helpers
@@ -383,9 +386,10 @@ static MusicColumn const MusicColumnTime = @"TimeColumn";
 
 - (void)tableViewClicked:(id)sender {
   if (self.tableView.selectedRow >= 0) {
-    Track *track = self.fetchedResultsController.fetchedObjects[self.tableView.selectedRow];
+    NSArray<Track *> *tracks = self.fetchedResultsController.fetchedObjects;
+    Track *track = tracks[self.tableView.selectedRow];
 
-    [[PlaybackManager sharedManager] updateQueue:(NSArray<Track *> *)self.fetchedResultsController.fetchedObjects];
+    [[PlaybackManager sharedManager] updateQueue:tracks];
     [[PlaybackManager sharedManager] playTrack:track];
   }
 }
