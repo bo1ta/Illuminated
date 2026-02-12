@@ -64,6 +64,7 @@ NSString *const ToolbarSearchUserInfo = @"ToolbarSearch";
   // Create container view controller
   NSViewController *containerVC = [[NSViewController alloc] init];
   containerVC.view = [[NSView alloc] initWithFrame:self.window.contentView.bounds];
+  containerVC.view.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable; // Ensure it resizes
 
   // Add split view to container
   [containerVC addChildViewController:self.splitViewController];

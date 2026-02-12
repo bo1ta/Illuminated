@@ -12,10 +12,10 @@
 #import "MainWindowController.h"
 #import "PlaybackManager.h"
 #import "Playlist.h"
+#import "PlaylistDataStore.h"
 #import "SidebarViewController.h"
 #import "Track.h"
 #import "TrackDataStore.h"
-#import "PlaylistDataStore.h"
 #import "TrackService.h"
 
 #pragma mark - Constants
@@ -54,6 +54,9 @@ static MusicColumn const MusicColumnTime = @"TimeColumn";
   [self.tableView registerForDraggedTypes:@[ NSPasteboardTypeFileURL ]];
   [self.tableView setDraggingSourceOperationMask:NSDragOperationCopy forLocal:YES];
   self.tableView.draggingDestinationFeedbackStyle = NSTableViewDraggingDestinationFeedbackStyleRegular;
+
+  self.view.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
+  self.view.translatesAutoresizingMaskIntoConstraints = YES;
 
   [self setupFetchedResultsController];
   [self setupNotifications];
@@ -127,20 +130,19 @@ static MusicColumn const MusicColumnTime = @"TimeColumn";
 
 - (void)selectCurrentTrack {
   _currentTrack = [[PlaybackManager sharedManager] currentTrack];
-  
+
   if (!self.currentTrack) {
     return;
   }
-  
+
   [self selectRowForTrack:self.currentTrack scroll:YES];
 
   [TrackDataStore incrementPlayCountForTrack:self.currentTrack];
 
   if (self.currentTrack.bpm <= 0) {
     NSURL *currentURL = [[PlaybackManager sharedManager] currentPlaybackURL];
-    [BFTask taskFromExecutor:[BFExecutor defaultExecutor] withBlock:^id {
-      return [TrackService analyzeBPMForTrackURL:currentURL];
-    }];
+    [BFTask taskFromExecutor:[BFExecutor defaultExecutor]
+                   withBlock:^id { return [TrackService analyzeBPMForTrackURL:currentURL]; }];
   }
 }
 
@@ -410,7 +412,7 @@ static MusicColumn const MusicColumnTime = @"TimeColumn";
   }];
 }
 
-# pragma mark - Right-Click Menu
+#pragma mark - Right-Click Menu
 
 - (BOOL)validateMenuItem:(NSMenuItem *)menuItem {
   if ([menuItem.identifier isEqualToString:@"RemoveFromPlaylist"] && !self.currentPlaylist) {
@@ -424,12 +426,12 @@ static MusicColumn const MusicColumnTime = @"TimeColumn";
   if (!track) {
     return;
   }
-  
+
   NSURL *url = [NSURL fileURLWithPath:track.fileURL];
   if (!url) {
     NSLog(@"Error finding url");
   } else {
-    [[NSWorkspace sharedWorkspace] activateFileViewerSelectingURLs:@[url]];
+    [[NSWorkspace sharedWorkspace] activateFileViewerSelectingURLs:@[ url ]];
   }
 }
 
@@ -438,7 +440,7 @@ static MusicColumn const MusicColumnTime = @"TimeColumn";
   if (clickedRow < 0) {
     return nil;
   }
-  
+
   return [self.fetchedResultsController.fetchedObjects objectAtIndex:clickedRow];
 }
 
@@ -447,14 +449,13 @@ static MusicColumn const MusicColumnTime = @"TimeColumn";
   if (!track || !self.currentPlaylist) {
     return;
   }
-  
+
   [[PlaylistDataStore removeFromPlaylist:self.currentPlaylist track:track] continueWithBlock:^id(BFTask<BFVoid> *task) {
     if (task.error) {
       NSLog(@"Error removing track from playlist: %@", task.error);
     }
     return nil;
   }];
-  
 }
 - (IBAction)deleteAction:(id)sender {
 }

@@ -5,26 +5,25 @@
 //  Created by Alexandru Solomon on 08.02.2026.
 //
 
-#import <Cocoa/Cocoa.h>
 #import "ProjectMView.h"
-#import <projectM-4/playlist_items.h>
+#import <Cocoa/Cocoa.h>
+#import <OpenGL/gl3.h>
 #import <projectM-4/playlist.h>
+#import <projectM-4/playlist_items.h>
 #import <projectM-4/playlist_playback.h>
 #import <projectM-4/projectM.h>
-#import <OpenGL/gl3.h>
 
-@interface ProjectMView ()
-{
+@interface ProjectMView () {
   projectm_handle _pmHandle;
   projectm_playlist_handle _playlistHandle;
   CVDisplayLinkRef _displayLink;
+  NSSize _lastSize;
 }
 @end
 
 @implementation ProjectMView
 
-- (instancetype)initWithFrame:(NSRect)frameRect pixelFormat:(NSOpenGLPixelFormat *)format
-{
+- (instancetype)initWithFrame:(NSRect)frameRect pixelFormat:(NSOpenGLPixelFormat *)format {
   self = [super initWithFrame:frameRect pixelFormat:format];
   if (self) {
     [self setWantsBestResolutionOpenGLSurface:YES];
@@ -36,44 +35,48 @@
 
 - (void)reshape {
   [super reshape];
+
   NSRect bounds = [self bounds];
-  [[self openGLContext] makeCurrentContext];
-  
-  NSLog(@"Bounds in ProjectMView are: width: %f height: %f", self.bounds.size.width,  self.bounds.size.height);
-  
-  if (_pmHandle) {
-    projectm_set_window_size(_pmHandle,
-                             (unsigned int)NSWidth(bounds),
-                             (unsigned int)NSHeight(bounds));
+  NSRect backingBounds = [self convertRectToBacking:bounds];
+
+  if (NSEqualSizes(backingBounds.size, _lastSize)) {
+    return;
   }
-  glViewport(0, 0, NSWidth(bounds), NSHeight(bounds));
+  _lastSize = backingBounds.size;
+
+  [[self openGLContext] makeCurrentContext];
+
+  if (_pmHandle) {
+    projectm_set_window_size(_pmHandle, (unsigned int)NSWidth(backingBounds), (unsigned int)NSHeight(backingBounds));
+  }
+  glViewport(0, 0, NSWidth(backingBounds), NSHeight(backingBounds));
 }
 
 - (void)renderFrame {
   if (!_pmHandle) return;
-  
+
   CGLContextObj cglContext = [[self openGLContext] CGLContextObj];
   CGLLockContext(cglContext);
-  
+
   [[self openGLContext] makeCurrentContext];
-  
+
   projectm_opengl_render_frame(_pmHandle);
-  
+
   [[self openGLContext] flushBuffer];
-  
+
   CGLUnlockContext(cglContext);
 }
 
 - (void)prepareOpenGL {
   [super prepareOpenGL];
   [[self openGLContext] makeCurrentContext];
-  
+
   GLint swapInt = 1;
   [[self openGLContext] setValues:&swapInt forParameter:NSOpenGLContextParameterSwapInterval];
-  
+
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-  
+
   _pmHandle = [self setupHandle];
   if (!_pmHandle) {
     NSLog(@"projectm_create failed");
@@ -81,37 +84,37 @@
   }
 
   [self loadTextures];
-  
+
   _playlistHandle = projectm_playlist_create(_pmHandle);
   if (!_playlistHandle) {
     return;
   }
-  
+
   [self loadPresets];
   projectm_playlist_set_retry_count(_playlistHandle, 5);
-  
+
   [self startDisplayLink];
 }
 
 #pragma mark - DisplayLink
 
--(void)startDisplayLink {
+- (void)startDisplayLink {
   CVDisplayLinkCreateWithActiveCGDisplays(&_displayLink);
   CVDisplayLinkSetOutputCallback(_displayLink, &displayLinkCallback, (__bridge void *)self);
-  
+
   CGLContextObj cglContext = [[self openGLContext] CGLContextObj];
   CGLPixelFormatObj cglPixelFormat = [[self pixelFormat] CGLPixelFormatObj];
   CVDisplayLinkSetCurrentCGDisplayFromOpenGLContext(_displayLink, cglContext, cglPixelFormat);
-  
+
   CVDisplayLinkStart(_displayLink);
 }
 
 static CVReturn displayLinkCallback(CVDisplayLinkRef displayLink,
-                                   const CVTimeStamp *now,
-                                   const CVTimeStamp *outputTime,
-                                   CVOptionFlags flagsIn,
-                                   CVOptionFlags *flagsOut,
-                                   void *displayLinkContext) {
+                                    const CVTimeStamp *now,
+                                    const CVTimeStamp *outputTime,
+                                    CVOptionFlags flagsIn,
+                                    CVOptionFlags *flagsOut,
+                                    void *displayLinkContext) {
   ProjectMView *view = (__bridge ProjectMView *)displayLinkContext;
   [view renderFrame];
   return kCVReturnSuccess;
@@ -129,14 +132,14 @@ static CVReturn displayLinkCallback(CVDisplayLinkRef displayLink,
   projectm_set_aspect_correction(handle, true);
   projectm_set_easter_egg(handle, 0);
   projectm_set_soft_cut_duration(handle, 3.0f);
-  
+
   return handle;
 }
 
 - (void)loadTextures {
   NSString *texturesPath = [[NSBundle mainBundle] resourcePath];
   if (texturesPath) {
-    projectm_set_texture_search_paths(_pmHandle, (const char*[]){[texturesPath UTF8String]}, 1);
+    projectm_set_texture_search_paths(_pmHandle, (const char *[]){[texturesPath UTF8String]}, 1);
   } else {
     NSLog(@"ProjectMView Erorr: ProjectMTextures folder missing from bundle!");
   }
@@ -147,11 +150,11 @@ static CVReturn displayLinkCallback(CVDisplayLinkRef displayLink,
   if (!resourcePath) {
     return;
   }
-  
+
   const char *cPath = [resourcePath fileSystemRepresentation];
-  
+
   projectm_playlist_set_shuffle(_playlistHandle, true);
-  
+
   uint32_t added = projectm_playlist_add_path(_playlistHandle, cPath, NO, NO);
   if (added > 0) {
     projectm_playlist_play_next(_playlistHandle, true);
@@ -214,16 +217,15 @@ static CVReturn displayLinkCallback(CVDisplayLinkRef displayLink,
 }
 
 - (void)dealloc {
-    [self cleanup];
+  [self cleanup];
 }
 
 - (void)viewDidMoveToWindow {
   [super viewDidMoveToWindow];
-  
+
   if (self.window == nil) {
-      [self cleanup];
+    [self cleanup];
   }
 }
-
 
 @end

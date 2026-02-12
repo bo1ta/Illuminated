@@ -19,22 +19,26 @@
 
 #pragma mark - Lifecycle
 
+- (void)loadView {
+  self.view = [[NSView alloc] initWithFrame:NSMakeRect(0, 0, 100, 100)];
+  self.view.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
+  self.view.wantsLayer = YES;
+}
+
 - (void)viewDidLoad {
   [super viewDidLoad];
 
-  NSOpenGLPixelFormatAttribute attrs[] = {
-    NSOpenGLPFAOpenGLProfile,
-    NSOpenGLProfileVersion3_2Core,
-    NSOpenGLPFADoubleBuffer,
-    NSOpenGLPFAColorSize,
-    24,
-    NSOpenGLPFAAlphaSize,
-    8,
-    NSOpenGLPFADepthSize,
-    24,
-    NSOpenGLPFAAccelerated,
-    0
-  };
+  NSOpenGLPixelFormatAttribute attrs[] = {NSOpenGLPFAOpenGLProfile,
+                                          NSOpenGLProfileVersion3_2Core,
+                                          NSOpenGLPFADoubleBuffer,
+                                          NSOpenGLPFAColorSize,
+                                          24,
+                                          NSOpenGLPFAAlphaSize,
+                                          8,
+                                          NSOpenGLPFADepthSize,
+                                          24,
+                                          NSOpenGLPFAAccelerated,
+                                          0};
 
   NSOpenGLPixelFormat *pixelFormat = [[NSOpenGLPixelFormat alloc] initWithAttributes:attrs];
   if (!pixelFormat) {
@@ -42,14 +46,22 @@
     return;
   }
 
-  NSLog(@"Bounds in VizualizatioViewController are: width: %f height: %f", self.view.bounds.size.width,  self.view.bounds.size.height);
-  self.projectMView = [[ProjectMView alloc] initWithFrame:self.view.bounds pixelFormat:pixelFormat];
-
-  self.projectMView.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
-  
+  self.projectMView = [[ProjectMView alloc] initWithFrame:NSZeroRect pixelFormat:pixelFormat];
+  self.projectMView.translatesAutoresizingMaskIntoConstraints = NO;
 
   [self.view addSubview:self.projectMView];
   self.view.wantsLayer = YES;
+
+  [NSLayoutConstraint activateConstraints:@[
+    [self.projectMView.leadingAnchor constraintEqualToAnchor:self.view.leadingAnchor],
+    [self.projectMView.trailingAnchor constraintEqualToAnchor:self.view.trailingAnchor],
+    [self.projectMView.topAnchor constraintEqualToAnchor:self.view.topAnchor],
+    [self.projectMView.bottomAnchor constraintEqualToAnchor:self.view.bottomAnchor]
+  ]];
+}
+
+- (void)viewDidLayout {
+  [super viewDidLayout];
 }
 
 - (void)viewDidAppear {
@@ -78,12 +90,12 @@
   __weak typeof(self) weakSelf = self;
 
   [[PlaybackManager sharedManager]
-   registerAudioBufferCallback:^(const float *_Nonnull monoData, AVAudioFrameCount length) {
-    __strong typeof(weakSelf) strongSelf = weakSelf;
-    
-    if (!strongSelf) return;
-    [strongSelf.projectMView addPCMData:monoData length:length];
-  }];
+      registerAudioBufferCallback:^(const float *_Nonnull monoData, AVAudioFrameCount length) {
+        __strong typeof(weakSelf) strongSelf = weakSelf;
+
+        if (!strongSelf) return;
+        [strongSelf.projectMView addPCMData:monoData length:length];
+      }];
 }
 
 @end
