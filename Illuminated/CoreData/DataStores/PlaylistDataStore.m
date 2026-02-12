@@ -6,6 +6,7 @@
 //
 
 #import "PlaylistDataStore.h"
+#import "Track.h"
 #import "CoreDataStore.h"
 #import "Playlist.h"
 #import <Foundation/Foundation.h>
@@ -53,6 +54,19 @@
   return [[CoreDataStore reader] fetchedResultsControllerForEntity:EntityNamePlaylist
                                                          predicate:nil
                                                    sortDescriptors:@[ playlistSort ]];
+}
+
++ (BFTask<BFVoid> *)removeFromPlaylist:(Playlist *)playlist track:(Track *)track {
+  return [[CoreDataStore writer] performWrite:^id (NSManagedObjectContext *context) {
+    Track *safeTrack = [context objectWithID:track.objectID];
+    Playlist *safePlaylist = [context objectWithID:playlist.objectID];
+    if (!track || !safePlaylist) {
+      return [BFTask taskWithError:[NSError errorWithDomain:@"PlaylistDataStore" code:-100  userInfo:@{NSLocalizedDescriptionKey : @"Track has stale data"}]];
+    }
+    
+    [safePlaylist removeTracksObject:safeTrack];
+    return nil;
+  }];
 }
 
 @end

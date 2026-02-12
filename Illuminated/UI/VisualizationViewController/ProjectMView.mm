@@ -39,6 +39,8 @@
   NSRect bounds = [self bounds];
   [[self openGLContext] makeCurrentContext];
   
+  NSLog(@"Bounds in ProjectMView are: width: %f height: %f", self.bounds.size.width,  self.bounds.size.height);
+  
   if (_pmHandle) {
     projectm_set_window_size(_pmHandle,
                              (unsigned int)NSWidth(bounds),

@@ -42,11 +42,13 @@
     return;
   }
 
+  NSLog(@"Bounds in VizualizatioViewController are: width: %f height: %f", self.view.bounds.size.width,  self.view.bounds.size.height);
   self.projectMView = [[ProjectMView alloc] initWithFrame:self.view.bounds pixelFormat:pixelFormat];
 
   self.projectMView.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
+  
 
-  self.view = self.projectMView;
+  [self.view addSubview:self.projectMView];
   self.view.wantsLayer = YES;
 }
 

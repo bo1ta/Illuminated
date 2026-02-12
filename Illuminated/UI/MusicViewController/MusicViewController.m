@@ -15,6 +15,7 @@
 #import "SidebarViewController.h"
 #import "Track.h"
 #import "TrackDataStore.h"
+#import "PlaylistDataStore.h"
 #import "TrackService.h"
 
 #pragma mark - Constants
@@ -407,6 +408,55 @@ static MusicColumn const MusicColumnTime = @"TimeColumn";
     }
     return nil;
   }];
+}
+
+# pragma mark - Right-Click Menu
+
+- (BOOL)validateMenuItem:(NSMenuItem *)menuItem {
+  if ([menuItem.identifier isEqualToString:@"RemoveFromPlaylist"] && !self.currentPlaylist) {
+    return NO;
+  }
+  return YES;
+}
+
+- (IBAction)showInFinderAction:(id)sender {
+  Track *track = [self getClickedTrack];
+  if (!track) {
+    return;
+  }
+  
+  NSURL *url = [NSURL fileURLWithPath:track.fileURL];
+  if (!url) {
+    NSLog(@"Error finding url");
+  } else {
+    [[NSWorkspace sharedWorkspace] activateFileViewerSelectingURLs:@[url]];
+  }
+}
+
+- (nullable Track *)getClickedTrack {
+  NSInteger clickedRow = [self.tableView clickedRow];
+  if (clickedRow < 0) {
+    return nil;
+  }
+  
+  return [self.fetchedResultsController.fetchedObjects objectAtIndex:clickedRow];
+}
+
+- (IBAction)removeFromPlaylistAction:(id)sender {
+  Track *track = [self getClickedTrack];
+  if (!track || !self.currentPlaylist) {
+    return;
+  }
+  
+  [[PlaylistDataStore removeFromPlaylist:self.currentPlaylist track:track] continueWithBlock:^id(BFTask<BFVoid> *task) {
+    if (task.error) {
+      NSLog(@"Error removing track from playlist: %@", task.error);
+    }
+    return nil;
+  }];
+  
+}
+- (IBAction)deleteAction:(id)sender {
 }
 
 @end

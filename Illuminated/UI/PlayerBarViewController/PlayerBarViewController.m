@@ -204,7 +204,7 @@
   if (track.album.artworkPath) {
     self.trackArtwork.image = [ArtworkManager loadArtworkAtPath:track.album.artworkPath];
   } else {
-    self.trackArtwork.image = nil;
+    self.trackArtwork.image = [ArtworkManager placeholderImageWithSize:self.trackArtwork.bounds.size];
   }
 
   [self updateNowPlayingInfoWithTrack:track artworkImage:self.trackArtwork.image];

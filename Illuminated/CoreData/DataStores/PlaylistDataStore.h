@@ -8,7 +8,9 @@
 #import "BFTask.h"
 #import <Foundation/Foundation.h>
 
-@class Playlist;
+@class Playlist, Track;
+
+@class NSManagedObjectID;
 
 @class NSFetchedResultsController;
 
@@ -23,6 +25,8 @@ NS_ASSUME_NONNULL_BEGIN
 + (BFTask<BFVoid> *)renamePlaylist:(Playlist *)playlist toName:(NSString *)name;
 
 + (NSFetchedResultsController *)fetchedResultsController;
+
++ (BFTask<BFVoid> *)removeFromPlaylist:(Playlist *)playlist track:(Track *)trackObjectID;
 
 @end
 
