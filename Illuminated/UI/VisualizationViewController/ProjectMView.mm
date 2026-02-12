@@ -61,7 +61,7 @@
   [self loadPresets];
   projectm_playlist_set_retry_count(_playlistHandle, 5);
   
-  _renderTimer = [NSTimer scheduledTimerWithTimeInterval:1.0/60.0
+  _renderTimer = [NSTimer scheduledTimerWithTimeInterval:1.0/35.0
                                                   target:self
                                                 selector:@selector(renderFrame)
                                                 userInfo:nil
@@ -113,9 +113,11 @@
 }
 
 - (void)loadTextures {
-  NSString *texturesPath = [[NSBundle mainBundle].resourcePath stringByAppendingPathComponent:@"ProjectMTextures"];
+  NSString *texturesPath = [[NSBundle mainBundle] resourcePath];
   if (texturesPath) {
     projectm_set_texture_search_paths(_pmHandle, (const char*[]){[texturesPath UTF8String]}, 1);
+  } else {
+    NSLog(@"ProjectMView Erorr: ProjectMTextures folder missing from bundle!");
   }
 }
 

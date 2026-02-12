@@ -22,17 +22,19 @@
 - (void)viewDidLoad {
   [super viewDidLoad];
 
-  NSOpenGLPixelFormatAttribute attrs[] = {NSOpenGLPFAOpenGLProfile,
-                                          NSOpenGLProfileVersion3_2Core,
-                                          NSOpenGLPFADoubleBuffer,
-                                          NSOpenGLPFAColorSize,
-                                          24,
-                                          NSOpenGLPFAAlphaSize,
-                                          8,
-                                          NSOpenGLPFADepthSize,
-                                          24,
-                                          NSOpenGLPFAAccelerated,
-                                          0};
+  NSOpenGLPixelFormatAttribute attrs[] = {
+    NSOpenGLPFAOpenGLProfile,
+    NSOpenGLProfileVersion3_2Core,
+    NSOpenGLPFADoubleBuffer,
+    NSOpenGLPFAColorSize,
+    24,
+    NSOpenGLPFAAlphaSize,
+    8,
+    NSOpenGLPFADepthSize,
+    24,
+    NSOpenGLPFAAccelerated,
+    0
+  };
 
   NSOpenGLPixelFormat *pixelFormat = [[NSOpenGLPixelFormat alloc] initWithAttributes:attrs];
   if (!pixelFormat) {
@@ -74,12 +76,12 @@
   __weak typeof(self) weakSelf = self;
 
   [[PlaybackManager sharedManager]
-      registerAudioBufferCallback:^(const float *_Nonnull monoData, AVAudioFrameCount length) {
-        __strong typeof(weakSelf) strongSelf = weakSelf;
-
-        if (!strongSelf) return;
-        [strongSelf.projectMView addPCMData:monoData length:length];
-      }];
+   registerAudioBufferCallback:^(const float *_Nonnull monoData, AVAudioFrameCount length) {
+    __strong typeof(weakSelf) strongSelf = weakSelf;
+    
+    if (!strongSelf) return;
+    [strongSelf.projectMView addPCMData:monoData length:length];
+  }];
 }
 
 @end
