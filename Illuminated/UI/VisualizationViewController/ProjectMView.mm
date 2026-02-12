@@ -17,13 +17,11 @@
 {
   projectm_handle _pmHandle;
   projectm_playlist_handle _playlistHandle;
-  NSTimer *_renderTimer;
+  CVDisplayLinkRef _displayLink;
 }
 @end
 
 @implementation ProjectMView
-
-#pragma mark - Lifecycle
 
 - (instancetype)initWithFrame:(NSRect)frameRect pixelFormat:(NSOpenGLPixelFormat *)format
 {
@@ -34,8 +32,37 @@
   return self;
 }
 
-- (void)prepareOpenGL
-{
+#pragma mark - Lifecycle
+
+- (void)reshape {
+  [super reshape];
+  NSRect bounds = [self bounds];
+  [[self openGLContext] makeCurrentContext];
+  
+  if (_pmHandle) {
+    projectm_set_window_size(_pmHandle,
+                             (unsigned int)NSWidth(bounds),
+                             (unsigned int)NSHeight(bounds));
+  }
+  glViewport(0, 0, NSWidth(bounds), NSHeight(bounds));
+}
+
+- (void)renderFrame {
+  if (!_pmHandle) return;
+  
+  CGLContextObj cglContext = [[self openGLContext] CGLContextObj];
+  CGLLockContext(cglContext);
+  
+  [[self openGLContext] makeCurrentContext];
+  
+  projectm_opengl_render_frame(_pmHandle);
+  
+  [[self openGLContext] flushBuffer];
+  
+  CGLUnlockContext(cglContext);
+}
+
+- (void)prepareOpenGL {
   [super prepareOpenGL];
   [[self openGLContext] makeCurrentContext];
   
@@ -61,39 +88,31 @@
   [self loadPresets];
   projectm_playlist_set_retry_count(_playlistHandle, 5);
   
-  _renderTimer = [NSTimer scheduledTimerWithTimeInterval:1.0/35.0
-                                                  target:self
-                                                selector:@selector(renderFrame)
-                                                userInfo:nil
-                                                 repeats:YES];
+  [self startDisplayLink];
 }
 
+#pragma mark - DisplayLink
 
-- (void)reshape {
-  [super reshape];
-  NSRect bounds = [self bounds];
-  [[self openGLContext] makeCurrentContext];
+-(void)startDisplayLink {
+  CVDisplayLinkCreateWithActiveCGDisplays(&_displayLink);
+  CVDisplayLinkSetOutputCallback(_displayLink, &displayLinkCallback, (__bridge void *)self);
   
-  if (_pmHandle) {
-    projectm_set_window_size(_pmHandle,
-                             (unsigned int)NSWidth(bounds),
-                             (unsigned int)NSHeight(bounds));
-  }
-  glViewport(0, 0, NSWidth(bounds), NSHeight(bounds));
+  CGLContextObj cglContext = [[self openGLContext] CGLContextObj];
+  CGLPixelFormatObj cglPixelFormat = [[self pixelFormat] CGLPixelFormatObj];
+  CVDisplayLinkSetCurrentCGDisplayFromOpenGLContext(_displayLink, cglContext, cglPixelFormat);
+  
+  CVDisplayLinkStart(_displayLink);
 }
 
-- (void)drawRect:(NSRect)dirtyRect {
-  [self renderFrame];
-}
-
-- (void)renderFrame {
-  if (!_pmHandle) return;
-  
-  [[self openGLContext] makeCurrentContext];
-  
-  projectm_opengl_render_frame(_pmHandle);
-  
-  [[self openGLContext] flushBuffer];
+static CVReturn displayLinkCallback(CVDisplayLinkRef displayLink,
+                                   const CVTimeStamp *now,
+                                   const CVTimeStamp *outputTime,
+                                   CVOptionFlags flagsIn,
+                                   CVOptionFlags *flagsOut,
+                                   void *displayLinkContext) {
+  ProjectMView *view = (__bridge ProjectMView *)displayLinkContext;
+  [view renderFrame];
+  return kCVReturnSuccess;
 }
 
 #pragma mark - Setup
@@ -177,18 +196,19 @@
 #pragma mark - Deinit
 
 - (void)cleanup {
-    if (_renderTimer) {
-        [_renderTimer invalidate];
-        _renderTimer = nil;
-    }
-    if (_playlistHandle) {
-        projectm_playlist_destroy(_playlistHandle);
-        _playlistHandle = NULL;
-    }
-    if (_pmHandle) {
-        projectm_destroy(_pmHandle);
-        _pmHandle = NULL;
-    }
+  if (_displayLink) {
+    CVDisplayLinkStop(_displayLink);
+    CVDisplayLinkRelease(_displayLink);
+    _displayLink = NULL;
+  }
+  if (_playlistHandle) {
+    projectm_playlist_destroy(_playlistHandle);
+    _playlistHandle = NULL;
+  }
+  if (_pmHandle) {
+    projectm_destroy(_pmHandle);
+    _pmHandle = NULL;
+  }
 }
 
 - (void)dealloc {
