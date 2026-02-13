@@ -13,15 +13,24 @@
 #import <projectM-4/playlist_playback.h>
 #import <projectM-4/projectM.h>
 
+NSString *const UserDefaultsBlacklistKey = @"BlacklistedPresets";
+static const double kMaxCPUThreshold = 70.0;
+
 @interface ProjectMView () {
   projectm_handle _pmHandle;
   projectm_playlist_handle _playlistHandle;
   CVDisplayLinkRef _displayLink;
   NSSize _lastSize;
+  
+  NSTimer *_cpuMonitorTimer;
+  NSUInteger _highCPUFrames;
+  NSDate *_lastPresetChange;
 }
 @end
 
 @implementation ProjectMView
+
+#pragma mark - Initialization
 
 - (instancetype)initWithFrame:(NSRect)frameRect pixelFormat:(NSOpenGLPixelFormat *)format {
   self = [super initWithFrame:frameRect pixelFormat:format];
@@ -31,7 +40,19 @@
   return self;
 }
 
+- (void)dealloc {
+  [self cleanup];
+}
+
 #pragma mark - Lifecycle
+
+- (void)viewDidMoveToWindow {
+  [super viewDidMoveToWindow];
+
+  if (self.window == nil) {
+    [self cleanup];
+  }
+}
 
 - (void)reshape {
   [super reshape];
@@ -107,6 +128,19 @@
   CVDisplayLinkSetCurrentCGDisplayFromOpenGLContext(_displayLink, cglContext, cglPixelFormat);
 
   CVDisplayLinkStart(_displayLink);
+  
+  /// Some presets fail to load the textures for Sillicon macs
+  /// Spiking the CPU to >70%, and rendering weird colors.
+  /// It's a known limitation described here:
+  /// https://blenderartists.org/t/m1-macs-unsupported-log-once-explanation/1470335
+  ///
+  /// To prevent this, I'm using a timer that will monitor the CPU and skip the current preset if its problematic.
+  ///
+  _cpuMonitorTimer = [NSTimer scheduledTimerWithTimeInterval:0.3
+                                                      target:self
+                                                    selector:@selector(checkCPUUsage:)
+                                                    userInfo:nil
+                                                     repeats:YES];
 }
 
 static CVReturn displayLinkCallback(CVDisplayLinkRef displayLink,
@@ -118,6 +152,55 @@ static CVReturn displayLinkCallback(CVDisplayLinkRef displayLink,
   ProjectMView *view = (__bridge ProjectMView *)displayLinkContext;
   [view renderFrame];
   return kCVReturnSuccess;
+}
+
+- (void)checkCPUUsage:(id)sender {
+  if (_lastPresetChange && [[NSDate date] timeIntervalSinceDate:_lastPresetChange] < 3.0) {
+    return;
+  }
+  
+  thread_act_array_t threads;
+  mach_msg_type_number_t threadCount;
+  
+  if (task_threads(mach_task_self(), &threads, &threadCount) != KERN_SUCCESS) {
+    return;
+  }
+  
+  double totalCPU = 0;
+  for (int i = 0; i < threadCount; i++) {
+    thread_basic_info_data_t threadInfo;
+    mach_msg_type_number_t threadInfoCount = THREAD_BASIC_INFO_COUNT;
+    
+    if (thread_info(threads[i], THREAD_BASIC_INFO, (thread_info_t)&threadInfo, &threadInfoCount) == KERN_SUCCESS) {
+      if (!(threadInfo.flags & TH_FLAGS_IDLE)) {
+        totalCPU += threadInfo.cpu_usage / (double)TH_USAGE_SCALE * 100.0;
+      }
+    }
+  }
+  
+  vm_deallocate(mach_task_self(), (vm_offset_t)threads, threadCount * sizeof(thread_t));
+  
+  if (totalCPU > kMaxCPUThreshold) {
+    _highCPUFrames++;
+    if (_highCPUFrames >= 2) {
+      uint32_t currentIndex = projectm_playlist_get_position(_playlistHandle);
+      const char *presetPath = projectm_playlist_item(_playlistHandle, currentIndex);
+      NSString *presetPathStr = [NSString stringWithUTF8String:presetPath];
+      
+      if (presetPathStr) {
+        NSLog(@"High CPU detected (%.1f%%), skipping problematic preset: %@",
+              totalCPU, presetPathStr);
+
+        projectm_playlist_remove_preset(_playlistHandle, currentIndex);
+        
+        [self addToBlacklist:presetPathStr];
+      }
+      
+      [self playNextPresetWithHardCut:YES];
+    }
+  } else {
+    _highCPUFrames = 0;
+  }
 }
 
 #pragma mark - Setup
@@ -156,7 +239,10 @@ static CVReturn displayLinkCallback(CVDisplayLinkRef displayLink,
   projectm_playlist_set_shuffle(_playlistHandle, true);
 
   uint32_t added = projectm_playlist_add_path(_playlistHandle, cPath, NO, NO);
-  if (added > 0) {
+  
+  [self removeBlacklistedPresetsFromPlaylist];
+  
+  if (projectm_playlist_size(_playlistHandle) > 0) {
     projectm_playlist_play_next(_playlistHandle, true);
   } else {
     NSString *fallback = [[NSBundle mainBundle] pathForResource:@"41" ofType:@"milk"];
@@ -175,6 +261,7 @@ static CVReturn displayLinkCallback(CVDisplayLinkRef displayLink,
   CGLLockContext(cglContext);
   
   projectm_playlist_play_next(_playlistHandle, hardCut);
+  _lastPresetChange = [NSDate date];
   
   CGLUnlockContext(cglContext);
 }
@@ -186,6 +273,7 @@ static CVReturn displayLinkCallback(CVDisplayLinkRef displayLink,
   CGLLockContext(cglContext);
   
   projectm_playlist_play_previous(_playlistHandle, hardCut);
+  _lastPresetChange = [NSDate date];
   
   CGLUnlockContext(cglContext);
 }
@@ -213,6 +301,9 @@ static CVReturn displayLinkCallback(CVDisplayLinkRef displayLink,
 #pragma mark - Deinit
 
 - (void)cleanup {
+  [_cpuMonitorTimer invalidate];
+  _cpuMonitorTimer = nil;
+  
   if (_displayLink) {
     CVDisplayLinkStop(_displayLink);
     CVDisplayLinkRelease(_displayLink);
@@ -228,15 +319,41 @@ static CVReturn displayLinkCallback(CVDisplayLinkRef displayLink,
   }
 }
 
-- (void)dealloc {
-  [self cleanup];
+#pragma mark - Presets Blacklist
+
+- (void)addToBlacklist:(NSString *)presetPath {
+  NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+  NSMutableArray *blacklist = [[defaults arrayForKey:UserDefaultsBlacklistKey] mutableCopy];
+  if (!blacklist) {
+    blacklist = [NSMutableArray array];
+  }
+  
+  if (![blacklist containsObject:presetPath]) {
+    [blacklist addObject:presetPath];
+    [defaults setObject:blacklist forKey:UserDefaultsBlacklistKey];
+    NSLog(@"ProjectMView: Added problematic preset to blacklist: %@", presetPath);
+  }
 }
 
-- (void)viewDidMoveToWindow {
-  [super viewDidMoveToWindow];
+- (void)removeBlacklistedPresetsFromPlaylist {
+  if (!_playlistHandle) {
+    return;
+  }
+  
+  NSArray *blacklist = [[NSUserDefaults standardUserDefaults] arrayForKey:UserDefaultsBlacklistKey];
+  if (!blacklist || blacklist.count == 0) {
+    return;
+  }
 
-  if (self.window == nil) {
-    [self cleanup];
+  uint32_t size = projectm_playlist_size(_playlistHandle);
+  
+  for (int i = size - 1; i >= 0; i--) {
+    const char *presetPath = projectm_playlist_item(_playlistHandle, i);
+    NSString *presetPathStr = [NSString stringWithUTF8String:presetPath];
+    if (presetPathStr && [blacklist containsObject:presetPathStr]) {
+      projectm_playlist_remove_preset(_playlistHandle, i);
+      NSLog(@"ProjectMView: Removed blacklisted preset from playlist: %@", presetPathStr);
+    }
   }
 }
 
