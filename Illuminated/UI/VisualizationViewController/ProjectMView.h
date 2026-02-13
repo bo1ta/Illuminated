@@ -8,6 +8,8 @@
 #import <AVFoundation/AVFoundation.h>
 #import <Cocoa/Cocoa.h>
 
+NS_ASSUME_NONNULL_BEGIN
+
 @interface ProjectMView : NSOpenGLView
 - (void)addPCMData:(const float *)monoData length:(AVAudioFrameCount)length;
 
@@ -20,3 +22,5 @@
 - (void)cleanup;
 
 @end
+
+NS_ASSUME_NONNULL_END

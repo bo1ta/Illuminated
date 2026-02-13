@@ -12,20 +12,32 @@
 #import <projectM-4/playlist_items.h>
 #import <projectM-4/playlist_playback.h>
 #import <projectM-4/projectM.h>
+#import "ProjectMPresetBlacklist.h"
 
-NSString *const UserDefaultsBlacklistKey = @"BlacklistedPresets";
+#pragma mark - Constants
+
 static const double kMaxCPUThreshold = 70.0;
+static const double kSecondsUntilPresetIsProblematic = 3.0;
+
+static const float kBlackScreenMaxPercentage = 0.95f;
+static const NSUInteger kMaxBlackFramesBeforeSkip = 60;
+
+#pragma mark - Private Interface
 
 @interface ProjectMView () {
   projectm_handle _pmHandle;
   projectm_playlist_handle _playlistHandle;
   CVDisplayLinkRef _displayLink;
-  NSSize _lastSize;
-  
-  NSTimer *_cpuMonitorTimer;
-  NSUInteger _highCPUFrames;
-  NSDate *_lastPresetChange;
 }
+
+@property (nonatomic, assign) NSSize lastSize;
+@property (nonatomic, strong) NSDate *lastPresetChange;
+@property (nonatomic, strong) NSTimer *cpuMonitorTimer;
+@property (nonatomic, assign) NSUInteger highCPUFrames;
+@property (nonatomic, assign) NSUInteger blackFrameCount;
+
+@property (nonatomic, strong) ProjectMPresetBlacklist *presetsBlacklist;
+
 @end
 
 @implementation ProjectMView
@@ -36,6 +48,8 @@ static const double kMaxCPUThreshold = 70.0;
   self = [super initWithFrame:frameRect pixelFormat:format];
   if (self) {
     [self setWantsBestResolutionOpenGLSurface:YES];
+    
+    _presetsBlacklist = [[ProjectMPresetBlacklist alloc] init];
   }
   return self;
 }
@@ -46,33 +60,6 @@ static const double kMaxCPUThreshold = 70.0;
 
 #pragma mark - Lifecycle
 
-- (void)viewDidMoveToWindow {
-  [super viewDidMoveToWindow];
-
-  if (self.window == nil) {
-    [self cleanup];
-  }
-}
-
-- (void)reshape {
-  [super reshape];
-
-  NSRect bounds = [self bounds];
-  NSRect backingBounds = [self convertRectToBacking:bounds];
-
-  if (NSEqualSizes(backingBounds.size, _lastSize)) {
-    return;
-  }
-  _lastSize = backingBounds.size;
-
-  [[self openGLContext] makeCurrentContext];
-
-  if (_pmHandle) {
-    projectm_set_window_size(_pmHandle, (unsigned int)NSWidth(backingBounds), (unsigned int)NSHeight(backingBounds));
-  }
-  glViewport(0, 0, NSWidth(backingBounds), NSHeight(backingBounds));
-}
-
 - (void)renderFrame {
   if (!_pmHandle) return;
 
@@ -82,6 +69,10 @@ static const double kMaxCPUThreshold = 70.0;
   [[self openGLContext] makeCurrentContext];
 
   projectm_opengl_render_frame(_pmHandle);
+  
+  /// Some presets are broken and render black screens.
+  /// Better skip and blacklist them!
+  [self checkForBlackScreen];
 
   [[self openGLContext] flushBuffer];
 
@@ -115,6 +106,38 @@ static const double kMaxCPUThreshold = 70.0;
   projectm_playlist_set_retry_count(_playlistHandle, 5);
 
   [self startDisplayLink];
+  
+  /// Some presets fail to load the textures for Sillicon Macs, spiking the CPU to >70% and rendering weird colors.
+  /// It's a known limitation described here: https://blenderartists.org/t/m1-macs-unsupported-log-once-explanation/1470335
+  /// To prevent this, I'm using a timer that will monitor the CPU and skip the current preset if its problematic.
+  [self startCPUMonitorTimer];
+}
+
+- (void)reshape {
+  [super reshape];
+
+  NSRect bounds = [self bounds];
+  NSRect backingBounds = [self convertRectToBacking:bounds];
+
+  if (NSEqualSizes(backingBounds.size, _lastSize)) {
+    return;
+  }
+  _lastSize = backingBounds.size;
+
+  [[self openGLContext] makeCurrentContext];
+
+  if (_pmHandle) {
+    projectm_set_window_size(_pmHandle, (unsigned int)NSWidth(backingBounds), (unsigned int)NSHeight(backingBounds));
+  }
+  glViewport(0, 0, NSWidth(backingBounds), NSHeight(backingBounds));
+}
+
+- (void)viewDidMoveToWindow {
+  [super viewDidMoveToWindow];
+
+  if (self.window == nil) {
+    [self cleanup];
+  }
 }
 
 #pragma mark - DisplayLink
@@ -128,14 +151,9 @@ static const double kMaxCPUThreshold = 70.0;
   CVDisplayLinkSetCurrentCGDisplayFromOpenGLContext(_displayLink, cglContext, cglPixelFormat);
 
   CVDisplayLinkStart(_displayLink);
-  
-  /// Some presets fail to load the textures for Sillicon macs
-  /// Spiking the CPU to >70%, and rendering weird colors.
-  /// It's a known limitation described here:
-  /// https://blenderartists.org/t/m1-macs-unsupported-log-once-explanation/1470335
-  ///
-  /// To prevent this, I'm using a timer that will monitor the CPU and skip the current preset if its problematic.
-  ///
+}
+
+- (void)startCPUMonitorTimer {
   _cpuMonitorTimer = [NSTimer scheduledTimerWithTimeInterval:0.3
                                                       target:self
                                                     selector:@selector(checkCPUUsage:)
@@ -183,17 +201,16 @@ static CVReturn displayLinkCallback(CVDisplayLinkRef displayLink,
   if (totalCPU > kMaxCPUThreshold) {
     _highCPUFrames++;
     if (_highCPUFrames >= 2) {
-      uint32_t currentIndex = projectm_playlist_get_position(_playlistHandle);
-      const char *presetPath = projectm_playlist_item(_playlistHandle, currentIndex);
-      NSString *presetPathStr = [NSString stringWithUTF8String:presetPath];
+      uint32_t currentIndex = [self currentPresetIndex];
+      NSString *presetPath = [self presetPathForIndex:currentIndex];
       
-      if (presetPathStr) {
+      if (presetPath) {
         NSLog(@"High CPU detected (%.1f%%), skipping problematic preset: %@",
-              totalCPU, presetPathStr);
-
-        projectm_playlist_remove_preset(_playlistHandle, currentIndex);
+              totalCPU, presetPath ? presetPath : @"unknown" );
         
-        [self addToBlacklist:presetPathStr];
+        projectm_playlist_remove_preset(_playlistHandle, currentIndex);
+
+        [self.presetsBlacklist addToBlacklist:presetPath];
       }
       
       [self playNextPresetWithHardCut:YES];
@@ -240,7 +257,7 @@ static CVReturn displayLinkCallback(CVDisplayLinkRef displayLink,
 
   uint32_t added = projectm_playlist_add_path(_playlistHandle, cPath, NO, NO);
   
-  [self removeBlacklistedPresetsFromPlaylist];
+  [self.presetsBlacklist filterPlaylist:_playlistHandle];
   
   if (projectm_playlist_size(_playlistHandle) > 0) {
     projectm_playlist_play_next(_playlistHandle, true);
@@ -262,6 +279,7 @@ static CVReturn displayLinkCallback(CVDisplayLinkRef displayLink,
   
   projectm_playlist_play_next(_playlistHandle, hardCut);
   _lastPresetChange = [NSDate date];
+  _blackFrameCount = 0;
   
   CGLUnlockContext(cglContext);
 }
@@ -274,6 +292,7 @@ static CVReturn displayLinkCallback(CVDisplayLinkRef displayLink,
   
   projectm_playlist_play_previous(_playlistHandle, hardCut);
   _lastPresetChange = [NSDate date];
+  _blackFrameCount = 0;
   
   CGLUnlockContext(cglContext);
 }
@@ -319,42 +338,84 @@ static CVReturn displayLinkCallback(CVDisplayLinkRef displayLink,
   }
 }
 
-#pragma mark - Presets Blacklist
+#pragma mark - Black Screen Skipping
 
-- (void)addToBlacklist:(NSString *)presetPath {
-  NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-  NSMutableArray *blacklist = [[defaults arrayForKey:UserDefaultsBlacklistKey] mutableCopy];
-  if (!blacklist) {
-    blacklist = [NSMutableArray array];
+- (void)checkForBlackScreen {
+  if (_lastPresetChange && [[NSDate date] timeIntervalSinceDate:_lastPresetChange] < kSecondsUntilPresetIsProblematic) {
+    return;
   }
   
-  if (![blacklist containsObject:presetPath]) {
-    [blacklist addObject:presetPath];
-    [defaults setObject:blacklist forKey:UserDefaultsBlacklistKey];
-    NSLog(@"ProjectMView: Added problematic preset to blacklist: %@", presetPath);
+  GLint width = (GLint)_lastSize.width;
+  GLint height = (GLint)_lastSize.height;
+  
+  if (width == 0 || height == 0) {
+    return;
+  }
+  
+  GLint sampleWidth = 100;
+  GLint sampleHeight = 100;
+  GLint x = (width - sampleWidth) / 2;
+  GLint y = (height - sampleHeight) / 2;
+  
+  GLubyte *pixels = (GLubyte *)malloc(sampleWidth * sampleHeight * 4);
+  if (!pixels) return;
+  
+  glReadPixels(x, y, sampleWidth, sampleHeight, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+  
+  NSUInteger blackPixels = 0;
+  NSUInteger totalPixels = sampleWidth * sampleHeight;
+  NSUInteger threshold = 10;
+  
+  for (NSUInteger i = 0; i < totalPixels * 4; i += 4) {
+    GLubyte r = pixels[i];
+    GLubyte g = pixels[i + 1];
+    GLubyte b = pixels[i + 2];
+    
+    if (r < threshold && g < threshold && b < threshold) {
+      blackPixels++;
+    }
+  }
+  
+  free(pixels);
+  
+  float blackPercentage = (float)blackPixels / (float)totalPixels;
+  if (blackPercentage > kBlackScreenMaxPercentage) {
+    _blackFrameCount++;
+    
+    if (_blackFrameCount > kMaxBlackFramesBeforeSkip) {
+      uint32_t currentIndex = [self currentPresetIndex];
+      NSString *presetPath = [self presetPathForIndex:currentIndex];
+      
+      NSLog(@"Black screen detected (%.1f%% black), removing preset: %@",
+                blackPercentage * 100, presetPath ? presetPath : @"unknown");
+      
+      projectm_playlist_remove_preset(_playlistHandle, currentIndex);
+      
+      if (presetPath) {
+        [self.presetsBlacklist addToBlacklist:presetPath];
+      }
+      
+      projectm_playlist_play_next(_playlistHandle, YES);
+      _lastPresetChange = [NSDate date];
+      _blackFrameCount = 0;
+    }
+  } else {
+    _blackFrameCount = 0;
   }
 }
 
-- (void)removeBlacklistedPresetsFromPlaylist {
-  if (!_playlistHandle) {
-    return;
-  }
-  
-  NSArray *blacklist = [[NSUserDefaults standardUserDefaults] arrayForKey:UserDefaultsBlacklistKey];
-  if (!blacklist || blacklist.count == 0) {
-    return;
-  }
+#pragma mark - Private Helpers
 
-  uint32_t size = projectm_playlist_size(_playlistHandle);
-  
-  for (int i = size - 1; i >= 0; i--) {
-    const char *presetPath = projectm_playlist_item(_playlistHandle, i);
-    NSString *presetPathStr = [NSString stringWithUTF8String:presetPath];
-    if (presetPathStr && [blacklist containsObject:presetPathStr]) {
-      projectm_playlist_remove_preset(_playlistHandle, i);
-      NSLog(@"ProjectMView: Removed blacklisted preset from playlist: %@", presetPathStr);
-    }
+- (uint32_t)currentPresetIndex {
+  return projectm_playlist_get_position(_playlistHandle);
+}
+
+- (nullable NSString *)presetPathForIndex:(uint32_t)index {
+  const char *presetPath = projectm_playlist_item(_playlistHandle, index);
+  if (presetPath) {
+    return [NSString stringWithUTF8String:presetPath];
   }
+  return nil;
 }
 
 @end
