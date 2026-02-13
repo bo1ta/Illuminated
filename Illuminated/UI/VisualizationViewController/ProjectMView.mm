@@ -170,12 +170,24 @@ static CVReturn displayLinkCallback(CVDisplayLinkRef displayLink,
 
 - (void)playNextPresetWithHardCut:(BOOL)hardCut {
   if (!_playlistHandle) return;
+  
+  CGLContextObj cglContext = [[self openGLContext] CGLContextObj];
+  CGLLockContext(cglContext);
+  
   projectm_playlist_play_next(_playlistHandle, hardCut);
+  
+  CGLUnlockContext(cglContext);
 }
 
 - (void)playPreviousPresetWithHardCut:(BOOL)hardCut {
   if (!_playlistHandle) return;
+  
+  CGLContextObj cglContext = [[self openGLContext] CGLContextObj];
+  CGLLockContext(cglContext);
+  
   projectm_playlist_play_previous(_playlistHandle, hardCut);
+  
+  CGLUnlockContext(cglContext);
 }
 
 - (void)playLastPresetWithHardCut:(BOOL)hardCut {

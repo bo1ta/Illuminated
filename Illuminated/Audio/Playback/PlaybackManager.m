@@ -82,7 +82,7 @@ static const NSTimeInterval kProgressTimerInterval = 0.5;
 
 - (void)dealloc {
   [self.engine.mainMixerNode removeTapOnBus:0];
-  
+
   if (self.activeSecurityScopedURL) {
     [self.activeSecurityScopedURL stopAccessingSecurityScopedResource];
     self.activeSecurityScopedURL = nil;
@@ -247,7 +247,6 @@ static const NSTimeInterval kProgressTimerInterval = 0.5;
 
   self.seekOffset = timeInterval;
 
-  // Notify KVO that currentTime changed abruptly
   [self willChangeValueForKey:@"currentTime"];
   [self didChangeValueForKey:@"currentTime"];
 

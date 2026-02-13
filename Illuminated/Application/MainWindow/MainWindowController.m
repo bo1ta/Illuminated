@@ -44,12 +44,6 @@ NSString *const ToolbarSearchUserInfo = @"ToolbarSearch";
   sidebarItem.maximumThickness = 320;
   [self.splitViewController addSplitViewItem:sidebarItem];
 
-  //  self.musicViewController = [[MusicViewController alloc] initWithNibName:@"MusicViewController" bundle:nil];
-  //
-  //  NSSplitViewItem *contentItem = [NSSplitViewItem splitViewItemWithViewController:self.musicViewController];
-  //  contentItem.minimumThickness = 400;
-  //  [self.splitViewController addSplitViewItem:contentItem];
-
   ContentTabViewController *contentTabVC = [[ContentTabViewController alloc] init];
   NSSplitViewItem *contentItem = [NSSplitViewItem splitViewItemWithViewController:contentTabVC];
   contentItem.minimumThickness = 400;
@@ -57,43 +51,35 @@ NSString *const ToolbarSearchUserInfo = @"ToolbarSearch";
 
   self.contentTabViewController = contentTabVC;
 
-  // Force split view to load its view
   [self.splitViewController loadView];
   [self.splitViewController viewDidLoad];
 
-  // Create container view controller
   NSViewController *containerVC = [[NSViewController alloc] init];
   containerVC.view = [[NSView alloc] initWithFrame:self.window.contentView.bounds];
   containerVC.view.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable; // Ensure it resizes
 
-  // Add split view to container
   [containerVC addChildViewController:self.splitViewController];
   [containerVC.view addSubview:self.splitViewController.view];
 
-  // Create and add player bar
   self.playerBarViewController = [[PlayerBarViewController alloc] init];
   [containerVC addChildViewController:self.playerBarViewController];
   [containerVC.view addSubview:self.playerBarViewController.view];
 
-  // Setup Auto Layout
   self.splitViewController.view.translatesAutoresizingMaskIntoConstraints = NO;
   self.playerBarViewController.view.translatesAutoresizingMaskIntoConstraints = NO;
 
   [NSLayoutConstraint activateConstraints:@[
-    // Split view - top to player bar
     [self.splitViewController.view.topAnchor constraintEqualToAnchor:containerVC.view.topAnchor],
     [self.splitViewController.view.leadingAnchor constraintEqualToAnchor:containerVC.view.leadingAnchor],
     [self.splitViewController.view.trailingAnchor constraintEqualToAnchor:containerVC.view.trailingAnchor],
     [self.splitViewController.view.bottomAnchor constraintEqualToAnchor:self.playerBarViewController.view.topAnchor],
 
-    // Player bar - bottom, fixed height
     [self.playerBarViewController.view.leadingAnchor constraintEqualToAnchor:containerVC.view.leadingAnchor],
     [self.playerBarViewController.view.trailingAnchor constraintEqualToAnchor:containerVC.view.trailingAnchor],
     [self.playerBarViewController.view.bottomAnchor constraintEqualToAnchor:containerVC.view.bottomAnchor],
     [self.playerBarViewController.view.heightAnchor constraintEqualToConstant:130]
   ]];
 
-  // Set container as window content
   self.window.contentViewController = containerVC;
 }
 
@@ -145,9 +131,8 @@ NSString *const ToolbarSearchUserInfo = @"ToolbarSearch";
     self.tabSegmentedControl.target = self;
     self.tabSegmentedControl.action = @selector(tabSegmentChanged:);
 
-    // Optional: make it look nicer
     self.tabSegmentedControl.segmentDistribution = NSSegmentDistributionFit;
-    // self.tabSegmentedControl.segmentStyle = NSSegmentStyleRounded; // macOS 14+
+    self.tabSegmentedControl.segmentStyle = NSSegmentStyleRounded;
 
     item.view = self.tabSegmentedControl;
     item.label = @"View Mode";
@@ -161,8 +146,10 @@ NSString *const ToolbarSearchUserInfo = @"ToolbarSearch";
 - (void)tabSegmentChanged:(NSSegmentedControl *)sender {
   NSInteger index = sender.selectedSegment;
   if (index == 0) {
+    [self.searchField setHidden:NO];
     [self.contentTabViewController switchToMusic];
   } else {
+    [self.searchField setHidden:YES];
     [self.contentTabViewController switchToVizualizer];
   }
 

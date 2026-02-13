@@ -11,8 +11,10 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface MusicViewController
-    : NSViewController<NSTableViewDataSource, NSTableViewDelegate, NSFetchedResultsControllerDelegate, NSMenuItemValidation>
+@interface MusicViewController : NSViewController<NSTableViewDataSource,
+                                                  NSTableViewDelegate,
+                                                  NSFetchedResultsControllerDelegate,
+                                                  NSMenuItemValidation>
 
 @property(weak) IBOutlet NSTableView *tableView;
 
