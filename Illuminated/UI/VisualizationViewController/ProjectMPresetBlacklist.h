@@ -14,8 +14,6 @@ NS_ASSUME_NONNULL_BEGIN
 
 @property (readonly, nonatomic, strong) NSMutableArray<NSString *> *blacklist;
 
-- (BOOL)isBlacklisted:(NSString *)presetPath;
-
 - (void)addToBlacklist:(NSString *)presetPath;
 
 - (void)filterPlaylist:(projectm_playlist_handle)playlistHandle;

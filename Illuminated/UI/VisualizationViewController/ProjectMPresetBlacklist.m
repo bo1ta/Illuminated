@@ -24,13 +24,13 @@ NSString *const UserDefaultsBlacklistKey = @"BlacklistedPresets";
   return self;
 }
 
+- (NSUserDefaults *)userDefaults {
+  return [NSUserDefaults standardUserDefaults];
+}
+
 - (void)loadBlacklist {
   NSArray *saved = [[self userDefaults] arrayForKey:UserDefaultsBlacklistKey];
   _blacklist = saved ? [saved mutableCopy] : [NSMutableArray array];
-}
-
-- (NSUserDefaults *)userDefaults {
-  return [NSUserDefaults standardUserDefaults];
 }
 
 - (BOOL)isBlacklisted:(NSString *)presetPath {

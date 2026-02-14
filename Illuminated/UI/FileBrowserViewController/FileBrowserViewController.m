@@ -72,7 +72,7 @@
   panel.prompt = @"Select";
 
   NSWindow *window = self.view.window;
-  if (!window) return; // safety
+  if (!window) return;
 
   [panel beginSheetModalForWindow:window
                 completionHandler:^(NSModalResponse returnCode) {

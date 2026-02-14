@@ -17,6 +17,7 @@
 #import "Track.h"
 #import "TrackDataStore.h"
 #import "TrackService.h"
+#import "RadioBrowserClient.h"
 
 #pragma mark - Constants
 
@@ -36,6 +37,8 @@ static MusicColumn const MusicColumnTime = @"TimeColumn";
 @property(nonatomic, strong, nullable) Album *currentAlbum;
 @property(nonatomic, strong, nullable) Track *currentTrack;
 
+@property(nonatomic, strong) RadioBrowserClient *radioClient;
+
 @end
 
 #pragma mark - Implementation
@@ -46,6 +49,8 @@ static MusicColumn const MusicColumnTime = @"TimeColumn";
 
 - (void)viewDidLoad {
   [super viewDidLoad];
+  
+  _radioClient = [[RadioBrowserClient alloc] init];
 
   self.tableView.dataSource = self;
   self.tableView.delegate = self;
@@ -60,6 +65,18 @@ static MusicColumn const MusicColumnTime = @"TimeColumn";
 
   [self setupFetchedResultsController];
   [self setupNotifications];
+  [self loadRadioStations];
+}
+
+- (void)loadRadioStations {
+  [[self.radioClient listAllStations] continueWithBlock:^id(BFTask<NSArray<RadioStation *> *> *task) {
+    if (task.error) {
+      NSLog(@"Error loading radio stations: %@", task.error);
+    } else {
+      NSLog(@"Loaded radio stations: %@", task.result);
+    }
+    return nil;
+  }];
 }
 
 - (void)dealloc {

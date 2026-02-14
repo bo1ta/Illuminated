@@ -30,13 +30,13 @@ static const NSUInteger kMaxBlackFramesBeforeSkip = 60;
   CVDisplayLinkRef _displayLink;
 }
 
-@property (nonatomic, assign) NSSize lastSize;
-@property (nonatomic, strong) NSDate *lastPresetChange;
-@property (nonatomic, strong) NSTimer *cpuMonitorTimer;
-@property (nonatomic, assign) NSUInteger highCPUFrames;
-@property (nonatomic, assign) NSUInteger blackFrameCount;
+@property(nonatomic, assign) NSSize lastSize;
+@property(nonatomic, strong) NSDate *lastPresetChange;
+@property(nonatomic, strong) NSTimer *cpuMonitorTimer;
+@property(nonatomic, assign) NSUInteger highCPUFrames;
+@property(nonatomic, assign) NSUInteger blackFrameCount;
 
-@property (nonatomic, strong) ProjectMPresetBlacklist *presetsBlacklist;
+@property(nonatomic, strong) ProjectMPresetBlacklist *presetsBlacklist;
 
 @end
 
@@ -173,7 +173,7 @@ static CVReturn displayLinkCallback(CVDisplayLinkRef displayLink,
 }
 
 - (void)checkCPUUsage:(id)sender {
-  if (_lastPresetChange && [[NSDate date] timeIntervalSinceDate:_lastPresetChange] < 3.0) {
+  if (![self shouldCheckPresetHealth]) {
     return;
   }
   
@@ -341,7 +341,7 @@ static CVReturn displayLinkCallback(CVDisplayLinkRef displayLink,
 #pragma mark - Black Screen Skipping
 
 - (void)checkForBlackScreen {
-  if (_lastPresetChange && [[NSDate date] timeIntervalSinceDate:_lastPresetChange] < kSecondsUntilPresetIsProblematic) {
+  if (![self shouldCheckPresetHealth]) {
     return;
   }
   
@@ -405,6 +405,10 @@ static CVReturn displayLinkCallback(CVDisplayLinkRef displayLink,
 }
 
 #pragma mark - Private Helpers
+
+- (BOOL)shouldCheckPresetHealth {
+  return [[NSDate date] timeIntervalSinceDate:_lastPresetChange] > kSecondsUntilPresetIsProblematic;
+}
 
 - (uint32_t)currentPresetIndex {
   return projectm_playlist_get_position(_playlistHandle);
