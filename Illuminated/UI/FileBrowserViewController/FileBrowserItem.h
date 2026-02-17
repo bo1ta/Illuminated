@@ -16,12 +16,14 @@ NS_ASSUME_NONNULL_BEGIN
 @property(nonatomic, copy, readonly, nullable) NSString *typeIdentifier;
 @property(nonatomic, assign, readonly, getter=isDirectory) BOOL directory;
 @property(nonatomic, strong, readonly) NSImage *icon;
+@property(nonatomic, strong, readonly, nullable) NSData *bookmarkData;
 
 - (instancetype)initWithURL:(NSURL *)url
                 displayName:(NSString *)displayName
                   directory:(BOOL)isDirectory
              typeIdentifier:(nullable NSString *)typeIdentifier
-                       icon:(NSImage *)icon NS_DESIGNATED_INITIALIZER;
+                       icon:(NSImage *)icon
+               bookmarkData:(nullable NSData *)bookmarkData NS_DESIGNATED_INITIALIZER;
 
 - (instancetype)init NS_UNAVAILABLE;
 + (instancetype)new NS_UNAVAILABLE;

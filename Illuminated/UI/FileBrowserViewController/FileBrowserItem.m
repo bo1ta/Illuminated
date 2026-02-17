@@ -14,6 +14,7 @@
 @property(nonatomic, copy, readwrite) NSString *typeIdentifier;
 @property(nonatomic, assign, readwrite, getter=isDirectory) BOOL directory;
 @property(nonatomic, strong, readwrite) NSImage *icon;
+@property(nonatomic, strong, readwrite, nullable) NSData *bookmarkData;
 
 @end
 
@@ -23,7 +24,8 @@
                 displayName:(NSString *)displayName
                   directory:(BOOL)isDirectory
              typeIdentifier:(NSString *)typeIdentifier
-                       icon:(NSImage *)icon {
+                       icon:(NSImage *)icon
+               bookmarkData:(NSData *)bookmarkData {
   self = [super init];
   if (self) {
     _url = url;
@@ -31,6 +33,7 @@
     _directory = isDirectory;
     _typeIdentifier = [typeIdentifier copy];
     _icon = icon;
+    _bookmarkData = bookmarkData;
   }
   return self;
 }

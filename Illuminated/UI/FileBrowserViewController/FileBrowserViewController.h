@@ -13,4 +13,6 @@ NS_ASSUME_NONNULL_BEGIN
 
 @end
 
+extern NSString *const PasteboardItemTypeTrackImport;
+
 NS_ASSUME_NONNULL_END

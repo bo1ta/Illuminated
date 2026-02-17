@@ -1,5 +1,5 @@
 //
-//  RadioStation.h
+//  RBStation.h
 //  Illuminated
 //
 //  Created by Alexandru Solomon on 14.02.2026.
@@ -9,7 +9,7 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface RadioStation : NSObject
+@interface RBStation : NSObject
 
 @property(nonatomic, copy) NSUUID *stationUUID;
 @property(nonatomic, copy, nullable) NSUUID *serverUUID;

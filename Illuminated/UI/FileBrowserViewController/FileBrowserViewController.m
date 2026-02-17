@@ -15,13 +15,14 @@
 #import "Track.h"
 #import "TrackService.h"
 
+NSString *const PasteboardItemTypeTrackImport = @"com.illuminated.track.import";
+
 @interface FileBrowserViewController ()
 
 @property(nonatomic, strong) FileBrowserService *browserService;
-@property(nonatomic, strong) NSArray<FileBrowserItem *> *items;
-@property(nonatomic, strong) NSURL *currentDirectoryURL;
+@property(nonatomic, strong) NSArray<FileBrowserItem *> *rootItems;
+@property(nonatomic, strong) NSMutableDictionary<NSValue *, NSArray<FileBrowserItem *> *> *loadedItems;
 @property(weak) IBOutlet NSOutlineView *outlineView;
-@property(nonatomic, strong) NSData *currentBookmarkData;
 
 @end
 
@@ -29,144 +30,136 @@
 
 - (void)viewDidLoad {
   [super viewDidLoad];
-
+  
+  self.loadedItems = [NSMutableDictionary dictionary];
+  
   self.outlineView.dataSource = self;
   self.outlineView.delegate = self;
   self.outlineView.target = self;
   self.outlineView.doubleAction = @selector(outlineViewDoubleClicked:);
   self.outlineView.rowHeight = 24.0;
+  
+  [self.outlineView setDraggingSourceOperationMask:NSDragOperationCopy forLocal:YES];
 }
 
 - (void)viewDidAppear {
   [super viewDidAppear];
-
-  [self loadMusicFolder];
+  
+  [self loadRootLocations];
 }
 
 #pragma mark - Data Loading
 
-- (void)loadMusicFolder {
-  NSData *bookmarkData = [BookmarkResolver bookmarkForMusicFolder];
-  if (bookmarkData) {
-    NSError *error = nil;
-    NSURL *url = [BookmarkResolver resolveAndAccessBookmarkData:bookmarkData error:&error];
-    if (error) {
-      NSLog(@"Error resolving music folder: %@", error);
-    } else {
-      self.currentDirectoryURL = url;
-      self.currentBookmarkData = bookmarkData;
-
-      [self reloadFromBookmarkedFolder];
+- (void)addLocationURL:(NSURL *)url {
+  [[self.browserService createFileBrowserItemWithURL:url]
+   continueOnMainThreadWithBlock:^id(BFTask<FileBrowserItem *> *task) {
+    if (task.error) {
+      [self presentError:task.error];
+      return nil;
     }
-  } else {
-    [self chooseMusicFolder];
-  }
+    
+    [self loadRootLocations];
+    return nil;
+  }];
 }
 
-- (void)chooseMusicFolder {
+- (void)loadRootLocations {
+  [[self.browserService allFileBrowserItems]
+   continueOnMainThreadWithBlock:^id(BFTask<NSArray<FileBrowserItem *> *> *task) {
+    if (task.error) {
+      [self presentError:task.error];
+      return nil;
+    }
+    
+    self.rootItems = task.result;
+    [self.outlineView reloadData];
+    return nil;
+  }];
+}
+
+- (void)reloadDirectory:(NSURL *)directoryURL bookmarkData:(NSData *)bookmarkData forItem:(FileBrowserItem *)item {
+  NSURL *securityScopedURL = nil;
+  if (bookmarkData) {
+    NSError *error = nil;
+    securityScopedURL = [BookmarkResolver resolveAndAccessBookmarkData:bookmarkData error:&error];
+    if (error) {
+      NSLog(@"Error resolving bookmark: %@", error);
+    }
+  }
+  
+  BOOL hasScope = [securityScopedURL startAccessingSecurityScopedResource];
+  
+  __weak typeof(self) weakSelf = self;
+  
+  [[self.browserService contentsOfDirectory:directoryURL bookmarkData:bookmarkData]
+   continueOnMainThreadWithBlock:^id(BFTask<NSArray<FileBrowserItem *> *> *task) {
+    __strong typeof(weakSelf) strongSelf = weakSelf;
+    
+    if (task.error) {
+      [strongSelf presentError:task.error];
+      if (hasScope) {
+        [securityScopedURL stopAccessingSecurityScopedResource];
+      }
+      return nil;
+    }
+    
+    strongSelf.loadedItems[[NSValue valueWithNonretainedObject:item]] = task.result;
+    [strongSelf.outlineView reloadItem:item reloadChildren:YES];
+    [strongSelf.outlineView expandItem:item];
+    
+    if (hasScope) {
+      [securityScopedURL stopAccessingSecurityScopedResource];
+    }
+    return nil;
+  }];
+}
+
+#pragma mark - Actions
+
+- (IBAction)addFolderAction:(id)sender {
   NSOpenPanel *panel = [NSOpenPanel openPanel];
   panel.canChooseFiles = NO;
   panel.canChooseDirectories = YES;
   panel.allowsMultipleSelection = NO;
-  panel.message = @"Select your music folder";
-  panel.prompt = @"Select";
-
+  panel.message = @"Select a music folder to add";
+  panel.prompt = @"Add";
+  
   NSWindow *window = self.view.window;
   if (!window) return;
-
+  
   [panel beginSheetModalForWindow:window
                 completionHandler:^(NSModalResponse returnCode) {
-                  if (returnCode == NSModalResponseOK) {
-                    NSURL *selectedURL = panel.URLs.firstObject;
-                    if (selectedURL) {
-                      NSError *error = nil;
-                      NSData *bookmarkData = [BookmarkResolver storeMusicFolderBookmarkForURL:selectedURL error:&error];
-                      if (bookmarkData) {
-                        self.currentBookmarkData = bookmarkData;
-                        [self reloadFromBookmarkedFolder];
-                      } else {
-                        [self presentError:error];
-                      }
-                    }
-                  }
-                }];
+    if (returnCode == NSModalResponseOK) {
+      NSURL *selectedURL = panel.URLs.firstObject;
+      if (selectedURL) {
+        [self addLocationURL:selectedURL];
+      }
+    }
+  }];
 }
-
-- (void)reloadFromBookmarkedFolder {
-  NSURL *scopedURL = [BookmarkResolver resolveMusicFolder];
-  if (!scopedURL) {
-    return;
-  }
-
-  [self reloadDirectory:scopedURL];
-}
-
-- (void)reloadDirectory:(NSURL *)directoryURL {
-  BOOL hasScope = [directoryURL startAccessingSecurityScopedResource];
-
-  __weak typeof(self) weakSelf = self;
-
-  [[self.browserService contentsOfDirectory:directoryURL]
-      continueOnMainThreadWithBlock:^id(BFTask<NSArray<FileBrowserItem *> *> *task) {
-        __strong typeof(weakSelf) strongSelf = weakSelf;
-
-        if (task.error) {
-          [strongSelf presentError:task.error];
-          if (hasScope) {
-            [directoryURL stopAccessingSecurityScopedResource];
-          }
-          return nil;
-        }
-
-        strongSelf.currentDirectoryURL = directoryURL;
-
-        NSMutableArray<FileBrowserItem *> *items = [NSMutableArray array];
-        NSURL *parentURL = [directoryURL URLByDeletingLastPathComponent];
-        if (parentURL && ![parentURL isEqual:directoryURL]) {
-          NSImage *folderIcon = [NSImage imageNamed:NSImageNameFolder];
-          FileBrowserItem *parentItem = [[FileBrowserItem alloc] initWithURL:parentURL
-                                                                 displayName:@".."
-                                                                   directory:YES
-                                                              typeIdentifier:nil
-                                                                        icon:folderIcon];
-          [items addObject:parentItem];
-        }
-
-        if (task.result.count > 0) {
-          [items addObjectsFromArray:task.result];
-        }
-
-        strongSelf.items = items;
-        [strongSelf.outlineView reloadData];
-        [strongSelf.outlineView expandItem:nil expandChildren:YES];
-        if (hasScope) {
-          [directoryURL stopAccessingSecurityScopedResource];
-        }
-        return nil;
-      }];
-}
-
-#pragma mark - Actions
 
 - (void)outlineViewDoubleClicked:(id)sender {
   NSInteger row = self.outlineView.clickedRow;
   if (row == -1) {
     row = self.outlineView.selectedRow;
   }
-  if (row < 0 || row >= self.items.count) return;
-
+  if (row < 0) return;
+  
   FileBrowserItem *item = [self.outlineView itemAtRow:row];
   if (item.isDirectory) {
-    [self reloadDirectory:item.url];
+    if ([self.outlineView isItemExpanded:item]) {
+      [self.outlineView collapseItem:item];
+    } else {
+      [self reloadDirectory:item.url bookmarkData:item.bookmarkData forItem:item];
+    }
   } else {
-    [self previewTrackForURL:item.url];
+    [self previewTrackForItem:item];
   }
 }
 
-- (void)previewTrackForURL:(NSURL *)url {
-  NSURL *scopedURL = [self.currentDirectoryURL URLByAppendingPathComponent:url.lastPathComponent];
-  [[TrackService findOrInsertByURL:scopedURL
-                      bookmarkData:self.currentBookmarkData] continueWithSuccessBlock:^id(BFTask<Track *> *task) {
+- (void)previewTrackForItem:(FileBrowserItem *)item {
+  [[TrackService findOrInsertByURL:item.url
+                      bookmarkData:item.bookmarkData] continueOnMainThreadWithBlock:^id(BFTask<Track *> *task) {
     Track *track = task.result;
     [[PlaybackManager sharedManager] playTrack:track];
     return nil;
@@ -175,61 +168,77 @@
 
 #pragma mark - NSOutlineViewDataSource
 
+- (id<NSPasteboardWriting>)outlineView:(NSOutlineView *)outlineView
+               pasteboardWriterForItem:(id)item {
+  FileBrowserItem *browserItem = (FileBrowserItem *)item;
+  
+  NSPasteboardItem *pasteboardItem = [[NSPasteboardItem alloc] init];
+  [pasteboardItem setString:browserItem.url.absoluteString forType:PasteboardItemTypeTrackImport];
+  return pasteboardItem;
+}
+
 - (NSInteger)outlineView:(NSOutlineView *)outlineView numberOfChildrenOfItem:(id)item {
   if (item == nil) {
-    return self.items.count;
+    return self.rootItems.count;
   }
-  return 0;
+  
+  NSValue *key = [NSValue valueWithNonretainedObject:item];
+  return self.loadedItems[key].count;
 }
 
 - (id)outlineView:(NSOutlineView *)outlineView child:(NSInteger)index ofItem:(id)item {
   if (item == nil) {
-    return self.items[index];
+    return self.rootItems[index];
   }
-  return nil;
+  
+  NSValue *key = [NSValue valueWithNonretainedObject:item];
+  return self.loadedItems[key][index];
 }
 
 - (BOOL)outlineView:(NSOutlineView *)outlineView isItemExpandable:(id)item {
-  return NO;
+  FileBrowserItem *browserItem = (FileBrowserItem *)item;
+  return browserItem.isDirectory;
 }
 
 #pragma mark - NSOutlineViewDelegate
 
-- (NSView *)outlineView:(NSOutlineView *)outlineView viewForTableColumn:(NSTableColumn *)tableColumn item:(id)item {
+- (NSView *)outlineView:(NSOutlineView *)outlineView
+     viewForTableColumn:(NSTableColumn *)tableColumn
+                   item:(id)item {
   FileBrowserItem *browserItem = (FileBrowserItem *)item;
-
+  
   NSTableCellView *cellView = [outlineView makeViewWithIdentifier:@"FileCell" owner:self];
   if (cellView == nil) {
     cellView = [[NSTableCellView alloc] initWithFrame:NSMakeRect(0, 0, tableColumn.width, self.outlineView.rowHeight)];
     cellView.identifier = @"FileCell";
-
+    
     NSImageView *imageView = [[NSImageView alloc] initWithFrame:NSMakeRect(0, 0, 16, 16)];
     imageView.translatesAutoresizingMaskIntoConstraints = NO;
     imageView.imageScaling = NSImageScaleProportionallyDown;
     cellView.imageView = imageView;
     [cellView addSubview:imageView];
-
+    
     NSTextField *textField = [NSTextField labelWithString:@""];
     textField.translatesAutoresizingMaskIntoConstraints = NO;
     textField.lineBreakMode = NSLineBreakByTruncatingMiddle;
     cellView.textField = textField;
     [cellView addSubview:textField];
-
+    
     [NSLayoutConstraint activateConstraints:@[
       [imageView.leadingAnchor constraintEqualToAnchor:cellView.leadingAnchor constant:6],
       [imageView.centerYAnchor constraintEqualToAnchor:cellView.centerYAnchor],
       [imageView.widthAnchor constraintEqualToConstant:16],
       [imageView.heightAnchor constraintEqualToConstant:16],
-
+      
       [textField.leadingAnchor constraintEqualToAnchor:imageView.trailingAnchor constant:6],
       [textField.trailingAnchor constraintEqualToAnchor:cellView.trailingAnchor constant:-6],
       [textField.centerYAnchor constraintEqualToAnchor:cellView.centerYAnchor]
     ]];
   }
-
+  
   cellView.textField.stringValue = browserItem.displayName;
   cellView.imageView.image = browserItem.icon;
-
+  
   return cellView;
 }
 
@@ -237,17 +246,42 @@
   return YES;
 }
 
-#pragma mark - Lazy properties
+- (BOOL)outlineView:(NSOutlineView *)outlineView shouldExpandItem:(id)item {
+  FileBrowserItem *browserItem = (FileBrowserItem *)item;
+  NSValue *key = [NSValue valueWithNonretainedObject:browserItem];
+  
+  if (self.loadedItems[key] == nil) {
+    [self reloadDirectory:browserItem.url bookmarkData:browserItem.bookmarkData forItem:browserItem];
+    return NO;
+  }
+  
+  return YES;
+}
+
+- (void)outlineViewItemDidCollapse:(NSNotification *)notification {
+  FileBrowserItem *item = notification.userInfo[@"NSObject"];
+  [self unloadItemsForItem:item];
+}
+
+#pragma mark - Private Helpers
+
+- (void)unloadItemsForItem:(FileBrowserItem *)item {
+  NSValue *key = [NSValue valueWithNonretainedObject:item];
+  NSArray<FileBrowserItem *> *children = self.loadedItems[key];
+  
+  if (children) {
+    for (FileBrowserItem *child in children) {
+      [self unloadItemsForItem:child];
+    }
+    [self.loadedItems removeObjectForKey:key];
+  }
+}
 
 - (FileBrowserService *)browserService {
   if (_browserService == nil) {
     _browserService = [[FileBrowserService alloc] init];
   }
   return _browserService;
-}
-
-- (NSURL *)userHomeDirectoryURL {
-  return [NSFileManager defaultManager].homeDirectoryForCurrentUser;
 }
 
 @end

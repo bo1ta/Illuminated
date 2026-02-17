@@ -32,7 +32,7 @@
                                 <color key="gridColor" name="gridColor" catalog="System" colorSpace="catalog"/>
                                 <tableColumns>
                                     <tableColumn identifier="AutomaticTableColumnIdentifier.0" width="219" minWidth="40" maxWidth="1000" id="jVh-tv-7Vy">
-                                        <tableHeaderCell key="headerCell" lineBreakMode="truncatingTail" borderStyle="border">
+                                        <tableHeaderCell key="headerCell" lineBreakMode="truncatingTail" borderStyle="border" title="SELECTED FOLDERS">
                                             <color key="textColor" name="headerTextColor" catalog="System" colorSpace="catalog"/>
                                             <color key="backgroundColor" name="headerColor" catalog="System" colorSpace="catalog"/>
                                         </tableHeaderCell>
@@ -80,14 +80,33 @@
                         <autoresizingMask key="autoresizingMask"/>
                     </tableHeaderView>
                 </scrollView>
+                <button translatesAutoresizingMaskIntoConstraints="NO" id="lMN-Nv-Hq4">
+                    <rect key="frame" x="209" y="314" width="20" height="32"/>
+                    <buttonCell key="cell" type="square" bezelStyle="shadowlessSquare" image="NSAddTemplate" imagePosition="only" alignment="center" imageScaling="proportionallyUpOrDown" inset="2" id="9fF-qm-STm">
+                        <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                        <font key="font" metaFont="system" size="48"/>
+                    </buttonCell>
+                    <constraints>
+                        <constraint firstAttribute="width" constant="20" id="CfS-dY-M2Z"/>
+                        <constraint firstAttribute="height" constant="20" id="emx-lw-S4D"/>
+                    </constraints>
+                    <connections>
+                        <action selector="addFolderAction:" target="-2" id="O52-hd-rSl"/>
+                    </connections>
+                </button>
             </subviews>
             <constraints>
                 <constraint firstItem="Coe-qu-Kfo" firstAttribute="leading" secondItem="c22-O7-iKe" secondAttribute="leading" id="2ZD-gG-uwf"/>
                 <constraint firstItem="Coe-qu-Kfo" firstAttribute="top" secondItem="c22-O7-iKe" secondAttribute="top" id="Sif-Dt-o2V"/>
+                <constraint firstAttribute="trailing" secondItem="lMN-Nv-Hq4" secondAttribute="trailing" constant="6" id="sgu-Lj-a7I"/>
                 <constraint firstAttribute="trailing" secondItem="Coe-qu-Kfo" secondAttribute="trailing" id="slJ-yc-jZF"/>
+                <constraint firstItem="lMN-Nv-Hq4" firstAttribute="top" secondItem="c22-O7-iKe" secondAttribute="top" constant="5" id="wyH-0A-FEM"/>
                 <constraint firstAttribute="bottom" secondItem="Coe-qu-Kfo" secondAttribute="bottom" id="xxd-qb-Lqf"/>
             </constraints>
             <point key="canvasLocation" x="-106.5" y="172.5"/>
         </customView>
     </objects>
+    <resources>
+        <image name="NSAddTemplate" width="18" height="17"/>
+    </resources>
 </document>

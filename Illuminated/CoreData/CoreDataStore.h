@@ -20,6 +20,7 @@ static EntityName const EntityNameAlbum = @"Album";
 static EntityName const EntityNameArtist = @"Artist";
 static EntityName const EntityNameTrack = @"Track";
 static EntityName const EntityNamePlaylist = @"Playlist";
+static EntityName const EntityNameFileBrowserLocation = @"FileBrowserLocation";
 
 #pragma mark - CoreDataStore Interface
 

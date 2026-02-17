@@ -1,14 +1,14 @@
 //
-//  RadioStation.m
+//  RBStation.m
 //  Illuminated
 //
 //  Created by Alexandru Solomon on 14.02.2026.
 //
 
 #import <Foundation/Foundation.h>
-#import "RadioStation.h"
+#import "RBStation.h"
 
-@implementation RadioStation
+@implementation RBStation
 
 - (instancetype)initWithDictionary:(NSDictionary *)dictionary {
   self = [super self];
