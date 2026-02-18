@@ -12,7 +12,7 @@
 #import "Playlist.h"
 #import "PlaylistDataStore.h"
 #import "SidebarCellFactory.h"
-#import "SidebarItem.h"
+#import "PlaylistSidebarItem.h"
 #import "TrackDataStore.h"
 
 #pragma mark - Constants
@@ -27,7 +27,7 @@ NSString *const PasteboardItemTypeTrack = @"com.illuminated.track";
 @property(nonatomic, strong) NSFetchedResultsController *playlistFetchedResultsController;
 @property(nonatomic, strong) NSFetchedResultsController *albumFetchedResultsController;
 @property(nonatomic, strong) NSArray<Playlist *> *playlists;
-@property(nonatomic, strong) NSMutableArray<SidebarItem *> *sidebarItems;
+@property(nonatomic, strong) NSMutableArray<PlaylistSidebarItem *> *sidebarItems;
 @property(nonatomic, strong) id selectedRepresentedObject;
 
 @end
@@ -138,7 +138,7 @@ NSString *const PasteboardItemTypeTrack = @"com.illuminated.track";
   NSMutableArray *items = [NSMutableArray array];
 
   /// All section
-  SidebarItem *allMusicItem = [SidebarItem itemWithTitle:@"All Music" iconName:@"music.note"];
+  PlaylistSidebarItem *allMusicItem = [PlaylistSidebarItem itemWithTitle:@"All Music" iconName:@"music.note"];
   allMusicItem.representedObject = [NSNull null];
   [items addObject:allMusicItem];
 
@@ -149,12 +149,12 @@ NSString *const PasteboardItemTypeTrack = @"com.illuminated.track";
 
     for (Playlist *playlist in playlists) {
       NSString *iconName = playlist.iconName ?: @"music.note.list";
-      SidebarItem *playlistItem = [SidebarItem itemWithTitle:playlist.name iconName:iconName];
+      PlaylistSidebarItem *playlistItem = [PlaylistSidebarItem itemWithTitle:playlist.name iconName:iconName];
       playlistItem.representedObject = playlist;
       [playlistItems addObject:playlistItem];
     }
 
-    SidebarItem *playlistsGroup = [SidebarItem groupWithTitle:@"Playlists" children:playlistItems];
+    PlaylistSidebarItem *playlistsGroup = [PlaylistSidebarItem groupWithTitle:@"Playlists" children:playlistItems];
     [items addObject:playlistsGroup];
   }
 
@@ -164,12 +164,12 @@ NSString *const PasteboardItemTypeTrack = @"com.illuminated.track";
     NSMutableArray *albumItems = [NSMutableArray array];
 
     for (Album *album in albums) {
-      SidebarItem *albumItem = [SidebarItem itemWithTitle:album.title iconName:@"square.stack"];
+      PlaylistSidebarItem *albumItem = [PlaylistSidebarItem itemWithTitle:album.title iconName:@"square.stack"];
       albumItem.representedObject = album;
       [albumItems addObject:albumItem];
     }
 
-    SidebarItem *albumsGroup = [SidebarItem groupWithTitle:@"Albums" children:albumItems];
+    PlaylistSidebarItem *albumsGroup = [PlaylistSidebarItem groupWithTitle:@"Albums" children:albumItems];
     [items addObject:albumsGroup];
   }
 
@@ -210,7 +210,7 @@ NSString *const PasteboardItemTypeTrack = @"com.illuminated.track";
     return self.sidebarItems.count;
   }
 
-  SidebarItem *sidebarItem = (SidebarItem *)item;
+  PlaylistSidebarItem *sidebarItem = (PlaylistSidebarItem *)item;
   return sidebarItem.children.count;
 }
 
@@ -219,15 +219,15 @@ NSString *const PasteboardItemTypeTrack = @"com.illuminated.track";
     return self.sidebarItems[index];
   }
 
-  return [(SidebarItem *)item children][index];
+  return [(PlaylistSidebarItem *)item children][index];
 }
 
 - (BOOL)outlineView:(NSOutlineView *)outlineView isItemExpandable:(id)item {
-  return [(SidebarItem *)item children] != nil;
+  return [(PlaylistSidebarItem *)item children] != nil;
 }
 
 - (BOOL)outlineView:(NSOutlineView *)outlineView isGroupItem:(id)item {
-  return [(SidebarItem *)item children] != nil;
+  return [(PlaylistSidebarItem *)item children] != nil;
 }
 
 #pragma mark - Drop Target
@@ -237,7 +237,7 @@ NSString *const PasteboardItemTypeTrack = @"com.illuminated.track";
                   proposedItem:(id)item
             proposedChildIndex:(NSInteger)index {
   if (item != nil && ![self outlineView:outlineView isGroupItem:item]) {
-    SidebarItem *sidebarItem = (SidebarItem *)item;
+    PlaylistSidebarItem *sidebarItem = (PlaylistSidebarItem *)item;
 
     if ([sidebarItem.representedObject isKindOfClass:[Playlist class]]) {
       [outlineView setDropItem:item dropChildIndex:NSOutlineViewDropOnItemIndex];
@@ -252,7 +252,7 @@ NSString *const PasteboardItemTypeTrack = @"com.illuminated.track";
          acceptDrop:(id<NSDraggingInfo>)info
                item:(id)item
          childIndex:(NSInteger)index {
-  SidebarItem *sidebarItem = (SidebarItem *)item;
+  PlaylistSidebarItem *sidebarItem = (PlaylistSidebarItem *)item;
   Playlist *targetPlaylist = (Playlist *)sidebarItem.representedObject;
 
   NSPasteboard *pasteboard = [info draggingPasteboard];
@@ -273,7 +273,7 @@ NSString *const PasteboardItemTypeTrack = @"com.illuminated.track";
 
 - (NSView *)outlineView:(NSOutlineView *)outlineView viewForTableColumn:(NSTableColumn *)tableColumn item:(id)item {
   BOOL isGroupItem = [self outlineView:outlineView isGroupItem:item];
-  SidebarItem *sidebarItem = (SidebarItem *)item;
+  PlaylistSidebarItem *sidebarItem = (PlaylistSidebarItem *)item;
 
   if (isGroupItem) {
     return [SidebarCellFactory headerCellForOutlineView:self.outlineView title:sidebarItem.title];
@@ -285,13 +285,13 @@ NSString *const PasteboardItemTypeTrack = @"com.illuminated.track";
 }
 
 - (BOOL)outlineView:(NSOutlineView *)outlineView shouldShowOutlineCellForItem:(id)item {
-  SidebarItem *sidebarItem = (SidebarItem *)item;
+  PlaylistSidebarItem *sidebarItem = (PlaylistSidebarItem *)item;
   return sidebarItem.children != nil && ![sidebarItem.title isEqualToString:@"Library"];
 }
 
 - (void)outlineViewSelectionDidChange:(NSNotification *)notification {
   NSInteger selectedRow = self.outlineView.selectedRow;
-  SidebarItem *sidebarItem = (SidebarItem *)[self.outlineView itemAtRow:selectedRow];
+  PlaylistSidebarItem *sidebarItem = (PlaylistSidebarItem *)[self.outlineView itemAtRow:selectedRow];
 
   if (![self outlineView:self.outlineView isGroupItem:sidebarItem]) {
     id playlistValue = sidebarItem.representedObject ?: [NSNull null];
@@ -308,7 +308,7 @@ NSString *const PasteboardItemTypeTrack = @"com.illuminated.track";
     return NO;
   }
 
-  SidebarItem *sidebarItem = (SidebarItem *)item;
+  PlaylistSidebarItem *sidebarItem = (PlaylistSidebarItem *)item;
   return [sidebarItem.representedObject isKindOfClass:[Playlist class]];
 }
 
@@ -330,7 +330,7 @@ NSString *const PasteboardItemTypeTrack = @"com.illuminated.track";
     return;
   }
 
-  SidebarItem *sidebarItem = (SidebarItem *)item;
+  PlaylistSidebarItem *sidebarItem = (PlaylistSidebarItem *)item;
   if (![sidebarItem.representedObject isKindOfClass:[Playlist class]]) {
     [super keyDown:event];
     return;
@@ -357,7 +357,7 @@ NSString *const PasteboardItemTypeTrack = @"com.illuminated.track";
     return;
   }
 
-  SidebarItem *item = [self.outlineView itemAtRow:row];
+  PlaylistSidebarItem *item = [self.outlineView itemAtRow:row];
   if (!item || [item.representedObject isKindOfClass:[NSNull class]]) {
     return;
   }

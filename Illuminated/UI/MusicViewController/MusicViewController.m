@@ -9,13 +9,12 @@
 #import "Album.h"
 #import "Artist.h"
 #import "BFExecutor.h"
-#import "FileBrowserViewController.h"
+#import "FilesSidebarViewController.h"
 #import "MainWindowController.h"
 #import "PlaybackManager.h"
 #import "Playlist.h"
 #import "PlaylistDataStore.h"
-#import "RadioBrowserClient.h"
-#import "SidebarViewController.h"
+#import "PlaylistsSidebarViewController.h"
 #import "Track.h"
 #import "TrackDataStore.h"
 #import "TrackService.h"
@@ -40,8 +39,6 @@ NSString *const PasteboardItemTypeTrackImports = @"com.illuminated.track.import"
 @property(nonatomic, strong, nullable) Album *currentAlbum;
 @property(nonatomic, strong, nullable) Track *currentTrack;
 
-@property(nonatomic, strong) RadioBrowserClient *radioClient;
-
 @end
 
 #pragma mark - Implementation
@@ -52,9 +49,7 @@ NSString *const PasteboardItemTypeTrackImports = @"com.illuminated.track.import"
 
 - (void)viewDidLoad {
   [super viewDidLoad];
-  
-  _radioClient = [[RadioBrowserClient alloc] init];
-  
+    
   self.tableView.dataSource = self;
   self.tableView.delegate = self;
   self.tableView.doubleAction = @selector(tableViewClicked:);
@@ -68,17 +63,6 @@ NSString *const PasteboardItemTypeTrackImports = @"com.illuminated.track.import"
   
   [self setupFetchedResultsController];
   [self setupNotifications];
-}
-
-- (void)loadRadioStations {
-  [[self.radioClient listAllStations] continueWithBlock:^id(BFTask<NSArray<RBStation *> *> *task) {
-    if (task.error) {
-      NSLog(@"Error loading radio stations: %@", task.error);
-    } else {
-      NSLog(@"Loaded radio stations: %@", task.result);
-    }
-    return nil;
-  }];
 }
 
 - (void)dealloc {

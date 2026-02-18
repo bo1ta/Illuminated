@@ -7,11 +7,11 @@
 
 #import "MainWindowController.h"
 #import "ContentTabViewController.h"
-#import "FileBrowserViewController.h"
+#import "FilesSidebarViewController.h"
 #import "MusicViewController.h"
 #import "PlayerBarViewController.h"
-#import "SidebarContainerViewController.h"
 #import "SidebarViewController.h"
+#import "PlaylistsSidebarViewController.h"
 
 NSString *const ToolbarSearchDidChangeNotification = @"ToolbarSearchDidChangeNotification";
 NSString *const ToolbarSearchUserInfo = @"ToolbarSearch";
@@ -37,7 +37,7 @@ NSString *const ToolbarSearchUserInfo = @"ToolbarSearch";
 
   self.splitViewController = [[NSSplitViewController alloc] init];
 
-  SidebarContainerViewController *sidebarContainer = [[SidebarContainerViewController alloc] init];
+  SidebarViewController *sidebarContainer = [[SidebarViewController alloc] init];
   NSSplitViewItem *sidebarItem = [NSSplitViewItem sidebarWithViewController:sidebarContainer];
   sidebarItem.canCollapse = YES;
   sidebarItem.minimumThickness = 180;

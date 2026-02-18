@@ -10,7 +10,7 @@
 
 @implementation PlaylistSidebarItem
 
-- (instancetype)initWithType:(SidebarItemType)type
+- (instancetype)initWithType:(PlaylistSidebarItemType)type
                        title:(NSString *)title
                     iconName:(nullable NSString *)iconName
                     children:(nullable NSArray<PlaylistSidebarItem *> *)children {

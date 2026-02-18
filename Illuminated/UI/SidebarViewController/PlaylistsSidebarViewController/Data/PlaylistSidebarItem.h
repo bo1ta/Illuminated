@@ -1,5 +1,5 @@
 //
-//  SidebarItem.h
+//  PlaylistSidebarItem.h
 //  Illuminated
 //
 //  Created by Alexandru Solomon on 20.01.2026.
@@ -9,17 +9,17 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-typedef NS_ENUM(NSInteger, SidebarItemType) { SidebarItemTypeGroup, SidebarItemTypeItem };
+typedef NS_ENUM(NSInteger, PlaylistSidebarItemType) { SidebarItemTypeGroup, SidebarItemTypeItem };
 
 @interface PlaylistSidebarItem : NSObject
 
-@property(nonatomic, assign) SidebarItemType type;
+@property(nonatomic, assign) PlaylistSidebarItemType type;
 @property(nonatomic, copy) NSString *title;
 @property(nonatomic, copy, nullable) NSString *iconName;
 @property(nonatomic, copy, nullable) NSArray<PlaylistSidebarItem *> *children;
 @property(nonatomic, strong) id representedObject;
 
-- (instancetype)initWithType:(SidebarItemType)type
+- (instancetype)initWithType:(PlaylistSidebarItemType)type
                        title:(NSString *)title
                     iconName:(nullable NSString *)iconName
                     children:(nullable NSArray<PlaylistSidebarItem *> *)children;
