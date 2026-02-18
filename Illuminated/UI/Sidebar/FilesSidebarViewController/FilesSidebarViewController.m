@@ -1,11 +1,11 @@
 //
-//  FileBrowserViewController.m
+//  FilesSidebarViewController.m
 //  Illuminated
 //
 //  Created by Alexandru Solomon on 07.02.2026.
 //
 
-#import "FileBrowserViewController.h"
+#import "FilesSidebarViewController.h"
 #import "AppDelegate.h"
 #import "BFTask.h"
 #import "BookmarkResolver.h"
@@ -17,7 +17,7 @@
 
 NSString *const PasteboardItemTypeTrackImport = @"com.illuminated.track.import";
 
-@interface FileBrowserViewController ()
+@interface FilesSidebarViewController ()
 
 @property(nonatomic, strong) FileBrowserService *browserService;
 @property(nonatomic, strong) NSArray<FileBrowserItem *> *rootItems;
@@ -26,7 +26,7 @@ NSString *const PasteboardItemTypeTrackImport = @"com.illuminated.track.import";
 
 @end
 
-@implementation FileBrowserViewController
+@implementation FilesSidebarViewController
 
 - (void)viewDidLoad {
   [super viewDidLoad];
@@ -46,6 +46,56 @@ NSString *const PasteboardItemTypeTrackImport = @"com.illuminated.track.import";
   [super viewDidAppear];
   
   [self loadRootLocations];
+  [self setupHeaderView];
+}
+
+- (void)setupHeaderView {
+  self.outlineView.headerView = nil;
+
+  NSScrollView *scrollView = self.outlineView.enclosingScrollView;
+
+  NSVisualEffectView *headerView = [[NSVisualEffectView alloc] initWithFrame:NSMakeRect(0, 0, 200, 28)];
+  headerView.translatesAutoresizingMaskIntoConstraints = NO;
+  headerView.material = NSVisualEffectMaterialContentBackground;
+  headerView.blendingMode = NSVisualEffectBlendingModeWithinWindow;
+  headerView.state = NSVisualEffectStateFollowsWindowActiveState;
+
+  NSTextField *titleLabel = [NSTextField labelWithString:@"ADD FOLDER"];
+  titleLabel.font = [NSFont systemFontOfSize:11 weight:NSFontWeightSemibold];
+  titleLabel.textColor = [NSColor secondaryLabelColor];
+  titleLabel.translatesAutoresizingMaskIntoConstraints = NO;
+
+  NSButton *addButton = [NSButton buttonWithImage:[NSImage imageWithSystemSymbolName:@"plus"
+                                                            accessibilityDescription:@"Add Playlist"]
+                                           target:self
+                                           action:@selector(addFolderAction:)];
+  addButton.bezelStyle = NSBezelStyleInline;
+  addButton.bordered = NO;
+  addButton.translatesAutoresizingMaskIntoConstraints = NO;
+
+  [headerView addSubview:titleLabel];
+  [headerView addSubview:addButton];
+
+  [self.view addSubview:headerView];
+  scrollView.translatesAutoresizingMaskIntoConstraints = NO;
+
+  [NSLayoutConstraint activateConstraints:@[
+    [headerView.topAnchor constraintEqualToAnchor:self.view.topAnchor],
+    [headerView.leadingAnchor constraintEqualToAnchor:self.view.leadingAnchor],
+    [headerView.trailingAnchor constraintEqualToAnchor:self.view.trailingAnchor],
+    [headerView.heightAnchor constraintEqualToConstant:28],
+
+    [scrollView.topAnchor constraintEqualToAnchor:headerView.bottomAnchor],
+    [scrollView.leadingAnchor constraintEqualToAnchor:self.view.leadingAnchor],
+    [scrollView.trailingAnchor constraintEqualToAnchor:self.view.trailingAnchor],
+    [scrollView.bottomAnchor constraintEqualToAnchor:self.view.bottomAnchor],
+
+    [titleLabel.leadingAnchor constraintEqualToAnchor:headerView.leadingAnchor constant:8],
+    [titleLabel.centerYAnchor constraintEqualToAnchor:headerView.centerYAnchor],
+
+    [addButton.trailingAnchor constraintEqualToAnchor:headerView.trailingAnchor constant:-8],
+    [addButton.centerYAnchor constraintEqualToAnchor:headerView.centerYAnchor]
+  ]];
 }
 
 #pragma mark - Data Loading
@@ -116,7 +166,7 @@ NSString *const PasteboardItemTypeTrackImport = @"com.illuminated.track.import";
 
 #pragma mark - Actions
 
-- (IBAction)addFolderAction:(id)sender {
+- (void)addFolderAction:(id)sender {
   NSOpenPanel *panel = [NSOpenPanel openPanel];
   panel.canChooseFiles = NO;
   panel.canChooseDirectories = YES;

@@ -1,5 +1,5 @@
 //
-//  FileBrowserViewController.h
+//  FilesSidebarViewController.h
 //  Illuminated
 //
 //  Created by Alexandru Solomon on 07.02.2026.
@@ -9,7 +9,7 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface FileBrowserViewController : NSViewController<NSOutlineViewDataSource, NSOutlineViewDelegate>
+@interface FilesSidebarViewController : NSViewController<NSOutlineViewDataSource, NSOutlineViewDelegate>
 
 @end
 
