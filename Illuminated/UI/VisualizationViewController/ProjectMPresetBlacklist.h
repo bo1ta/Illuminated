@@ -12,7 +12,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface ProjectMPresetBlacklist : NSObject
 
-@property (readonly, nonatomic, strong) NSMutableArray<NSString *> *blacklist;
+@property(readonly, nonatomic, strong) NSMutableArray<NSString *> *blacklist;
 
 - (void)addToBlacklist:(NSString *)presetPath;
 

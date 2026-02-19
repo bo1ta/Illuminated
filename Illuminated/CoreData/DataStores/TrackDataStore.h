@@ -9,7 +9,7 @@
 #import <Foundation/Foundation.h>
 
 @class Track, Artist, Album;
-@class NSManagedObjectContext, NSFetchedResultsController;
+@class NSManagedObjectContext, NSFetchedResultsController, NSManagedObjectID;
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -33,6 +33,8 @@ NS_ASSUME_NONNULL_BEGIN
 + (BFTask<Track *> *)trackWithURL:(NSURL *)url;
 
 + (NSFetchedResultsController *)fetchedResultsController;
+
++ (BFTask *)deleteTrackWithObjectID:(NSManagedObjectID *)trackObjectID;
 
 @end
 

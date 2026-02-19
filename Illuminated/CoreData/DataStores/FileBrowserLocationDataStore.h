@@ -5,8 +5,8 @@
 //  Created by Alexandru Solomon on 17.02.2026.
 //
 
-#import <Foundation/Foundation.h>
 #import "BFTask.h"
+#import <Foundation/Foundation.h>
 
 @class FileBrowserLocation;
 
@@ -14,6 +14,8 @@
 
 + (BFTask<NSArray<FileBrowserLocation *> *> *)allFileBrowserLocations;
 
-+ (BFTask<FileBrowserLocation *> *)createWithDisplayName:(NSString *)displayName bookmarkData:(NSData *)bookmarkData originalPath:(NSString *)originalPath;
++ (BFTask<FileBrowserLocation *> *)createWithDisplayName:(NSString *)displayName
+                                            bookmarkData:(NSData *)bookmarkData
+                                            originalPath:(NSString *)originalPath;
 
 @end

@@ -8,15 +8,15 @@
 #import "RadioViewController.h"
 
 @interface RadioViewController ()
-@property (weak) IBOutlet NSOutlineView *outlineView;
+@property(weak) IBOutlet NSOutlineView *outlineView;
 
 @end
 
 @implementation RadioViewController
 
 - (void)viewDidLoad {
-    [super viewDidLoad];
-    // Do view setup here.
+  [super viewDidLoad];
+  // Do view setup here.
 }
 
 @end

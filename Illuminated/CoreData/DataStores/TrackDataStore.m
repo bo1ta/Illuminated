@@ -59,6 +59,22 @@
   return track;
 }
 
++ (BFTask *)deleteTrackWithObjectID:(NSManagedObjectID *)trackObjectID {
+  return [[CoreDataStore writer] performWrite:^id(NSManagedObjectContext *context) {
+    Track *track = [context objectWithID:trackObjectID];
+    if (!track) {
+      return [BFTask
+          taskWithError:[NSError errorWithDomain:@"TrackDataStore"
+                                            code:-100
+                                        userInfo:@{NSLocalizedDescriptionKey : @"Track with objectID not found"}]];
+    }
+
+    [context deleteObject:track];
+
+    return nil;
+  }];
+}
+
 + (NSFetchedResultsController *)fetchedResultsController {
   return [[CoreDataStore reader] fetchedResultsControllerForEntity:EntityNameTrack predicate:nil sortDescriptors:nil];
 }

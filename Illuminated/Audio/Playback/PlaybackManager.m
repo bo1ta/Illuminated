@@ -9,6 +9,7 @@
 #import "PlaybackManager.h"
 #import "BookmarkResolver.h"
 #import "Track.h"
+#import "TrackService.h"
 #import "TrackQueue.h"
 #import <AVFoundation/AVFoundation.h>
 #import <Foundation/Foundation.h>
@@ -124,32 +125,6 @@ static const NSTimeInterval kProgressTimerInterval = 0.5;
 
 #pragma mark - Playback
 
-- (NSURL *)resolveTrackURL:(Track *)track {
-  if (!track.urlBookmark) {
-    return nil;
-  }
-
-  NSError *error = nil;
-  NSURL *resolvedURL = [BookmarkResolver URLForBookmarkData:track.urlBookmark error:&error];
-  if (error) {
-    NSLog(@"PlaybackManager: Failed to resolve bookmark for track. Error: %@", error.localizedDescription);
-    return nil;
-  } else {
-    if ([resolvedURL startAccessingSecurityScopedResource]) {
-      self.activeSecurityScopedURL = resolvedURL;
-    }
-
-    NSNumber *isDirectory = nil;
-    [resolvedURL getResourceValue:&isDirectory forKey:NSURLIsDirectoryKey error:nil];
-
-    if (isDirectory.boolValue) {
-      return [NSURL fileURLWithPath:track.fileURL];
-    } else {
-      return resolvedURL;
-    }
-  }
-}
-
 - (void)playTrack:(Track *)track {
   NSParameterAssert(track);
 
@@ -158,7 +133,7 @@ static const NSTimeInterval kProgressTimerInterval = 0.5;
     self.activeSecurityScopedURL = nil;
   }
 
-  NSURL *url = [self resolveTrackURL:track];
+  NSURL *url = [TrackService resolveTrackURL:track];
   if (!url) {
     [self.queue setCurrentTrack:track];
     [self playNext];

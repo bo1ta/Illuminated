@@ -67,7 +67,7 @@
 
   dispatch_async(dispatch_get_main_queue(), ^{
     self.progress = progress;
-    
+
     if ([self.delegate respondsToSelector:@selector(waveformView:didSeekToProgress:)]) {
       [self.delegate waveformView:self didSeekToProgress:progress];
     }

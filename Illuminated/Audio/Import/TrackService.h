@@ -28,6 +28,12 @@ NS_ASSUME_NONNULL_BEGIN
 
 + (BFTask<Track *> *)findOrInsertByURL:(NSURL *)url bookmarkData:(NSData *)bookmarkData;
 
++ (NSURL *)resolveTrackURL:(Track *)track;
+
++ (BFTask *)deleteTrack:(Track *)track;
+
++ (BFTask *)deleteTracks:(NSArray<Track *> *)tracks;
+
 @end
 
 NS_ASSUME_NONNULL_END

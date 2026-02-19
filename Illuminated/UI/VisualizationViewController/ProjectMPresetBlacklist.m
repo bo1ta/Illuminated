@@ -5,8 +5,8 @@
 //  Created by Alexandru Solomon on 14.02.2026.
 //
 
-#import <Foundation/Foundation.h>
 #import "ProjectMPresetBlacklist.h"
+#import <Foundation/Foundation.h>
 
 NSString *const UserDefaultsBlacklistKey = @"BlacklistedPresets";
 
@@ -34,19 +34,19 @@ NSString *const UserDefaultsBlacklistKey = @"BlacklistedPresets";
 }
 
 - (BOOL)isBlacklisted:(NSString *)presetPath {
-    return [self.blacklist containsObject:presetPath];
+  return [self.blacklist containsObject:presetPath];
 }
 
 - (void)addToBlacklist:(NSString *)presetPath {
-    if (!presetPath || [self isBlacklisted:presetPath]) return;
-    
-    [self.blacklist addObject:presetPath];
-    [[self userDefaults] setObject:[self.blacklist copy] forKey:UserDefaultsBlacklistKey];
+  if (!presetPath || [self isBlacklisted:presetPath]) return;
+
+  [self.blacklist addObject:presetPath];
+  [[self userDefaults] setObject:[self.blacklist copy] forKey:UserDefaultsBlacklistKey];
 }
 
 - (void)filterPlaylist:(projectm_playlist_handle)playlistHandle {
   if (!playlistHandle || self.blacklist.count == 0) return;
-  
+
   uint32_t size = projectm_playlist_size(playlistHandle);
   for (int i = size - 1; i >= 0; i--) {
     const char *presetPath = projectm_playlist_item(playlistHandle, i);

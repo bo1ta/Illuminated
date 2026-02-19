@@ -230,6 +230,47 @@
   }];
 }
 
++ (NSURL *)resolveTrackURL:(Track *)track {
+  if (!track.urlBookmark) {
+    return nil;
+  }
+
+  NSError *error = nil;
+  NSURL *resolvedURL = [BookmarkResolver URLForBookmarkData:track.urlBookmark error:&error];
+  if (error) {
+    NSLog(@"PlaybackManager: Failed to resolve bookmark for track. Error: %@", error.localizedDescription);
+    return nil;
+  } else {
+    [resolvedURL startAccessingSecurityScopedResource];
+
+    NSNumber *isDirectory = nil;
+    [resolvedURL getResourceValue:&isDirectory forKey:NSURLIsDirectoryKey error:nil];
+
+    if (isDirectory.boolValue) {
+      return [NSURL fileURLWithPath:track.fileURL];
+    } else {
+      return resolvedURL;
+    }
+  }
+}
+
++ (BFTask *)deleteTrack:(Track *)track {
+  if (track.waveformPath) {
+    [WaveformCacheManager removeWaveformForPath:track.waveformPath];
+  }
+  return [TrackDataStore deleteTrackWithObjectID:track.objectID];
+}
+
++ (BFTask *)deleteTracks:(NSArray<Track *> *)tracks {
+  NSMutableArray<BFTask *> *tasks = [NSMutableArray array];
+  
+  for (Track *track in tracks) {
+    [tasks addObject:[self deleteTrack:track]];
+  }
+  
+  return [BFTask taskForCompletionOfAllTasks:tasks];
+}
+
 #pragma mark - Async Wrappers
 
 + (BFTask<AVAssetTrack *> *)loadAudioTrackFromAsset:(AVURLAsset *)asset {

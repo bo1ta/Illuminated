@@ -11,7 +11,7 @@
 @implementation FileBrowserLocation
 
 + (NSFetchRequest<FileBrowserLocation *> *)fetchRequest {
-	return [NSFetchRequest fetchRequestWithEntityName:@"FileBrowserLocation"];
+  return [NSFetchRequest fetchRequestWithEntityName:@"FileBrowserLocation"];
 }
 
 @dynamic displayName;

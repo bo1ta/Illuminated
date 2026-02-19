@@ -10,8 +10,8 @@
 #import "FilesSidebarViewController.h"
 #import "MusicViewController.h"
 #import "PlayerBarViewController.h"
-#import "SidebarViewController.h"
 #import "PlaylistsSidebarViewController.h"
+#import "SidebarViewController.h"
 
 NSString *const ToolbarSearchDidChangeNotification = @"ToolbarSearchDidChangeNotification";
 NSString *const ToolbarSearchUserInfo = @"ToolbarSearch";

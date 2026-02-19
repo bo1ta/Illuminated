@@ -11,8 +11,8 @@
 #import "Carbon/Carbon.h"
 #import "Playlist.h"
 #import "PlaylistDataStore.h"
-#import "SidebarCellFactory.h"
 #import "PlaylistSidebarItem.h"
+#import "SidebarCellFactory.h"
 #import "TrackDataStore.h"
 
 #pragma mark - Constants
