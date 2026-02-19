@@ -191,6 +191,9 @@
                                         </prototypeCellViews>
                                     </tableColumn>
                                 </tableColumns>
+                                <connections>
+                                    <outlet property="menu" destination="vbG-Mj-neo" id="lle-tW-FX0"/>
+                                </connections>
                             </tableView>
                         </subviews>
                         <nil key="backgroundColor"/>
@@ -217,5 +220,28 @@
             </constraints>
             <point key="canvasLocation" x="78.5" y="133"/>
         </customView>
+        <menu id="vbG-Mj-neo">
+            <items>
+                <menuItem title="Show in Finder" id="Q9w-6f-1K0">
+                    <modifierMask key="keyEquivalentModifierMask"/>
+                    <connections>
+                        <action selector="showInFinderAction:" target="-2" id="jbG-2d-5Xt"/>
+                    </connections>
+                </menuItem>
+                <menuItem title="Remove from Playlist" identifier="RemoveFromPlaylist" id="qox-nM-E9J">
+                    <modifierMask key="keyEquivalentModifierMask"/>
+                    <connections>
+                        <action selector="removeFromPlaylistAction:" target="-2" id="YUQ-us-lMW"/>
+                    </connections>
+                </menuItem>
+                <menuItem title="Delete" id="h0Z-m3-GLi">
+                    <modifierMask key="keyEquivalentModifierMask"/>
+                    <connections>
+                        <action selector="deleteAction:" target="-2" id="HTy-X2-s2m"/>
+                    </connections>
+                </menuItem>
+            </items>
+            <point key="canvasLocation" x="-110" y="379"/>
+        </menu>
     </objects>
 </document>

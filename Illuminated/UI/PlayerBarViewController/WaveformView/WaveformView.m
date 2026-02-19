@@ -35,14 +35,12 @@
                           fraction:1.0];
   }
 
-  // Progress Overlay
   CGFloat needleX = self.bounds.size.width * self.progress;
   NSRect progressRect = NSMakeRect(0, 0, needleX, self.bounds.size.height);
 
   [[NSColor.systemBlueColor colorWithAlphaComponent:0.3] setFill];
   NSRectFillUsingOperation(progressRect, NSCompositingOperationSourceAtop);
 
-  // Needle
   NSRect needleRect = NSMakeRect(needleX - 1, 0, 2, self.bounds.size.height);
   [NSColor.whiteColor setFill];
   NSRectFill(needleRect);
@@ -67,11 +65,13 @@
   double progress = location.x / self.bounds.size.width;
   progress = MAX(0.0, MIN(1.0, progress));
 
-  self.progress = progress;
+  dispatch_async(dispatch_get_main_queue(), ^{
+    self.progress = progress;
 
-  if ([self.delegate respondsToSelector:@selector(waveformView:didSeekToProgress:)]) {
-    [self.delegate waveformView:self didSeekToProgress:progress];
-  }
+    if ([self.delegate respondsToSelector:@selector(waveformView:didSeekToProgress:)]) {
+      [self.delegate waveformView:self didSeekToProgress:progress];
+    }
+  });
 }
 
 @end

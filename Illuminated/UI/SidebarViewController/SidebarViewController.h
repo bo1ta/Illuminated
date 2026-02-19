@@ -2,21 +2,20 @@
 //  SidebarViewController.h
 //  Illuminated
 //
-//  Created by Alexandru Solomon on 19.01.2026.
+//  Created by Codex on 08.02.2026.
 //
 
 #import <Cocoa/Cocoa.h>
 
 NS_ASSUME_NONNULL_BEGIN
 
-extern NSString *const SidebarSelectionItemDidChange;
-extern NSString *const PasteboardItemTypeTrack;
+@class PlaylistsSidebarViewController;
+@class FilesSidebarViewController;
 
-@class SidebarViewController;
+@interface SidebarViewController : NSViewController
 
-@interface SidebarViewController : NSViewController<NSOutlineViewDataSource, NSOutlineViewDelegate>
-
-@property(weak) IBOutlet NSOutlineView *outlineView;
+@property(nonatomic, strong, readonly) PlaylistsSidebarViewController *libraryViewController;
+@property(nonatomic, strong, readonly) FilesSidebarViewController *fileBrowserViewController;
 
 @end
 

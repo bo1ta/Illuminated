@@ -62,4 +62,30 @@ NSString *const kArtworkDirectoryPath = @"Illuminated/Artwork";
                                 properties:@{NSImageCompressionFactor : @(quality)}];
 }
 
++ (NSImage *)placeholderImageWithSize:(CGSize)size {
+  if (size.width <= 0 || size.height <= 0) {
+    return nil;
+  }
+
+  NSImage *image = [[NSImage alloc] initWithSize:size];
+  [image lockFocus];
+
+  [[NSColor secondaryLabelColor] setFill];
+  NSRectFill(NSMakeRect(0, 0, size.width, size.height));
+
+  NSImage *icon = [NSImage imageWithSystemSymbolName:@"music.note" accessibilityDescription:nil];
+  if (icon) {
+    CGFloat iconDimension = MIN(size.width, size.height) * 0.5;
+    NSRect iconRect = NSMakeRect(
+        (size.width - iconDimension) / 2.0, (size.height - iconDimension) / 2.0, iconDimension, iconDimension);
+
+    [icon setTemplate:YES];
+    [[NSColor labelColor] set];
+    [icon drawInRect:iconRect fromRect:NSZeroRect operation:NSCompositingOperationSourceOver fraction:1.0];
+  }
+
+  [image unlockFocus];
+  return image;
+}
+
 @end

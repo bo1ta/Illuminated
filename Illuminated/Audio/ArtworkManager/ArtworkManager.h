@@ -17,6 +17,8 @@ NS_ASSUME_NONNULL_BEGIN
 
 + (void)deleteArtworkAtPath:(NSString *)path;
 
++ (NSImage *)placeholderImageWithSize:(CGSize)size;
+
 @end
 
 NS_ASSUME_NONNULL_END

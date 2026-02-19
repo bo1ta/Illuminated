@@ -15,8 +15,6 @@ NS_ASSUME_NONNULL_BEGIN
 #pragma mark - Constants
 
 extern NSString *const PlaybackManagerTrackDidChangeNotification;
-extern NSString *const PlaybackManagerPlaybackStateDidChangeNotification;
-extern NSString *const PlaybackManagerPlaybackProgressDidChangeNotification;
 
 #pragma mark - Types
 
@@ -30,23 +28,32 @@ typedef void (^AudioBufferCallback)(const float *monoData, AVAudioFrameCount len
 
 + (instancetype)sharedManager;
 
-@property(strong, readonly) Track *currentTrack;
-@property(assign, readonly) BOOL isPlaying;
+@property(strong, readonly, nullable) Track *currentTrack;
+@property(assign, readonly, getter=isPlaying) BOOL playing;
 @property(assign, readonly) NSTimeInterval currentTime;
-@property(nonatomic, readonly) float volume;
+@property(assign, readonly) NSTimeInterval duration;
+@property(nonatomic, assign) float volume;
 
 @property(nonatomic) RepeatMode repeatMode;
+
+@property(nonatomic, readonly) double progress;
+
+#pragma mark - Playback
 
 - (void)playTrack:(Track *)track;
 - (void)playNext;
 - (void)playPrevious;
 - (void)togglePlayPause;
-- (void)setVolume:(float)volume;
-- (void)seekToTime:(NSTimeInterval)timeInterval;
-- (void)updateQueue:(NSArray<Track *> *)tracks;
 - (void)stop;
 
-- (NSURL *)currentPlaybackURL;
+- (nullable NSURL *)currentPlaybackURL;
+
+#pragma mark - Controls
+
+- (void)seekToTime:(NSTimeInterval)timeInterval;
+- (void)updateQueue:(NSArray<Track *> *)tracks;
+
+#pragma mark - Audio Buffer Registration
 
 - (void)registerAudioBufferCallback:(AudioBufferCallback)callback;
 - (void)unregisterAudioBufferCallback;

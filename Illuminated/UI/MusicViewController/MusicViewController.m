@@ -9,10 +9,12 @@
 #import "Album.h"
 #import "Artist.h"
 #import "BFExecutor.h"
+#import "FilesSidebarViewController.h"
 #import "MainWindowController.h"
 #import "PlaybackManager.h"
 #import "Playlist.h"
-#import "SidebarViewController.h"
+#import "PlaylistDataStore.h"
+#import "PlaylistsSidebarViewController.h"
 #import "Track.h"
 #import "TrackDataStore.h"
 #import "TrackService.h"
@@ -26,14 +28,16 @@ static MusicColumn const MusicColumnArtist = @"ArtistColumn";
 static MusicColumn const MusicColumnBPM = @"BPMColumn";
 static MusicColumn const MusicColumnTime = @"TimeColumn";
 
+NSString *const PasteboardItemTypeTrackImports = @"com.illuminated.track.import";
+
 #pragma mark - Private Interface
 
 @interface MusicViewController ()
 
-@property(atomic, strong) NSArray<Track *> *tracks;
 @property(nonatomic, strong) NSFetchedResultsController *fetchedResultsController;
 @property(nonatomic, strong, nullable) Playlist *currentPlaylist;
 @property(nonatomic, strong, nullable) Album *currentAlbum;
+@property(nonatomic, strong, nullable) Track *currentTrack;
 
 @end
 
@@ -49,10 +53,14 @@ static MusicColumn const MusicColumnTime = @"TimeColumn";
   self.tableView.dataSource = self;
   self.tableView.delegate = self;
   self.tableView.doubleAction = @selector(tableViewClicked:);
+  self.tableView.allowsMultipleSelection = YES;
 
-  [self.tableView registerForDraggedTypes:@[ NSPasteboardTypeFileURL ]];
+  [self.tableView registerForDraggedTypes:@[ NSPasteboardTypeFileURL, PasteboardItemTypeTrackImport ]];
   [self.tableView setDraggingSourceOperationMask:NSDragOperationCopy forLocal:YES];
   self.tableView.draggingDestinationFeedbackStyle = NSTableViewDraggingDestinationFeedbackStyleRegular;
+
+  self.view.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
+  self.view.translatesAutoresizingMaskIntoConstraints = YES;
 
   [self setupFetchedResultsController];
   [self setupNotifications];
@@ -69,8 +77,6 @@ static MusicColumn const MusicColumnTime = @"TimeColumn";
   NSError *error = nil;
   if (![self.fetchedResultsController performFetch:&error]) {
     NSLog(@"MusicViewController: Error loading tracks for fetched results: %@", error.localizedDescription);
-  } else {
-    self.tracks = (NSArray<Track *> *)[self.fetchedResultsController fetchedObjects];
   }
 }
 
@@ -123,31 +129,24 @@ static MusicColumn const MusicColumnTime = @"TimeColumn";
   self.fetchedResultsController.fetchRequest.predicate = finalPredicate;
   [self.fetchedResultsController performFetch:nil];
 
-  self.tracks = (NSArray<Track *> *)[self.fetchedResultsController fetchedObjects];
   [self.tableView reloadData];
-  [self selectRowForTrack:[[PlaybackManager sharedManager] currentTrack] scroll:NO];
 }
 
 - (void)selectCurrentTrack {
-  dispatch_async(dispatch_get_main_queue(), ^{
-    [self.tableView reloadData];
-    [self selectRowForTrack:[[PlaybackManager sharedManager] currentTrack] scroll:YES];
-  });
+  _currentTrack = [[PlaybackManager sharedManager] currentTrack];
 
-  Track *playingTrack = [[PlaybackManager sharedManager] currentTrack];
-  [TrackDataStore incrementPlayCountForTrack:playingTrack];
+  if (!self.currentTrack) {
+    return;
+  }
 
-  if (playingTrack.bpm <= 0) {
+  [self selectRowForTrack:self.currentTrack scroll:YES];
+
+  [TrackDataStore incrementPlayCountForTrack:self.currentTrack];
+
+  if (self.currentTrack.bpm <= 0) {
     NSURL *currentURL = [[PlaybackManager sharedManager] currentPlaybackURL];
-    [[BFTask taskFromExecutor:[BFExecutor defaultExecutor]
-                    withBlock:^id { return [TrackService analyzeBPMForTrackURL:currentURL]; }]
-        continueOnMainThreadWithBlock:^id(BFTask<Track *> *task) {
-          if (!task.error) {
-            [[NSNotificationCenter defaultCenter] postNotificationName:PlaybackManagerTrackDidChangeNotification
-                                                                object:nil];
-          }
-          return task;
-        }];
+    [BFTask taskFromExecutor:[BFExecutor defaultExecutor]
+                   withBlock:^id { return [TrackService analyzeBPMForTrackURL:currentURL]; }];
   }
 }
 
@@ -171,7 +170,7 @@ static MusicColumn const MusicColumnTime = @"TimeColumn";
 #pragma mark - Drag & Drop methods
 
 - (id<NSPasteboardWriting>)tableView:(NSTableView *)tableView pasteboardWriterForRow:(NSInteger)row {
-  Track *track = self.tracks[row];
+  Track *track = self.fetchedResultsController.fetchedObjects[row];
 
   NSPasteboardItem *item = [[NSPasteboardItem alloc] init];
   [item setString:track.uniqueID.UUIDString forType:PasteboardItemTypeTrack];
@@ -190,18 +189,29 @@ static MusicColumn const MusicColumnTime = @"TimeColumn";
        acceptDrop:(id<NSDraggingInfo>)info
               row:(NSInteger)row
     dropOperation:(NSTableViewDropOperation)dropOperation {
-  NSPasteboard *pasteboard = [info draggingPasteboard];
-  NSArray<NSURL *> *fileURLs = [pasteboard readObjectsForClasses:@[ [NSURL class] ] options:@{}];
 
-  if (fileURLs.count == 0) return NO;
+  NSPasteboard *pasteboard = [info draggingPasteboard];
+  NSMutableArray<NSURL *> *fileURLs = [[pasteboard readObjectsForClasses:@[ [NSURL class] ] options:@{}] mutableCopy];
+
+  if (fileURLs.count == 0) {
+    NSString *absoluteURL = [pasteboard stringForType:PasteboardItemTypeTrackImport];
+
+    NSURL *url = [NSURL URLWithString:absoluteURL];
+    if (url) {
+      fileURLs = [NSMutableArray arrayWithObject:url];
+    } else {
+      return NO;
+    }
+  }
+
+  NSSet *audioExtensions = [NSSet setWithArray:@[ @"mp3", @"m4a", @"wav", @"aiff", @"flac", @"aac", @"ogg", @"wma" ]];
 
   NSMutableArray<NSURL *> *resolvedURLs = [NSMutableArray array];
-  NSSet *audioExtensions = [NSSet setWithArray:@[ @"mp3", @"m4a", @"wav", @"aiff", @"flac", @"aac", @"ogg", @"wma" ]];
 
   for (NSURL *url in fileURLs) {
     NSURL *standardURL = [url filePathURL];
+    NSString *extension = [standardURL.pathExtension lowercaseString];
 
-    NSString *extension = [[standardURL pathExtension] lowercaseString];
     if ([audioExtensions containsObject:extension]) {
       [resolvedURLs addObject:standardURL];
     }
@@ -221,15 +231,14 @@ static MusicColumn const MusicColumnTime = @"TimeColumn";
 #pragma mark - NSFetchedResultsControllerDelegate
 
 - (void)controllerDidChangeContent:(NSFetchedResultsController *)controller {
-  self.tracks = (NSArray<Track *> *)[controller fetchedObjects];
   [self.tableView reloadData];
-  [self selectRowForTrack:[[PlaybackManager sharedManager] currentTrack] scroll:NO];
+  [self selectRowForTrack:self.currentTrack scroll:NO];
 }
 
 #pragma mark - NSTableViewDataSource
 
 - (NSInteger)numberOfRowsInTableView:(NSTableView *)tableView {
-  return self.tracks.count;
+  return self.fetchedResultsController.fetchedObjects.count;
 }
 
 #pragma mark - NSTableViewDelegate
@@ -257,9 +266,8 @@ static MusicColumn const MusicColumnTime = @"TimeColumn";
     ]];
   }
 
-  Track *track = self.tracks[row];
-  Track *playingTrack = [[PlaybackManager sharedManager] currentTrack];
-  BOOL isPlaying = track && playingTrack && [track.objectID isEqual:playingTrack.objectID];
+  Track *track = self.fetchedResultsController.fetchedObjects[row];
+  BOOL isPlaying = self.currentTrack.objectID == track.objectID;
 
   if ([columnIdentifier isEqualToString:MusicColumnNumber]) {
     cell.textField.alignment = NSTextAlignmentCenter;
@@ -346,10 +354,8 @@ static MusicColumn const MusicColumnTime = @"TimeColumn";
 }
 
 - (void)reloadData {
-  self.tracks = (NSArray<Track *> *)[self.fetchedResultsController fetchedObjects];
   [self.tableView reloadData];
-
-  [self selectRowForTrack:[[PlaybackManager sharedManager] currentTrack] scroll:NO];
+  [self selectRowForTrack:self.currentTrack scroll:NO];
 }
 
 #pragma mark - Private Helpers
@@ -360,13 +366,14 @@ static MusicColumn const MusicColumnTime = @"TimeColumn";
     return;
   }
 
-  NSUInteger rowIndex = [self.tracks indexOfObjectPassingTest:^BOOL(Track *obj, NSUInteger _, BOOL *stop) {
-    BOOL matches = [obj.objectID isEqual:track.objectID];
-    if (matches) {
-      *stop = YES;
-    }
-    return matches;
-  }];
+  NSUInteger rowIndex = [self.fetchedResultsController.fetchedObjects
+      indexOfObjectPassingTest:^BOOL(Track *obj, NSUInteger _, BOOL *stop) {
+        BOOL matches = [obj.objectID isEqual:track.objectID];
+        if (matches) {
+          *stop = YES;
+        }
+        return matches;
+      }];
 
   if (rowIndex == NSNotFound) {
     [self.tableView deselectAll:nil];
@@ -397,10 +404,11 @@ static MusicColumn const MusicColumnTime = @"TimeColumn";
 
 - (void)tableViewClicked:(id)sender {
   if (self.tableView.selectedRow >= 0) {
-    Track *selectedTrack = self.tracks[self.tableView.selectedRow];
+    NSArray<Track *> *tracks = self.fetchedResultsController.fetchedObjects;
+    Track *track = tracks[self.tableView.selectedRow];
 
-    [[PlaybackManager sharedManager] updateQueue:self.tracks];
-    [[PlaybackManager sharedManager] playTrack:selectedTrack];
+    [[PlaybackManager sharedManager] updateQueue:tracks];
+    [[PlaybackManager sharedManager] playTrack:track];
   }
 }
 
@@ -417,6 +425,89 @@ static MusicColumn const MusicColumnTime = @"TimeColumn";
     }
     return nil;
   }];
+}
+
+#pragma mark - Right-Click Menu
+
+- (BOOL)validateMenuItem:(NSMenuItem *)menuItem {
+  if ([menuItem.identifier isEqualToString:@"RemoveFromPlaylist"] && !self.currentPlaylist) {
+    return NO;
+  }
+  return YES;
+}
+
+- (IBAction)showInFinderAction:(id)sender {
+  Track *track = [self getClickedTrack];
+  if (!track) {
+    return;
+  }
+
+  NSURL *url = [NSURL fileURLWithPath:track.fileURL];
+  if (!url) {
+    NSLog(@"Error finding url");
+  } else {
+    [[NSWorkspace sharedWorkspace] activateFileViewerSelectingURLs:@[ url ]];
+  }
+}
+
+- (nullable Track *)getClickedTrack {
+  NSInteger clickedRow = [self.tableView clickedRow];
+  if (clickedRow < 0) {
+    return nil;
+  }
+
+  return [self.fetchedResultsController.fetchedObjects objectAtIndex:clickedRow];
+}
+
+- (NSArray<Track *> *)getSelectedTracks {
+  NSIndexSet *selectedRows = [self.tableView selectedRowIndexes];
+  NSMutableArray<Track *> *tracks = [NSMutableArray array];
+  
+  [selectedRows enumerateIndexesUsingBlock:^(NSUInteger idx, BOOL *_) {
+    Track *track = [self.fetchedResultsController.fetchedObjects objectAtIndex:idx];
+    if (track) {
+      [tracks addObject:track];
+    }
+  }];
+  
+  return tracks;
+}
+
+- (IBAction)removeFromPlaylistAction:(id)sender {
+  Track *track = [self getClickedTrack];
+  if (!track || !self.currentPlaylist) {
+    return;
+  }
+
+  [[PlaylistDataStore removeFromPlaylist:self.currentPlaylist track:track] continueWithBlock:^id(BFTask<BFVoid> *task) {
+    if (task.error) {
+      NSLog(@"Error removing track from playlist: %@", task.error);
+    }
+    return nil;
+  }];
+}
+
+- (IBAction)deleteAction:(id)sender {
+  NSArray<Track *> *tracks = [self getSelectedTracks];
+  if (tracks.count > 0) {
+    [[TrackService deleteTracks:tracks] continueWithBlock:^id(BFTask *task) {
+      if (task.error) {
+        NSLog(@"Error deleting tracks: %@", task.error.localizedDescription);
+      }
+      return nil;
+    }];
+  } else {
+    Track *track = [self getClickedTrack];
+    if (!track) {
+      return;
+    }
+    [[TrackService deleteTrack:track] continueWithBlock:^id(BFTask *task) {
+      if (task.error) {
+        NSLog(@"Error deleting track: %@", task.error.localizedDescription);
+      }
+      return nil;
+    }];
+  }
 }
 
 @end

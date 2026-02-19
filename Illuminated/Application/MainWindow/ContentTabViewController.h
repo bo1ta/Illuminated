@@ -14,7 +14,7 @@ NS_ASSUME_NONNULL_BEGIN
 @interface ContentTabViewController : NSViewController
 
 @property(nonatomic, strong) MusicViewController *musicViewController;
-@property(nonatomic, strong) VizualizationViewController *vizualizationViewController;
+@property(nonatomic, nullable, strong) VizualizationViewController *vizualizationViewController;
 
 - (void)switchToMusic;
 - (void)switchToVizualizer;
