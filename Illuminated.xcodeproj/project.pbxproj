@@ -13,6 +13,9 @@
 		50C4AED92F3941A900057698 /* libprojectM-4.4.dylib in CopyFiles */ = {isa = PBXBuildFile; fileRef = 50C4AED82F3941A900057698 /* libprojectM-4.4.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		50C4AEE12F39458600057698 /* libprojectM-4-playlist.4.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 50C4AEE02F39458600057698 /* libprojectM-4-playlist.4.dylib */; };
 		50C4AEE42F39459700057698 /* libprojectM-4-playlist.4.dylib in CopyFiles */ = {isa = PBXBuildFile; fileRef = 50C4AEE32F39459700057698 /* libprojectM-4-playlist.4.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		50EA90C12F47BD7F000C3707 /* libvamp-hostsdk.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 50EA90BF2F47BD7F000C3707 /* libvamp-hostsdk.a */; };
+		50EA90C22F47BD7F000C3707 /* libvamp-sdk.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 50EA90C02F47BD7F000C3707 /* libvamp-sdk.a */; };
+		FE766487CBED8972F7E8AC49 /* Pods_Illuminated.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EA27A721DDE729CA3599E615 /* Pods_Illuminated.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -40,6 +43,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		3B75E445E8B4E912EC994532 /* Pods-Illuminated.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Illuminated.debug.xcconfig"; path = "Target Support Files/Pods-Illuminated/Pods-Illuminated.debug.xcconfig"; sourceTree = "<group>"; };
 		5018B8182F392F6400BF5954 /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = System/Library/Frameworks/OpenGL.framework; sourceTree = SDKROOT; };
 		505A7A2D2F1C4E6D00984897 /* Illuminated.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Illuminated.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		505DCD232F312D1A00E187C2 /* libtag.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libtag.a; path = Frameworks/libtag.a; sourceTree = "<group>"; };
@@ -47,6 +51,10 @@
 		50C4AED82F3941A900057698 /* libprojectM-4.4.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libprojectM-4.4.dylib"; path = "Frameworks/projectM/lib/libprojectM-4.4.dylib"; sourceTree = "<group>"; };
 		50C4AEE02F39458600057698 /* libprojectM-4-playlist.4.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libprojectM-4-playlist.4.dylib"; path = "Frameworks/playlist/lib/libprojectM-4-playlist.4.dylib"; sourceTree = "<group>"; };
 		50C4AEE32F39459700057698 /* libprojectM-4-playlist.4.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libprojectM-4-playlist.4.dylib"; path = "Frameworks/playlist/lib/libprojectM-4-playlist.4.dylib"; sourceTree = "<group>"; };
+		50EA90BF2F47BD7F000C3707 /* libvamp-hostsdk.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libvamp-hostsdk.a"; path = "Frameworks/vamp/lib/libvamp-hostsdk.a"; sourceTree = "<group>"; };
+		50EA90C02F47BD7F000C3707 /* libvamp-sdk.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libvamp-sdk.a"; path = "Frameworks/vamp/lib/libvamp-sdk.a"; sourceTree = "<group>"; };
+		6135FC30830C18D7F728547F /* Pods-Illuminated.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Illuminated.release.xcconfig"; path = "Target Support Files/Pods-Illuminated/Pods-Illuminated.release.xcconfig"; sourceTree = "<group>"; };
+		EA27A721DDE729CA3599E615 /* Pods_Illuminated.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Illuminated.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -76,22 +84,37 @@
 			buildActionMask = 2147483647;
 			files = (
 				5018B8192F392F6400BF5954 /* OpenGL.framework in Frameworks */,
+				50EA90C12F47BD7F000C3707 /* libvamp-hostsdk.a in Frameworks */,
+				50EA90C22F47BD7F000C3707 /* libvamp-sdk.a in Frameworks */,
 				50C4AEE12F39458600057698 /* libprojectM-4-playlist.4.dylib in Frameworks */,
 				50C4AED72F39416F00057698 /* libprojectM-4.4.dylib in Frameworks */,
 				505DCD242F312D1A00E187C2 /* libtag.a in Frameworks */,
+				FE766487CBED8972F7E8AC49 /* Pods_Illuminated.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		408595E7F06EB794A7F23019 /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				3B75E445E8B4E912EC994532 /* Pods-Illuminated.debug.xcconfig */,
+				6135FC30830C18D7F728547F /* Pods-Illuminated.release.xcconfig */,
+			);
+			path = Pods;
+			sourceTree = "<group>";
+		};
 		504098F42F25A01B001077D9 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
 				50C4AEE02F39458600057698 /* libprojectM-4-playlist.4.dylib */,
+				50EA90BF2F47BD7F000C3707 /* libvamp-hostsdk.a */,
+				50EA90C02F47BD7F000C3707 /* libvamp-sdk.a */,
 				5018B8182F392F6400BF5954 /* OpenGL.framework */,
 				505DCD232F312D1A00E187C2 /* libtag.a */,
 				50C4AED62F39416F00057698 /* libprojectM-4.4.dylib */,
+				EA27A721DDE729CA3599E615 /* Pods_Illuminated.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -104,6 +127,7 @@
 				505A7A2F2F1C4E6D00984897 /* Illuminated */,
 				504098F42F25A01B001077D9 /* Frameworks */,
 				505A7A2E2F1C4E6D00984897 /* Products */,
+				408595E7F06EB794A7F23019 /* Pods */,
 			);
 			sourceTree = "<group>";
 		};
@@ -122,11 +146,13 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 505A7A402F1C4E6F00984897 /* Build configuration list for PBXNativeTarget "Illuminated" */;
 			buildPhases = (
+				E62CAB5411D18F21E98A7648 /* [CP] Check Pods Manifest.lock */,
 				505A7A292F1C4E6D00984897 /* Sources */,
 				505A7A2A2F1C4E6D00984897 /* Frameworks */,
 				505A7A2B2F1C4E6D00984897 /* Resources */,
 				50C30BB72F39378D000B2742 /* Embed Libraries */,
 				50236D782F3938B500A5DC8A /* CopyFiles */,
+				BFF33BBBD251A702CB39426C /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
@@ -183,6 +209,52 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		BFF33BBBD251A702CB39426C /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-Illuminated/Pods-Illuminated-frameworks-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			inputPaths = (
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-Illuminated/Pods-Illuminated-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Illuminated/Pods-Illuminated-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		E62CAB5411D18F21E98A7648 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-Illuminated-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		505A7A292F1C4E6D00984897 /* Sources */ = {
@@ -326,7 +398,9 @@
 		};
 		505A7A412F1C4E6F00984897 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 3B75E445E8B4E912EC994532 /* Pods-Illuminated.debug.xcconfig */;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = "$(inherited)";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CLANG_ENABLE_MODULES = YES;
@@ -348,7 +422,9 @@
 				HEADER_SEARCH_PATHS = (
 					/opt/homebrew/include/taglib,
 					"$(SRCROOT)/Frameworks/projectM/include",
+					"$(inherited)",
 					"$(SRCROOT)/Frameworks/playlist/include",
+					"$(SRCROOT)/Frameworks/vamp/include",
 				);
 				INFOPLIST_FILE = Illuminated/Info.plist;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
@@ -367,6 +443,9 @@
 					"$(PROJECT_DIR)/Frameworks/projectM/lib",
 					"$(PROJECT_DIR)/Frameworks/projectM/include",
 					"$(PROJECT_DIR)/Frameworks/playlist/lib",
+					"$(PROJECT_DIR)/Frameworks/vamp-sdk/lib",
+					"$(PROJECT_DIR)/Frameworks/vamp-hostsdk/lib",
+					"$(PROJECT_DIR)/Frameworks/vamp/lib",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.5;
 				MARKETING_VERSION = 1.0.3;
@@ -385,7 +464,9 @@
 		};
 		505A7A422F1C4E6F00984897 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 6135FC30830C18D7F728547F /* Pods-Illuminated.release.xcconfig */;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = "$(inherited)";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CLANG_ENABLE_MODULES = YES;
@@ -407,7 +488,9 @@
 				HEADER_SEARCH_PATHS = (
 					/opt/homebrew/include/taglib,
 					"$(SRCROOT)/Frameworks/projectM/include",
+					"$(inherited)",
 					"$(SRCROOT)/Frameworks/playlist/include",
+					"$(SRCROOT)/Frameworks/vamp/include",
 				);
 				INFOPLIST_FILE = Illuminated/Info.plist;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
@@ -426,6 +509,9 @@
 					"$(PROJECT_DIR)/Frameworks/projectM/lib",
 					"$(PROJECT_DIR)/Frameworks/projectM/include",
 					"$(PROJECT_DIR)/Frameworks/playlist/lib",
+					"$(PROJECT_DIR)/Frameworks/vamp-sdk/lib",
+					"$(PROJECT_DIR)/Frameworks/vamp-hostsdk/lib",
+					"$(PROJECT_DIR)/Frameworks/vamp/lib",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.5;
 				MARKETING_VERSION = 1.0.3;

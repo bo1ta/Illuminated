@@ -1,0 +1,6 @@
+framework module Pods_Illuminated {
+  umbrella header "Pods-Illuminated-umbrella.h"
+
+  export *
+  module * { export * }
+}

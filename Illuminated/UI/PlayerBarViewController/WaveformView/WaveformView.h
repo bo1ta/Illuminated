@@ -14,7 +14,7 @@ NS_ASSUME_NONNULL_BEGIN
 @interface WaveformView : NSView
 
 @property(nonatomic, weak) id<WaveformViewDelegate> delegate;
-@property(nonatomic, strong, nullable) NSImage *waveformImage;
+@property(nonatomic, strong, nullable) NSURL *audioURL;
 @property(nonatomic) double progress;
 
 @end

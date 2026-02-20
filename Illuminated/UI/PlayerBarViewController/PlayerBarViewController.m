@@ -213,23 +213,8 @@
 }
 
 - (void)generateWaveformForTrack:(Track *)track {
-  self.waveformView.waveformImage = nil;
-
   NSURL *url = [[PlaybackManager sharedManager] currentPlaybackURL];
-  if (!url) return;
-
-  __weak typeof(self) weakSelf = self;
-
-  [[TrackService getWaveformForTrack:track resolvedURL:url size:self.waveformView.bounds.size]
-      continueOnMainThreadWithBlock:^id(BFTask<NSImage *> *task) {
-        __strong typeof(weakSelf) strongSelf = weakSelf;
-        if (task.result) {
-          strongSelf.waveformView.waveformImage = task.result;
-        } else {
-          NSLog(@"Error loading waveform image: %@", task.error);
-        }
-        return nil;
-      }];
+  self.waveformView.audioURL = url;
 }
 
 - (void)updatePlaybackState {
