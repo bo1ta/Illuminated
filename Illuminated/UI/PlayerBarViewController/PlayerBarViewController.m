@@ -10,6 +10,7 @@
 #import "Album.h"
 #import "Artist.h"
 #import "ArtworkManager.h"
+#import "BFTask.h"
 #import "PlaybackManager.h"
 #import "Track.h"
 #import "TrackService.h"
@@ -103,6 +104,10 @@
                                            selector:@selector(updateTrackUI)
                                                name:PlaybackManagerTrackDidChangeNotification
                                              object:nil];
+  [[NSNotificationCenter defaultCenter] addObserver:self
+                                           selector:@selector(artworkDidChange:)
+                                               name:@"ArtworkDidChangeNotification"
+                                             object:nil];
 
   PlaybackManager *manager = [PlaybackManager sharedManager];
   [manager addObserver:self
@@ -115,6 +120,17 @@
                context:nil];
 }
 
+- (void)artworkDidChange:(NSNotification *)notification {
+  Album *changedAlbum = notification.object;
+  Track *currentTrack = [PlaybackManager sharedManager].currentTrack;
+  
+  if (currentTrack.album == changedAlbum) {
+    dispatch_async(dispatch_get_main_queue(), ^{
+      [self updateArtworkImageForTrack:currentTrack];
+    });
+  }
+}
+
 #pragma mark - KVO
 
 - (void)observeValueForKeyPath:(NSString *)keyPath
@@ -123,9 +139,17 @@
                        context:(void *)context {
   if (object == [PlaybackManager sharedManager]) {
     if ([keyPath isEqualToString:@"playing"]) {
-      dispatch_async(dispatch_get_main_queue(), ^{ [self updatePlaybackState]; });
+      dispatch_async(dispatch_get_main_queue(), ^{
+        [self updatePlaybackState];
+      });
     } else if ([keyPath isEqualToString:@"repeatMode"]) {
-      dispatch_async(dispatch_get_main_queue(), ^{ [self updateRepeatButton]; });
+      dispatch_async(dispatch_get_main_queue(), ^{
+        [self updateRepeatButton];
+      });
+    } else if ([keyPath isEqualToString:@"currentArtworkPath"]) {
+      dispatch_async(dispatch_get_main_queue(), ^{
+        [self updateArtworkImageForTrack:[[PlaybackManager sharedManager] currentTrack]];
+      });
     }
   } else {
     [super observeValueForKeyPath:keyPath ofObject:object change:change context:context];
@@ -201,15 +225,15 @@
     [self.bpmLabel setHidden:YES];
   }
 
-  if (track.album.artworkPath) {
-    self.trackArtwork.image = [ArtworkManager loadArtworkAtPath:track.album.artworkPath];
-  } else {
-    self.trackArtwork.image = [ArtworkManager placeholderImageWithSize:self.trackArtwork.bounds.size];
-  }
+  [self updateArtworkImageForTrack:track];
 
   [self updateNowPlayingInfoWithTrack:track artworkImage:self.trackArtwork.image];
 
   [self generateWaveformForTrack:track];
+}
+
+- (void)updateArtworkImageForTrack:(Track *)track {
+  self.trackArtwork.image = [TrackService loadArtworkForTrack:track withPlaceholderSize:self.trackArtwork.bounds.size];
 }
 
 - (void)generateWaveformForTrack:(Track *)track {

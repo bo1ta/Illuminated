@@ -44,6 +44,21 @@ NSString *const kArtworkDirectoryPath = @"Illuminated/Artwork";
   return nil;
 }
 
++ (NSString *)saveArtworkFromImage:(NSImage *)image forUUID:(NSUUID *)uuid {
+  NSData *jpegData = [self jpegDataFromImage:image compressionQuality:0.8];
+  
+  NSString *filename = [NSString stringWithFormat:@"%@.jpg", uuid.UUIDString];
+  NSString *filePath = [[self artworkDirectory] stringByAppendingPathComponent:filename];
+
+
+  if ([jpegData writeToFile:filePath atomically:YES]) {
+    return filePath;
+  }
+
+  return nil;
+}
+
+
 + (NSImage *)loadArtworkAtPath:(NSString *)path {
   if (!path) return nil;
   return [[NSImage alloc] initWithContentsOfFile:path];

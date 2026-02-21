@@ -5,10 +5,11 @@
 //  Created by Alexandru Solomon on 18.01.2026.
 //
 
-#import "BFTask.h"
 #import <Foundation/Foundation.h>
 
 NS_ASSUME_NONNULL_BEGIN
+
+@class BFTask;
 
 typedef id _Nullable (^WriteBlock)(NSManagedObjectContext *context);
 

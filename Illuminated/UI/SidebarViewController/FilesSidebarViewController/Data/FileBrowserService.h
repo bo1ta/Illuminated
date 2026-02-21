@@ -5,14 +5,14 @@
 //  Created by Alexandru Solomon on 07.02.2026.
 //
 
-#import "BFExecutor.h"
-#import "BFTask.h"
 #import <Foundation/Foundation.h>
 
 NS_ASSUME_NONNULL_BEGIN
 
 @class FileBrowserItem;
 @class FileBrowserLocation;
+
+@class BFTask<__covariant ResultType>;
 
 @interface FileBrowserService : NSObject
 

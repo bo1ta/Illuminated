@@ -7,6 +7,7 @@
 
 #import "WaveformGenerator.h"
 #import "BFExecutor.h"
+#import "BFTask.h"
 #import "Track.h"
 #import <AVFoundation/AVFoundation.h>
 #import <Accelerate/Accelerate.h>

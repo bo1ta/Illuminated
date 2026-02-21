@@ -5,13 +5,13 @@
 //  Created by Alexandru Solomon on 08.02.2026.
 //
 
-#import "BFTask.h"
 #import <Cocoa/Cocoa.h>
 #import <Foundation/Foundation.h>
 
 NS_ASSUME_NONNULL_BEGIN
 
 @class Track;
+@class BFTask<__covariant ResultType>;
 
 @interface WaveformGenerator : NSObject
 

@@ -6,6 +6,8 @@
 //
 
 #import "FileBrowserService.h"
+#import "BFExecutor.h"
+#import "BFTask.h"
 #import "BookmarkResolver.h"
 #import "FileBrowserItem.h"
 #import "FileBrowserLocation.h"

@@ -5,12 +5,13 @@
 //  Created by Alexandru Solomon on 20.01.2026.
 //
 
-#import "BFTask.h"
 #import <Cocoa/Cocoa.h>
 
 NS_ASSUME_NONNULL_BEGIN
 
 @class Track, Playlist;
+
+@class BFTask<__covariant ResultType>;
 
 @interface TrackService : NSObject
 
@@ -33,6 +34,16 @@ NS_ASSUME_NONNULL_BEGIN
 + (BFTask *)deleteTrack:(Track *)track;
 
 + (BFTask *)deleteTracks:(NSArray<Track *> *)tracks;
+
++ (NSImage *)loadArtworkForTrack:(Track *)track withPlaceholderSize:(CGSize)size;
+
++ (BFTask *)updateTrack:(Track *)track
+              withTitle:(NSString *)title
+             artistName:(NSString *)artistName
+             albumTitle:(NSString *)albumTitle
+             albumImage:(nullable NSImage *)albumImage
+                  genre:(NSString *)genre
+                   year:(uint16_t)year;
 
 @end
 

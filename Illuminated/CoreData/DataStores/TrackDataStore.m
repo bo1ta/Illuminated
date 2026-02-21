@@ -6,6 +6,11 @@
 //
 
 #import "TrackDataStore.h"
+#import "Album.h"
+#import "AlbumDataStore.h"
+#import "Artist.h"
+#import "ArtistDataStore.h"
+#import "BFTask.h"
 #import "CoreDataStore.h"
 #import "Playlist.h"
 #import "Track.h"
@@ -63,13 +68,51 @@
   return [[CoreDataStore writer] performWrite:^id(NSManagedObjectContext *context) {
     Track *track = [context objectWithID:trackObjectID];
     if (!track) {
-      return [BFTask
-          taskWithError:[NSError errorWithDomain:@"TrackDataStore"
-                                            code:-100
-                                        userInfo:@{NSLocalizedDescriptionKey : @"Track with objectID not found"}]];
+      return [self objectNotFoundErrorTask];
     }
 
     [context deleteObject:track];
+
+    return nil;
+  }];
+}
+
++ (BFTask *)objectNotFoundErrorTask {
+  return
+      [BFTask taskWithError:[NSError errorWithDomain:@"TrackDataStore"
+                                                code:-100
+                                            userInfo:@{NSLocalizedDescriptionKey : @"Track with objectID not found"}]];
+}
+
++ (BFTask *)updateTrackWithObjectID:(NSManagedObjectID *)trackObjectID
+                          withTitle:(NSString *)title
+                         artistName:(NSString *)artistName
+                         albumTitle:(NSString *)albumTitle
+                   albumArtworkPath:(nullable NSString *)albumArtworkPath
+                              genre:(NSString *)genre
+                               year:(uint16_t)year {
+  return [[CoreDataStore writer] performWrite:^id(NSManagedObjectContext *context) {
+    Track *track = [context objectWithID:trackObjectID];
+    if (!track) {
+      return [self objectNotFoundErrorTask];
+    }
+
+    Artist *artist = nil;
+    if (artistName) {
+      artist = [ArtistDataStore findOrCreateArtistWithName:artistName usingContext:context];
+    }
+
+    Album *album = nil;
+    if (albumTitle) {
+      album = [AlbumDataStore findOrCreateAlbumWithName:albumTitle artist:artist inContext:context];
+      album.artworkPath = albumArtworkPath ?: album.artworkPath;
+    }
+
+    track.title = title;
+    track.artist = artist;
+    track.album = album;
+    track.genre = genre;
+    track.year = year;
 
     return nil;
   }];

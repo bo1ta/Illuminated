@@ -6,6 +6,7 @@
 //
 
 #import "FileBrowserLocationDataStore.h"
+#import "BFTask.h"
 #import "CoreDataStore.h"
 #import "FileBrowserLocation.h"
 

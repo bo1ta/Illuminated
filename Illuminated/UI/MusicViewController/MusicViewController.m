@@ -9,8 +9,10 @@
 #import "Album.h"
 #import "Artist.h"
 #import "BFExecutor.h"
+#import "BFTask.h"
 #import "FilesSidebarViewController.h"
 #import "MainWindowController.h"
+#import "MetadataEditorViewController.h"
 #import "PlaybackManager.h"
 #import "Playlist.h"
 #import "PlaylistDataStore.h"
@@ -436,6 +438,16 @@ NSString *const PasteboardItemTypeTrackImports = @"com.illuminated.track.import"
   return YES;
 }
 
+- (IBAction)editMetadataAction:(id)sender {
+  Track *selectedTrack = [self getClickedTrack];
+  if (!selectedTrack) {
+    return;
+  }
+
+  MetadataEditorViewController *viewController = [[MetadataEditorViewController alloc] initWithTrack:selectedTrack];
+  [self presentViewControllerAsSheet:viewController];
+}
+
 - (IBAction)showInFinderAction:(id)sender {
   Track *track = [self getClickedTrack];
   if (!track) {
@@ -462,14 +474,14 @@ NSString *const PasteboardItemTypeTrackImports = @"com.illuminated.track.import"
 - (NSArray<Track *> *)getSelectedTracks {
   NSIndexSet *selectedRows = [self.tableView selectedRowIndexes];
   NSMutableArray<Track *> *tracks = [NSMutableArray array];
-  
+
   [selectedRows enumerateIndexesUsingBlock:^(NSUInteger idx, BOOL *_) {
     Track *track = [self.fetchedResultsController.fetchedObjects objectAtIndex:idx];
     if (track) {
       [tracks addObject:track];
     }
   }];
-  
+
   return tracks;
 }
 
