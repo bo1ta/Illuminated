@@ -19,6 +19,8 @@ NS_ASSUME_NONNULL_BEGIN
 
 + (NSImage *)placeholderImageWithSize:(CGSize)size;
 
++ (NSString *)saveArtworkFromImage:(NSImage *)image forUUID:(NSUUID *)uuid;
+
 @end
 
 NS_ASSUME_NONNULL_END

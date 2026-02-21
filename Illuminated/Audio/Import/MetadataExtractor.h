@@ -10,7 +10,11 @@
 NS_ASSUME_NONNULL_BEGIN
 
 @interface MetadataExtractor : NSObject
+
 + (NSDictionary *)extractMetadataFromFileAtURL:(NSURL *)fileURL;
+
++ (void)updateMetadataAtURL:(NSURL *)fileURL metadata:(NSDictionary *)metadata;
+
 @end
 
 NS_ASSUME_NONNULL_END

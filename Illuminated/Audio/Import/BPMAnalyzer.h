@@ -6,11 +6,12 @@
 //
 //
 
-#import "BFTask.h"
 #import <AVFoundation/AVFoundation.h>
 #import <Foundation/Foundation.h>
 
 NS_ASSUME_NONNULL_BEGIN
+
+@class BFTask<__covariant ResultType>;
 
 @interface BPMAnalyzer : NSObject
 

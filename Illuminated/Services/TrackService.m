@@ -11,6 +11,7 @@
 #import "Artist.h"
 #import "ArtistDataStore.h"
 #import "ArtworkManager.h"
+#import "BFTask.h"
 #import "BPMAnalyzer.h"
 #import "BookmarkResolver.h"
 #import "CoreDataStore.h"
@@ -185,7 +186,7 @@
   if (!artistName) {
     return nil;
   }
-  return [ArtistDataStore findOrCreateArtistWithName:artistName inContext:context];
+  return [ArtistDataStore findOrCreateArtistWithName:artistName usingContext:context];
 }
 
 + (Album *)findOrCreateAlbum:(NSString *)albumName
@@ -263,12 +264,56 @@
 
 + (BFTask *)deleteTracks:(NSArray<Track *> *)tracks {
   NSMutableArray<BFTask *> *tasks = [NSMutableArray array];
-  
+
   for (Track *track in tracks) {
     [tasks addObject:[self deleteTrack:track]];
   }
-  
+
   return [BFTask taskForCompletionOfAllTasks:tasks];
+}
+
++ (NSImage *)loadArtworkForTrack:(Track *)track withPlaceholderSize:(CGSize)size {
+  if (track.album.artworkPath) {
+    return [ArtworkManager loadArtworkAtPath:track.album.artworkPath];
+  } else {
+    return [ArtworkManager placeholderImageWithSize:size];
+  }
+}
+
++ (BFTask *)updateTrack:(Track *)track
+              withTitle:(NSString *)title
+             artistName:(NSString *)artistName
+             albumTitle:(NSString *)albumTitle
+             albumImage:(nullable NSImage *)albumImage
+                  genre:(NSString *)genre
+                   year:(uint16_t)year {
+  NSString *artworkPath = track.album.artworkPath;
+  if (albumImage && track.album) {
+    artworkPath = [ArtworkManager saveArtworkFromImage:albumImage forUUID:track.album.uniqueID];
+  }
+  
+  return [[TrackDataStore updateTrackWithObjectID:track.objectID
+                                        withTitle:title
+                                       artistName:artistName
+                                       albumTitle:albumTitle
+                                 albumArtworkPath:artworkPath
+                                            genre:genre
+                                             year:year] continueWithSuccessBlock:^id(BFTask *_) {
+    NSURL *url = [BookmarkResolver URLForBookmarkData:track.urlBookmark error:nil];
+    if (url) {
+      [url startAccessingSecurityScopedResource];
+      [MetadataExtractor updateMetadataAtURL:url
+                                    metadata:@{
+                                      @"title" : title,
+                                      @"artist" : artistName,
+                                      @"album" : albumTitle,
+                                      @"genre" : genre,
+                                      @"year" : [NSNumber numberWithInt:year],
+                                    }];
+      [url stopAccessingSecurityScopedResource];
+    }
+    return nil;
+  }];
 }
 
 #pragma mark - Async Wrappers

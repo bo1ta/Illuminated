@@ -6,6 +6,7 @@
 //
 
 #import "CoreDataStore.h"
+#import "BFTask.h"
 #import <Foundation/Foundation.h>
 
 @implementation CoreDataStore
@@ -50,7 +51,7 @@
 
 - (void)setupNotifications {
   [[NSNotificationCenter defaultCenter] addObserver:self
-                                           selector:@selector(handleNotification)
+                                           selector:@selector(handleNotificationCoalesced)
                                                name:NSManagedObjectContextObjectsDidChangeNotification
                                              object:[self writerDerivedStorage]];
 }

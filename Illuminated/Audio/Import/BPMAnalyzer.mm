@@ -8,6 +8,7 @@
 
 #import "BPMAnalyzer.h"
 #import "BFExecutor.h"
+#import "BFTask.h"
 
 #include <assert.h>
 #include <math.h>

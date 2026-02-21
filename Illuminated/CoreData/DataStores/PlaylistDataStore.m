@@ -6,6 +6,7 @@
 //
 
 #import "PlaylistDataStore.h"
+#import "BFTask.h"
 #import "CoreDataStore.h"
 #import "Playlist.h"
 #import "Track.h"

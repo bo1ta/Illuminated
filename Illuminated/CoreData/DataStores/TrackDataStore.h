@@ -5,13 +5,14 @@
 //  Created by Alexandru Solomon on 08.02.2026.
 //
 
-#import "BFTask.h"
+#import "BFGeneric.h"
 #import <Foundation/Foundation.h>
+
+NS_ASSUME_NONNULL_BEGIN
 
 @class Track, Artist, Album;
 @class NSManagedObjectContext, NSFetchedResultsController, NSManagedObjectID;
-
-NS_ASSUME_NONNULL_BEGIN
+@class BFTask<__covariant ResultType>;
 
 @interface TrackDataStore : NSObject
 
@@ -35,6 +36,14 @@ NS_ASSUME_NONNULL_BEGIN
 + (NSFetchedResultsController *)fetchedResultsController;
 
 + (BFTask *)deleteTrackWithObjectID:(NSManagedObjectID *)trackObjectID;
+
++ (BFTask *)updateTrackWithObjectID:(NSManagedObjectID *)trackObjectID
+                          withTitle:(NSString *)title
+                         artistName:(NSString *)artistName
+                         albumTitle:(NSString *)albumTitle
+                   albumArtworkPath:(nullable NSString *)albumArtworkPath
+                              genre:(NSString *)genre
+                               year:(uint16_t)year;
 
 @end
 

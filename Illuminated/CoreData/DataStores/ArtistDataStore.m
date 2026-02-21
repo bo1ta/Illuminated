@@ -12,7 +12,7 @@
 
 @implementation ArtistDataStore
 
-+ (Artist *)findOrCreateArtistWithName:(NSString *)artistName inContext:(NSManagedObjectContext *)context {
++ (Artist *)findOrCreateArtistWithName:(NSString *)artistName usingContext:(NSManagedObjectContext *)context {
   Artist *artist = [context firstObjectForEntityName:EntityNameArtist
                                            predicate:[NSPredicate predicateWithFormat:@"name == %@", artistName]];
   if (!artist) {

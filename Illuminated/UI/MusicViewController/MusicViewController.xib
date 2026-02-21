@@ -21,11 +21,11 @@
                 <scrollView autohidesScrollers="YES" horizontalLineScroll="17" horizontalPageScroll="10" verticalLineScroll="17" verticalPageScroll="10" usesPredominantAxisScrolling="NO" translatesAutoresizingMaskIntoConstraints="NO" id="TFs-6t-bMJ">
                     <rect key="frame" x="0.0" y="0.0" width="607" height="278"/>
                     <clipView key="contentView" drawsBackground="NO" id="AhF-kc-dtO">
-                        <rect key="frame" x="1" y="1" width="605" height="276"/>
+                        <rect key="frame" x="1" y="1" width="605" height="261"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <tableView verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="lastColumnOnly" tableStyle="fullWidth" selectionHighlightStyle="sourceList" alternatingRowBackgroundColors="YES" multipleSelection="NO" autosaveColumns="NO" rowSizeStyle="automatic" headerView="GVQ-8a-sad" viewBased="YES" id="DZz-rI-PZn">
-                                <rect key="frame" x="0.0" y="0.0" width="652" height="248"/>
+                                <rect key="frame" x="0.0" y="0.0" width="652" height="233"/>
                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                 <size key="intercellSpacing" width="17" height="0.0"/>
                                 <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
@@ -199,7 +199,7 @@
                         <nil key="backgroundColor"/>
                     </clipView>
                     <scroller key="horizontalScroller" wantsLayer="YES" verticalHuggingPriority="750" horizontal="YES" id="DMT-Lx-v0Z">
-                        <rect key="frame" x="1" y="261" width="605" height="16"/>
+                        <rect key="frame" x="1" y="262" width="605" height="15"/>
                         <autoresizingMask key="autoresizingMask"/>
                     </scroller>
                     <scroller key="verticalScroller" hidden="YES" wantsLayer="YES" verticalHuggingPriority="750" horizontal="NO" id="0Nd-yI-Epb">
@@ -222,6 +222,12 @@
         </customView>
         <menu id="vbG-Mj-neo">
             <items>
+                <menuItem title="Edit Metadata" id="jCj-4D-Upy" userLabel="Edit Metadata">
+                    <modifierMask key="keyEquivalentModifierMask"/>
+                    <connections>
+                        <action selector="editMetadataAction:" target="-2" id="jf5-tk-22v"/>
+                    </connections>
+                </menuItem>
                 <menuItem title="Show in Finder" id="Q9w-6f-1K0">
                     <modifierMask key="keyEquivalentModifierMask"/>
                     <connections>

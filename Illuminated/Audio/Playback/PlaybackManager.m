@@ -9,8 +9,9 @@
 #import "PlaybackManager.h"
 #import "BookmarkResolver.h"
 #import "Track.h"
-#import "TrackService.h"
+#import "Album.h"
 #import "TrackQueue.h"
+#import "TrackService.h"
 #import <AVFoundation/AVFoundation.h>
 #import <Foundation/Foundation.h>
 
@@ -91,7 +92,11 @@ static const NSTimeInterval kProgressTimerInterval = 0.5;
 #pragma mark - KVO
 
 + (NSSet<NSString *> *)keyPathsForValuesAffectingProgress {
-  return [NSSet setWithObjects:@"currentTime", @"duration", @"currentTrack", nil];
+  return [NSSet setWithObjects:@"currentTime", @"duration", @"currentTrack", @"currentArtworkPath", nil];
+}
+
++ (NSSet<NSString *> *)keyPathsForValuesAffectingCurrentTrack {
+  return [NSSet setWithObject:@"queue.currentTrack"];
 }
 
 - (double)progress {
@@ -99,12 +104,12 @@ static const NSTimeInterval kProgressTimerInterval = 0.5;
   return self.currentTime / self.duration;
 }
 
-+ (NSSet<NSString *> *)keyPathsForValuesAffectingCurrentTrack {
-  return [NSSet setWithObject:@"queue.currentTrack"];
-}
-
 - (Track *)currentTrack {
   return self.queue.currentTrack;
+}
+
+- (NSString *)currentArtworkPath {
+  return self.currentTrack.album.artworkPath;
 }
 
 #pragma mark - Public API

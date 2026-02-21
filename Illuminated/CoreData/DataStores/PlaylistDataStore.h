@@ -5,14 +5,15 @@
 //  Created by Alexandru Solomon on 08.02.2026.
 //
 
-#import "BFTask.h"
+#import "BFGeneric.h"
 #import <Foundation/Foundation.h>
 
 @class Playlist, Track;
 
 @class NSManagedObjectID;
-
 @class NSFetchedResultsController;
+
+@class BFTask<__covariant ResultType>;
 
 NS_ASSUME_NONNULL_BEGIN
 

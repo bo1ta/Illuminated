@@ -24,7 +24,7 @@
 
 @implementation MetadataExtractor
 
-#pragma mark - File Metadata
+#pragma mark - Read
 
 + (NSDictionary *)extractMetadataFromFileAtURL:(NSURL *)fileURL {
   NSMutableDictionary *metadata = [NSMutableDictionary dictionary];
@@ -190,6 +190,50 @@
   TagLib::ByteVector pictureData = coverArt.data();
   
   return [NSData dataWithBytes:pictureData.data() length:pictureData.size()];
+}
+
+#pragma mark - Write
+
++ (void)updateMetadataAtURL:(NSURL *)fileURL metadata:(NSDictionary *)metadata {
+  const char *filePath = [[fileURL path] UTF8String];
+  TagLib::FileRef file(filePath);
+  
+  if (file.isNull() || !file.tag()) {
+    NSLog(@"TagLib: Failed to read file or no tags found");
+    return;
+  }
+  
+  TagLib::Tag *tag = file.tag();
+  
+  NSString *title = metadata[@"title"];
+  if (title) {
+    tag->setTitle([title UTF8String]);
+  }
+  
+  NSString *artist = metadata[@"artist"];
+  if (artist) {
+    tag->setArtist([artist UTF8String]);
+  }
+
+  NSString *album = metadata[@"album"];
+  if (album) {
+    tag->setAlbum([album UTF8String]);
+  }
+  
+  NSString *genre = metadata[@"genre"];
+  if (genre) {
+    tag->setGenre([genre UTF8String]);
+  }
+  
+  NSNumber *year = metadata[@"year"];
+  if (year) {
+    tag->setYear([year intValue]);
+  }
+  
+  bool success = file.save();
+  if (!success) {
+    NSLog(@"TagLib: Failed to save metadata to file");
+  }
 }
 
 @end
