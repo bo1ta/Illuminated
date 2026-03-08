@@ -9,9 +9,18 @@
 #import "BFTask.h"
 #import <Foundation/Foundation.h>
 
-@implementation CoreDataStore
+#pragma mark - EntityName
 
-#pragma mark - Core Data stack
+EntityName const EntityNameAlbum = @"Album";
+EntityName const EntityNameArtist = @"Artist";
+EntityName const EntityNameTrack = @"Track";
+EntityName const EntityNamePlaylist = @"Playlist";
+EntityName const EntityNameFileBrowserLocation = @"FileBrowserLocation";
+EntityName const EntityNameRadioStation = @"RadioStation";
+
+#pragma mark - CoreDataStore
+
+@implementation CoreDataStore
 
 + (instancetype)shared {
   static CoreDataStore *sharedCoreDataStore = nil;

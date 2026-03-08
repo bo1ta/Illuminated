@@ -6,13 +6,18 @@
 //
 
 #import "RadioViewController.h"
-#import "RadioStation.h"
+#import "RBStation.h"
 #import "RadioBrowserClient.h"
+#import <AVFoundation/AVFoundation.h>
+#import "RadioService.h"
+#import "RadioStation.h"
 
 @interface RadioViewController ()
 @property(weak) IBOutlet NSOutlineView *outlineView;
 
 @property(nonatomic, strong) RadioBrowserClient *radioClient;
+@property(strong, nullable) AVPlayer *streamPlayer;
+@property(strong, nullable) id timeObserver;
 
 @end
 
@@ -29,18 +34,24 @@
 - (void)viewDidLoad {
   [super viewDidLoad];
   
-  [[self.radioClient listAllStations] continueWithBlock:^id(BFTask<NSArray<RadioStation *> *> *task) {
+  [[RadioService getRadioStations] continueWithBlock:^id(BFTask<NSArray<RadioStation *> *> *task) {
     if (task.error) {
       NSLog(@"Error listing radio stations: %@", task.error.localizedDescription);
     } else {
-      NSLog(@"Received a couple results: %@", task.result);
       RadioStation *station = task.result.firstObject;
       if (station) {
         NSLog(@"Station with URL: %@", station.url);
+        NSURL *url = [NSURL URLWithString:station.url];
+        [self playStreamURL:url];
       }
     }
     return nil;
   }];
+}
+
+- (void)playStreamURL:(NSURL *)url {
+  self.streamPlayer = [[AVPlayer alloc] initWithURL:url];
+  [self.streamPlayer play];
 }
 
 @end

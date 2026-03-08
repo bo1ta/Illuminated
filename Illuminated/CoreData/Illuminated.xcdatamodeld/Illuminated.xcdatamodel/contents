@@ -31,6 +31,17 @@
         <attribute name="uniqueID" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
         <relationship name="tracks" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Track" inverseName="playlists" inverseEntity="Track"/>
     </entity>
+    <entity name="RadioStation" representedClassName="RadioStation" syncable="YES">
+        <attribute name="bitrate" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="codec" optional="YES" attributeType="String"/>
+        <attribute name="country" optional="YES" attributeType="String"/>
+        <attribute name="countryCode" optional="YES" attributeType="String"/>
+        <attribute name="name" optional="YES" attributeType="String"/>
+        <attribute name="serverID" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="stationID" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="url" optional="YES" attributeType="String"/>
+        <attribute name="urlResolved" optional="YES" attributeType="String"/>
+    </entity>
     <entity name="Track" representedClassName="Track" syncable="YES">
         <attribute name="bitrate" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="bpm" optional="YES" attributeType="Float" defaultValueString="0" usesScalarValueType="YES"/>

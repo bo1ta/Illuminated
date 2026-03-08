@@ -7,17 +7,20 @@
 
 #import "BaseAPIClient.h"
 #import "BFTask.h"
+#import "APIDictionary.h"
+
 
 NS_ASSUME_NONNULL_BEGIN
 
-@class RadioStation;
+@class RBStation;
 
 @interface RadioBrowserClient : BaseAPIClient
 
 + (NSString *)baseURL;
 
-- (BFTask<NSArray<RadioStation *> *> *)searchStations:(NSString *)term;
-- (BFTask<NSArray<RadioStation *> *> *)listAllStations;
+- (BFTask<NSArray<RBStation *> *> *)searchStations:(NSString *)term;
+- (BFTask<NSArray<RBStation *> *> *)listAllStations;
+- (BFTask<APIDictionary> *)listAllStationsDictionary;
 
 @end
 

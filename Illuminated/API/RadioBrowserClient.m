@@ -6,7 +6,7 @@
 //
 
 #import "RadioBrowserClient.h"
-#import "RadioStation.h"
+#import "RBStation.h"
 
 @implementation RadioBrowserClient
 
@@ -25,22 +25,26 @@
     return self;
 }
 
-- (BFTask<NSArray<RadioStation *> *> *)listAllStations {
+- (BFTask<NSArray<RBStation *> *> *)listAllStations {
   return [[self GET:@"/json/stations" parameters:nil] continueWithSuccessBlock:^id(BFTask * task) {
     return [self decodeStationsFromJsonArray:task.result];
   }];
 }
 
-- (BFTask<NSArray<RadioStation *> *> *)searchStations:(NSString *)term {
+- (BFTask<APIDictionary> *)listAllStationsDictionary {
+  return [self GET:@"/json/stations" parameters:nil];
+}
+
+- (BFTask<NSArray<RBStation *> *> *)searchStations:(NSString *)term {
   return [[self GET:@"/json/stations/byname" parameters:@{@"name": term}] continueWithSuccessBlock:^id(BFTask *task) {
     return [self decodeStationsFromJsonArray:task.result];
   }];
 }
 
-- (NSArray<RadioStation *> *)decodeStationsFromJsonArray:(NSArray<NSDictionary *> *)jsonArray {
+- (APIDictionary)decodeStationsFromJsonArray:(NSArray<NSDictionary *> *)jsonArray {
   NSMutableArray *stations = [NSMutableArray array];
   for (NSDictionary *dict in jsonArray) {
-    RadioStation *station = [[RadioStation alloc] initWithDictionary:dict];
+    RBStation *station = [[RBStation alloc] initWithDictionary:dict];
     [stations addObject:station];
   }
   

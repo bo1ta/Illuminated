@@ -16,11 +16,12 @@ NS_ASSUME_NONNULL_BEGIN
 #pragma mark - EntityName
 
 typedef NSString *EntityName NS_STRING_ENUM;
-static EntityName const EntityNameAlbum = @"Album";
-static EntityName const EntityNameArtist = @"Artist";
-static EntityName const EntityNameTrack = @"Track";
-static EntityName const EntityNamePlaylist = @"Playlist";
-static EntityName const EntityNameFileBrowserLocation = @"FileBrowserLocation";
+extern EntityName const EntityNameAlbum;
+extern EntityName const EntityNameArtist;
+extern EntityName const EntityNameTrack;
+extern EntityName const EntityNamePlaylist;
+extern EntityName const EntityNameFileBrowserLocation;
+extern EntityName const EntityNameRadioStation;
 
 #pragma mark - CoreDataStore Interface
 

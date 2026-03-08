@@ -81,12 +81,13 @@
 }
 
 - (nonnull id)findOrInsertObjectForEntityName:(nonnull NSString *)entityName
-                                    predicate:(nonnull NSPredicate *)predicate {
-  id existingObject = [self firstObjectForEntityName:entityName predicate:predicate];
-  if (existingObject != nil) {
-    return existingObject;
+                                    predicate:(nullable NSPredicate *)predicate {
+  if (predicate) {
+    id existingObject = [self firstObjectForEntityName:entityName predicate:predicate];
+    if (existingObject != nil) {
+      return existingObject;
+    }
   }
-
   return [self insertNewObjectForEntityName:entityName];
 }
 

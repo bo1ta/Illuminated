@@ -25,7 +25,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (BOOL)objectExistsForEntityName:(NSString *)entityName predicate:(nullable NSPredicate *)predicate;
 
-- (id)findOrInsertObjectForEntityName:(NSString *)entityName predicate:(NSPredicate *)predicate;
+- (id)findOrInsertObjectForEntityName:(NSString *)entityName predicate:(nullable NSPredicate *)predicate;
 
 - (void)saveIfNeeded;
 

@@ -9,7 +9,7 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface RadioStation : NSObject
+@interface RBStation : NSObject
 
 @property(nonatomic, copy) NSUUID *stationUUID;
 @property(nonatomic, copy, nullable) NSUUID *serverUUID;
