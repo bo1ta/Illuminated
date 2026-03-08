@@ -19,7 +19,6 @@ NSString *const PasteboardItemTypeTrackImport = @"com.illuminated.track.import";
 
 @interface FilesSidebarViewController ()
 
-@property(nonatomic, strong) FileBrowserService *browserService;
 @property(nonatomic, strong) NSArray<FileBrowserItem *> *rootItems;
 @property(nonatomic, strong) NSMutableDictionary<NSValue *, NSArray<FileBrowserItem *> *> *loadedItems;
 @property(weak) IBOutlet NSOutlineView *outlineView;
@@ -101,8 +100,7 @@ NSString *const PasteboardItemTypeTrackImport = @"com.illuminated.track.import";
 #pragma mark - Data Loading
 
 - (void)addLocationURL:(NSURL *)url {
-  [[self.browserService createFileBrowserItemWithURL:url]
-      continueOnMainThreadWithBlock:^id(BFTask<FileBrowserItem *> *task) {
+  [[FileBrowserService createFileBrowserItemWithURL:url] continueOnMainThreadWithBlock:^id(BFTask<FileBrowserItem *> *task) {
         if (task.error) {
           [self presentError:task.error];
           return nil;
@@ -114,8 +112,7 @@ NSString *const PasteboardItemTypeTrackImport = @"com.illuminated.track.import";
 }
 
 - (void)loadRootLocations {
-  [[self.browserService allFileBrowserItems]
-      continueOnMainThreadWithBlock:^id(BFTask<NSArray<FileBrowserItem *> *> *task) {
+  [[FileBrowserService allFileBrowserItems] continueOnMainThreadWithBlock:^id(BFTask<NSArray<FileBrowserItem *> *> *task) {
         if (task.error) {
           [self presentError:task.error];
           return nil;
@@ -141,8 +138,7 @@ NSString *const PasteboardItemTypeTrackImport = @"com.illuminated.track.import";
 
   __weak typeof(self) weakSelf = self;
 
-  [[self.browserService contentsOfDirectory:directoryURL bookmarkData:bookmarkData]
-      continueOnMainThreadWithBlock:^id(BFTask<NSArray<FileBrowserItem *> *> *task) {
+  [[FileBrowserService contentsOfDirectory:directoryURL bookmarkData:bookmarkData] continueOnMainThreadWithBlock:^id(BFTask<NSArray<FileBrowserItem *> *> *task) {
         __strong typeof(weakSelf) strongSelf = weakSelf;
 
         if (task.error) {
@@ -322,13 +318,6 @@ NSString *const PasteboardItemTypeTrackImport = @"com.illuminated.track.import";
     }
     [self.loadedItems removeObjectForKey:key];
   }
-}
-
-- (FileBrowserService *)browserService {
-  if (_browserService == nil) {
-    _browserService = [[FileBrowserService alloc] init];
-  }
-  return _browserService;
 }
 
 @end

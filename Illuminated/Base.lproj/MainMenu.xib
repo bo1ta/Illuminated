@@ -87,15 +87,16 @@
                                     </items>
                                 </menu>
                             </menuItem>
-                            <menuItem title="Import Folder..." keyEquivalent="o" id="S8r-3v-AGa">
+                            <menuItem title="Import Folder..." keyEquivalent="O" id="S8r-3v-AGa">
                                 <connections>
-                                    <action selector="openDocument:" target="-1" id="u1y-J8-Orj"/>
+                                    <action selector="open:" target="-1" id="WP6-Sq-BfD"/>
                                 </connections>
                             </menuItem>
                             <menuItem isSeparatorItem="YES" id="m54-Is-iLE"/>
-                            <menuItem title="Reveal in Finder" keyEquivalent="o" id="XFo-NS-WOJ">
+                            <menuItem title="Reveal in Finder" id="XFo-NS-WOJ">
+                                <modifierMask key="keyEquivalentModifierMask"/>
                                 <connections>
-                                    <action selector="openDocument:" target="-1" id="VCd-Jp-GwW"/>
+                                    <action selector="showInFinderAction:" target="Voe-Tx-rLC" id="w9c-KZ-aUV"/>
                                 </connections>
                             </menuItem>
                             <menuItem isSeparatorItem="YES" id="D3x-yq-WwI"/>
@@ -127,22 +128,6 @@
                 </menuItem>
                 <menuItem title="Playback" id="jxT-CU-nIS">
                     <modifierMask key="keyEquivalentModifierMask"/>
-                    <menu key="submenu" title="Playback" id="GEO-Iw-cKr">
-                        <items>
-                            <menuItem title="Play/Pause" id="Gi5-1S-RQB">
-                                <modifierMask key="keyEquivalentModifierMask"/>
-                            </menuItem>
-                            <menuItem title="Next Track" id="qVQ-Bc-KP3">
-                                <modifierMask key="keyEquivalentModifierMask"/>
-                            </menuItem>
-                            <menuItem title="Previous Track" id="eZz-p0-Pbs">
-                                <modifierMask key="keyEquivalentModifierMask"/>
-                            </menuItem>
-                            <menuItem title="Stop" id="Yxc-Na-blw">
-                                <modifierMask key="keyEquivalentModifierMask"/>
-                            </menuItem>
-                        </items>
-                    </menu>
                 </menuItem>
                 <menuItem title="View" id="H8h-7b-M4v">
                     <modifierMask key="keyEquivalentModifierMask"/>

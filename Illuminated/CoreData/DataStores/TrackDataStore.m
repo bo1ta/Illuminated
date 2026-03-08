@@ -39,6 +39,15 @@
   }];
 }
 
++ (BFTask *)updateURLBookmarkForTrackWithObjectID:(NSManagedObjectID *)objectID
+                                      urlBookmark:(NSData *)urlBookmark {
+  return [[CoreDataStore writer] performWrite:^id(NSManagedObjectContext *context) {
+    Track *track = [context objectWithID:objectID];
+    track.urlBookmark = urlBookmark;
+    return track;
+  }];
+}
+
 + (Track *)insertTrackWithTitle:(NSString *)title
                         fileURL:(NSString *)fileURL
                     urlBookmark:(nullable NSData *)urlBookmark
@@ -66,6 +75,30 @@
   track.album = album;
 
   return track;
+}
+
++ (BFTask *)updateWaveformPathForTrackWithObjectID:(NSManagedObjectID *)objectID
+                                      waveformPath:(NSString *)waveformPath {
+  return [[CoreDataStore writer] performWrite:^id(NSManagedObjectContext *context) {
+    Track *track = [context objectWithID:objectID];
+    if (track) {
+      track.waveformPath = waveformPath;
+    }
+    return nil;
+  }];
+}
+
++ (BFTask *)updateBPMForTrackWithFilePath:(NSString *)filePath bpm:(float)bpm {
+  return [[CoreDataStore writer] performWrite:^id(NSManagedObjectContext *context) {
+    Track *track =
+        [context firstObjectForEntityName:EntityNameTrack
+                                predicate:[NSPredicate predicateWithFormat:@"fileURL == %@", filePath]];
+    if (track) {
+      track.bpm = bpm;
+      return track;
+    }
+    return nil;
+  }];
 }
 
 + (BFTask *)deleteTrackWithObjectID:(NSManagedObjectID *)trackObjectID {

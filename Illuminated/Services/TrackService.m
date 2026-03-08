@@ -39,11 +39,8 @@
     Track *track = task.result;
     if (track) {
       if (![track.urlBookmark isEqualToData:bookmarkData]) {
-        return [[CoreDataStore writer] performWrite:^id(NSManagedObjectContext *context) {
-          Track *writeTrack = [context objectWithID:track.objectID];
-          writeTrack.urlBookmark = bookmarkData;
-          return writeTrack;
-        }];
+        return [TrackDataStore updateURLBookmarkForTrackWithObjectID:track.objectID
+                                                         urlBookmark:bookmarkData];
       }
       return task;
     }
@@ -56,26 +53,14 @@
   return [[[[self loadAudioTrackFromAsset:asset] continueWithSuccessBlock:^id(BFTask<AVAssetTrack *> *task) {
     return [BPMAnalyzer analyzeBPMForAssetTrack:task.result];
   }] continueWithSuccessBlock:^id(BFTask<NSNumber *> *task) {
-    return [self updateBPMForTrackWithFileURL:trackURL bpm:task.result];
+    return [TrackDataStore updateBPMForTrackWithFilePath:trackURL.path
+                                                     bpm:task.result.floatValue];
   }] continueWithBlock:^id(BFTask *task) {
     if (task.error) {
       NSLog(@"Error analyzing bpm for track: %@", task.error.localizedDescription);
     }
 
     return task;
-  }];
-}
-
-+ (BFTask<Track *> *)updateBPMForTrackWithFileURL:(NSURL *)fileURL bpm:(NSNumber *)bpm {
-  return [[CoreDataStore writer] performWrite:^id(NSManagedObjectContext *context) {
-    Track *track =
-        [context firstObjectForEntityName:EntityNameTrack
-                                predicate:[NSPredicate predicateWithFormat:@"fileURL == %@", [fileURL path]]];
-    if (track) {
-      track.bpm = [bpm floatValue];
-      return track;
-    }
-    return nil;
   }];
 }
 
@@ -94,7 +79,10 @@
       }
 
       NSDictionary *metadata = [MetadataExtractor extractMetadataFromFileAtURL:url];
-      [tasks addObject:[self saveTrackWithMetadata:metadata bookmark:bookmark fileURL:url playlist:playlist]];
+      [tasks addObject:[self saveTrackWithMetadata:metadata
+                                          bookmark:bookmark
+                                           fileURL:url
+                                          playlist:playlist]];
     }
 
     return [BFTask taskForCompletionOfAllTasks:tasks];
@@ -125,7 +113,9 @@
   }
 
   NSDictionary *metadata = [MetadataExtractor extractMetadataFromFileAtURL:fileURL];
-  return [[self saveTrackWithMetadata:metadata bookmark:bookmark fileURL:fileURL
+  return [[self saveTrackWithMetadata:metadata
+                             bookmark:bookmark
+                              fileURL:fileURL
                              playlist:playlist] continueOnMainThreadWithBlock:^id(BFTask<Track *> *task) {
     if (task.result) {
       return [[CoreDataStore reader] fetchObjectWithID:task.result.objectID];
@@ -151,58 +141,44 @@
                                   bookmark:(NSData *)bookmark
                                    fileURL:(NSURL *)fileURL
                                   playlist:(nullable Playlist *)playlist {
+  
   return [[CoreDataStore writer] performWrite:^id(NSManagedObjectContext *context) {
-    Artist *artist = [self findOrCreateArtist:metadata[@"artist"] inContext:context];
-    Album *album = [self findOrCreateAlbum:metadata[@"album"]
-                                    artist:artist
-                                   artwork:metadata[@"artwork"]
-                                 inContext:context];
-
-    Track *track =
-        [context firstObjectForEntityName:EntityNameTrack
-                                predicate:[NSPredicate predicateWithFormat:@"fileURL == %@", [fileURL path]]];
-    if (!track) {
-      track = [TrackDataStore insertTrackWithTitle:metadata[@"title"] ?: [fileURL lastPathComponent]
-                                           fileURL:[fileURL path]
-                                       urlBookmark:bookmark
-                                       trackNumber:[metadata[@"trackNumber"] intValue]
-                                          fileType:[fileURL pathExtension]
-                                           bitrate:[metadata[@"bitrate"] intValue]
-                                        sampleRate:[metadata[@"sampleRate"] intValue]
-                                          duration:[metadata[@"duration"] doubleValue]
-                                               bpm:[metadata[@"bpm"] floatValue]
-                                            artist:artist
-                                             album:album
-                                         inContext:context];
-      if (playlist) {
-        [track addPlaylistsObject:playlist];
+    Artist *artist = nil;
+    NSString *artistName = metadata[@"artist"];
+    if (artistName) {
+      artist = [ArtistDataStore findOrCreateArtistWithName:artistName usingContext:context];
+    }
+    
+    Album *album = nil;
+    NSString *albumName = metadata[@"album"];
+    if (albumName) {
+      album = [AlbumDataStore findOrCreateAlbumWithName:albumName
+                                                 artist:artist
+                                              inContext:context];
+      if (!album.artworkPath) {
+        album.artworkPath = [ArtworkManager saveArtwork:metadata[@"artwork"]
+                                                forUUID:album.uniqueID];
       }
     }
+    
+    Track *track = [TrackDataStore insertTrackWithTitle:metadata[@"title"] ?: [fileURL lastPathComponent]
+                                       fileURL:[fileURL path]
+                                   urlBookmark:bookmark
+                                   trackNumber:[metadata[@"trackNumber"] intValue]
+                                      fileType:[fileURL pathExtension]
+                                       bitrate:[metadata[@"bitrate"] intValue]
+                                    sampleRate:[metadata[@"sampleRate"] intValue]
+                                      duration:[metadata[@"duration"] doubleValue]
+                                           bpm:[metadata[@"bpm"] floatValue]
+                                        artist:artist
+                                         album:album
+                                     inContext:context];
+    if (playlist) {
+      [track addPlaylistsObject:playlist];
+    }
+
     return track;
   }];
-}
-
-+ (Artist *)findOrCreateArtist:(NSString *)artistName inContext:(NSManagedObjectContext *)context {
-  if (!artistName) {
-    return nil;
-  }
-  return [ArtistDataStore findOrCreateArtistWithName:artistName usingContext:context];
-}
-
-+ (Album *)findOrCreateAlbum:(NSString *)albumName
-                      artist:(Artist *)artist
-                     artwork:(NSData *)artworkData
-                   inContext:(NSManagedObjectContext *)context {
-  if (!albumName) {
-    return nil;
-  }
-
-  Album *album = [AlbumDataStore findOrCreateAlbumWithName:albumName artist:artist inContext:context];
-  if (!album.artworkPath) {
-    album.artworkPath = [ArtworkManager saveArtwork:artworkData forUUID:album.uniqueID];
-  }
-
-  return album;
 }
 
 + (BFTask<NSImage *> *)getWaveformForTrack:(Track *)track resolvedURL:(NSURL *)resolvedURL size:(CGSize)size {
@@ -218,13 +194,8 @@
     NSString *path = [WaveformCacheManager saveWaveformImage:image forTrackUUID:track.uniqueID];
 
     if (path) {
-      [[CoreDataStore writer] performWrite:^id(NSManagedObjectContext *context) {
-        Track *writeTrack = [context objectWithID:track.objectID];
-        if (writeTrack) {
-          writeTrack.waveformPath = path;
-        }
-        return nil;
-      }];
+      [TrackDataStore updateWaveformPathForTrackWithObjectID:track.objectID
+                                                waveformPath:path];
     }
 
     return [BFTask taskWithResult:image];

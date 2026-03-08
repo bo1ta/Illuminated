@@ -15,9 +15,11 @@
 #import <CoreServices/CoreServices.h>
 #import <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
 
+#pragma mark - Implementation
+
 @implementation FileBrowserService
 
-- (BFTask<NSArray<FileBrowserItem *> *> *)contentsOfDirectory:(NSURL *)directoryURL
++ (BFTask<NSArray<FileBrowserItem *> *> *)contentsOfDirectory:(NSURL *)directoryURL
                                                  bookmarkData:(NSData *)bookmarkData {
   return [BFTask
           taskFromExecutor:[BFExecutor defaultExecutor]
@@ -69,7 +71,7 @@
   }];
 }
 
-- (BFTask<NSArray<FileBrowserItem *> *> *)allFileBrowserItems {
++ (BFTask<NSArray<FileBrowserItem *> *> *)allFileBrowserItems {
   return [[FileBrowserLocationDataStore allFileBrowserLocations]
           continueWithBlock:^id(BFTask<NSArray<FileBrowserLocation *> *> *task) {
     NSArray<FileBrowserLocation *> *locations = task.result;
@@ -95,7 +97,7 @@
   }];
 }
 
-- (BFTask<FileBrowserItem *> *)createFileBrowserItemFromLocation:(FileBrowserLocation *)fileBrowserLocation {
++ (BFTask<FileBrowserItem *> *)createFileBrowserItemFromLocation:(FileBrowserLocation *)fileBrowserLocation {
   if (!fileBrowserLocation.bookmarkData) {
     return [BFTask
             taskWithError:[NSError errorWithDomain:@"FileBrowserService"
@@ -120,7 +122,7 @@
   return [BFTask taskWithResult:item];
 }
 
-- (BFTask<FileBrowserItem *> *)createFileBrowserItemWithURL:(NSURL *)url {
++ (BFTask<FileBrowserItem *> *)createFileBrowserItemWithURL:(NSURL *)url {
   
   NSError *error = nil;
   NSData *bookmarkData = [BookmarkResolver bookmarkForURL:url error:&error];
@@ -140,7 +142,7 @@
   }];
 }
 
-- (FileBrowserItem *)newFileBrowserItemWithURL:(NSURL *)url bookmarkData:(NSData *)bookmarkData {
++ (FileBrowserItem *)newFileBrowserItemWithURL:(NSURL *)url bookmarkData:(NSData *)bookmarkData {
   NSDictionary<NSURLResourceKey, id> *values =
   [url resourceValuesForKeys:@[ NSURLIsDirectoryKey, NSURLLocalizedNameKey, NSURLTypeIdentifierKey ] error:nil];
   

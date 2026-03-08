@@ -39,6 +39,14 @@ NS_ASSUME_NONNULL_BEGIN
 
 + (BFTask *)deleteTrackWithObjectID:(NSManagedObjectID *)trackObjectID;
 
++ (BFTask *)updateBPMForTrackWithFilePath:(NSString *)filePath bpm:(float)bpm;
+
++ (BFTask *)updateURLBookmarkForTrackWithObjectID:(NSManagedObjectID *)objectID
+                                      urlBookmark:(NSData *)urlBookmark;
+
++ (BFTask *)updateWaveformPathForTrackWithObjectID:(NSManagedObjectID *)objectID
+                                      waveformPath:(NSString *)waveformPath;
+
 + (BFTask *)updateTrackWithObjectID:(NSManagedObjectID *)trackObjectID
                           withTitle:(NSString *)title
                          artistName:(NSString *)artistName
