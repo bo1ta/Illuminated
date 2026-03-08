@@ -8,12 +8,12 @@
 
 /* Begin PBXBuildFile section */
 		5018B8192F392F6400BF5954 /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5018B8182F392F6400BF5954 /* OpenGL.framework */; };
+		505B3C512F5DCBEC00094463 /* libprojectM-4-playlist.4.dylib in CopyFiles */ = {isa = PBXBuildFile; fileRef = 50C4AEE02F39458600057698 /* libprojectM-4-playlist.4.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		505B3C522F5DCBEC00094463 /* libprojectM-4.4.dylib in CopyFiles */ = {isa = PBXBuildFile; fileRef = 50C4AED62F39416F00057698 /* libprojectM-4.4.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		505DCD242F312D1A00E187C2 /* libtag.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 505DCD232F312D1A00E187C2 /* libtag.a */; };
 		5066523A2F5CB9DD00D2CDE8 /* libz.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 506652392F5CB9DD00D2CDE8 /* libz.tbd */; };
 		50C4AED72F39416F00057698 /* libprojectM-4.4.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 50C4AED62F39416F00057698 /* libprojectM-4.4.dylib */; };
-		50C4AED92F3941A900057698 /* libprojectM-4.4.dylib in CopyFiles */ = {isa = PBXBuildFile; fileRef = 50C4AED82F3941A900057698 /* libprojectM-4.4.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		50C4AEE12F39458600057698 /* libprojectM-4-playlist.4.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 50C4AEE02F39458600057698 /* libprojectM-4-playlist.4.dylib */; };
-		50C4AEE42F39459700057698 /* libprojectM-4-playlist.4.dylib in CopyFiles */ = {isa = PBXBuildFile; fileRef = 50C4AEE32F39459700057698 /* libprojectM-4-playlist.4.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -23,8 +23,8 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				50C4AEE42F39459700057698 /* libprojectM-4-playlist.4.dylib in CopyFiles */,
-				50C4AED92F3941A900057698 /* libprojectM-4.4.dylib in CopyFiles */,
+				505B3C512F5DCBEC00094463 /* libprojectM-4-playlist.4.dylib in CopyFiles */,
+				505B3C522F5DCBEC00094463 /* libprojectM-4.4.dylib in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -46,9 +46,7 @@
 		505DCD232F312D1A00E187C2 /* libtag.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libtag.a; path = Frameworks/libtag.a; sourceTree = "<group>"; };
 		506652392F5CB9DD00D2CDE8 /* libz.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libz.tbd; path = usr/lib/libz.tbd; sourceTree = SDKROOT; };
 		50C4AED62F39416F00057698 /* libprojectM-4.4.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libprojectM-4.4.dylib"; path = "Frameworks/projectM/lib/libprojectM-4.4.dylib"; sourceTree = "<group>"; };
-		50C4AED82F3941A900057698 /* libprojectM-4.4.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libprojectM-4.4.dylib"; path = "Frameworks/projectM/lib/libprojectM-4.4.dylib"; sourceTree = "<group>"; };
 		50C4AEE02F39458600057698 /* libprojectM-4-playlist.4.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libprojectM-4-playlist.4.dylib"; path = "Frameworks/playlist/lib/libprojectM-4-playlist.4.dylib"; sourceTree = "<group>"; };
-		50C4AEE32F39459700057698 /* libprojectM-4-playlist.4.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libprojectM-4-playlist.4.dylib"; path = "Frameworks/playlist/lib/libprojectM-4-playlist.4.dylib"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -103,8 +101,6 @@
 		505A7A242F1C4E6D00984897 = {
 			isa = PBXGroup;
 			children = (
-				50C4AEE32F39459700057698 /* libprojectM-4-playlist.4.dylib */,
-				50C4AED82F3941A900057698 /* libprojectM-4.4.dylib */,
 				505A7A2F2F1C4E6D00984897 /* Illuminated */,
 				504098F42F25A01B001077D9 /* Frameworks */,
 				505A7A2E2F1C4E6D00984897 /* Products */,
@@ -361,13 +357,10 @@
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
-					/opt/homebrew/lib,
 				);
 				LIBRARY_SEARCH_PATHS = (
-					"$(PROJECT_DIR)",
 					"$(PROJECT_DIR)/Frameworks",
 					"$(PROJECT_DIR)/Frameworks/projectM/lib",
-					"$(PROJECT_DIR)/Frameworks/projectM/include",
 					"$(PROJECT_DIR)/Frameworks/playlist/lib",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.5;
@@ -418,13 +411,10 @@
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
-					/opt/homebrew/lib,
 				);
 				LIBRARY_SEARCH_PATHS = (
-					"$(PROJECT_DIR)",
 					"$(PROJECT_DIR)/Frameworks",
 					"$(PROJECT_DIR)/Frameworks/projectM/lib",
-					"$(PROJECT_DIR)/Frameworks/projectM/include",
 					"$(PROJECT_DIR)/Frameworks/playlist/lib",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.5;
