@@ -35,6 +35,11 @@
   return [self GET:@"/json/stations" parameters:nil];
 }
 
+- (BFTask<APIDictionary> *)increaseClickCountForStationID:(NSString *)stationID {
+  NSString *urlPath = [NSString stringWithFormat:@"/json/url/%@", stationID];
+  return [self GET:urlPath parameters:nil];
+}
+
 - (BFTask<NSArray<RBStation *> *> *)searchStations:(NSString *)term {
   return [[self GET:@"/json/stations/byname" parameters:@{@"name": term}] continueWithSuccessBlock:^id(BFTask *task) {
     return [self decodeStationsFromJsonArray:task.result];

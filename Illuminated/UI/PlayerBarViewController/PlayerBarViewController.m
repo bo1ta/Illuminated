@@ -17,6 +17,10 @@
 #import "WaveformView.h"
 #import <AVFoundation/AVFoundation.h>
 #import <MediaPlayer/MediaPlayer.h>
+#import "RadioViewController.h"
+
+NSString *const PlaybackSourceDidChangeToLibraryNotification = @"PlaybackSourceDidChangeToLibraryNotification";
+NSString *const PlaybackDidToggleNotification = @"PlaybackDidToggleNotification";
 
 @interface PlayerBarViewController ()<WaveformViewDelegate>
 
@@ -34,11 +38,13 @@
 @property(weak, nonatomic) IBOutlet NSSlider *volumeSlider;
 @property(weak, nonatomic) IBOutlet NSTextField *bpmLabel;
 
+@property(nonatomic, assign) PlaybackSource currentPlaybackSource;
+@property(nonatomic, assign) BOOL isScrubbing;
+@property(nonatomic, assign) BOOL isPlaying;
+
 @end
 
-@implementation PlayerBarViewController {
-  BOOL _isScrubbing;
-}
+@implementation PlayerBarViewController
 
 #pragma mark - Lifecycle
 
@@ -100,15 +106,24 @@
 }
 
 - (void)setupObservers {
-  [[NSNotificationCenter defaultCenter] addObserver:self
-                                           selector:@selector(updateTrackUI)
-                                               name:PlaybackManagerTrackDidChangeNotification
-                                             object:nil];
-  [[NSNotificationCenter defaultCenter] addObserver:self
-                                           selector:@selector(artworkDidChange:)
-                                               name:@"ArtworkDidChangeNotification"
-                                             object:nil];
-
+  NSNotificationCenter *center = [NSNotificationCenter defaultCenter];
+  [center addObserver:self
+             selector:@selector(updateTrackUI)
+                 name:PlaybackManagerTrackDidChangeNotification
+               object:nil];
+  [center addObserver:self
+             selector:@selector(artworkDidChange:)
+                 name:@"ArtworkDidChangeNotification"
+               object:nil];
+  [center addObserver:self
+             selector:@selector(updateRadioUI:)
+                 name:RadioStationWillStartPlayingNotification
+               object:nil];
+  [center addObserver:self
+             selector:@selector(updateRadioUI:)
+                 name:RadioStationStreamTitleUserInfoKey
+               object:nil];
+  
   PlaybackManager *manager = [PlaybackManager sharedManager];
   [manager addObserver:self
             forKeyPath:@"playing"
@@ -202,6 +217,39 @@
 
 #pragma mark - UI updates
 
+- (void)updateRadioUI:(NSNotification *)notification {
+  [self setCurrentPlaybackSource:PlaybackSourceRadio];
+  
+  self.playPauseButton.image = [NSImage imageWithSystemSymbolName:@"pause.circle.fill" accessibilityDescription:@""];
+  
+  [self.totalTimeLabel setHidden:YES];
+  [self.currentTimeLabel setHidden:YES];
+  [self.bpmLabel setHidden:YES];
+  [self.waveformView setHidden:YES];
+  
+  NSString *radioStationTitle = notification.userInfo[RadioStationTitleUserInfoKey];
+  if (radioStationTitle) {
+    self.trackTitle.stringValue = radioStationTitle;
+    [self.trackTitle setHidden:NO];
+  }
+  
+  NSString *radioStreamTitle = notification.userInfo[RadioStationStreamTitleUserInfoKey];
+  if (radioStreamTitle) {
+    self.artistName.stringValue = radioStreamTitle;
+    [self.artistName setHidden:NO];
+  }
+}
+
+- (void)setCurrentPlaybackSource:(PlaybackSource)currentPlaybackSource {
+  _currentPlaybackSource = currentPlaybackSource;
+  
+  if (currentPlaybackSource == PlaybackSourceRadio) {
+    [[PlaybackManager sharedManager] stop];
+  } else {
+    [[NSNotificationCenter defaultCenter] postNotificationName:PlaybackSourceDidChangeToLibraryNotification object:nil];
+  }
+}
+
 - (void)updateTrackUI {
   Track *track = [PlaybackManager sharedManager].currentTrack;
   if (!track) {
@@ -210,9 +258,11 @@
     [self.totalTimeLabel setHidden:YES];
     [self.currentTimeLabel setHidden:YES];
     [self.bpmLabel setHidden:YES];
+    [self.waveformView setHidden:YES];
     return;
   }
 
+  [self setCurrentPlaybackSource:PlaybackSourceLibrary];
   [self.trackTitle setHidden:NO];
   [self.artistName setHidden:NO];
   [self.totalTimeLabel setHidden:NO];
@@ -237,6 +287,7 @@
 }
 
 - (void)generateWaveformForTrack:(Track *)track {
+  [self.waveformView setHidden:NO];
   self.waveformView.waveformImage = nil;
 
   NSURL *url = [[PlaybackManager sharedManager] currentPlaybackURL];
@@ -257,10 +308,15 @@
 }
 
 - (void)updatePlaybackState {
+  if (self.currentPlaybackSource == PlaybackSourceRadio) {
+    return;
+  }
+  
   BOOL isPlaying = [PlaybackManager sharedManager].isPlaying;
 
   NSString *imgName = isPlaying ? @"pause.circle.fill" : @"play.circle.fill";
   self.playPauseButton.image = [NSImage imageWithSystemSymbolName:imgName accessibilityDescription:@""];
+  self.isPlaying = isPlaying;
 }
 
 - (void)updateRepeatButton {
@@ -321,7 +377,11 @@
 }
 
 - (IBAction)playAction:(id)sender {
-  [[PlaybackManager sharedManager] togglePlayPause];
+  if (self.currentPlaybackSource == PlaybackSourceLibrary) {
+    [[PlaybackManager sharedManager] togglePlayPause];
+  } else {
+    [[NSNotificationCenter defaultCenter] postNotificationName:PlaybackDidToggleNotification object:nil];
+  }
 }
 
 - (IBAction)previousAction:(id)sender {

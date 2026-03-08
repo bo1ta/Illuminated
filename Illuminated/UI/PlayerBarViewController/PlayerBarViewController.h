@@ -7,6 +7,14 @@
 
 #import <Cocoa/Cocoa.h>
 
+typedef NS_ENUM(NSInteger, PlaybackSource) {
+    PlaybackSourceRadio,
+    PlaybackSourceLibrary,
+};
+
+extern NSString *const PlaybackSourceDidChangeToLibraryNotification;
+extern NSString *const PlaybackDidToggleNotification;
+
 NS_ASSUME_NONNULL_BEGIN
 
 @interface PlayerBarViewController : NSViewController

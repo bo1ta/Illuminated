@@ -13,4 +13,6 @@
 
 + (BFTask *)getRadioStations;
 
++ (BFTask *)increaseClickCountForStationID:(NSString *)stationID;
+
 @end

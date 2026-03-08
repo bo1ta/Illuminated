@@ -21,6 +21,7 @@ NS_ASSUME_NONNULL_BEGIN
 - (BFTask<NSArray<RBStation *> *> *)searchStations:(NSString *)term;
 - (BFTask<NSArray<RBStation *> *> *)listAllStations;
 - (BFTask<APIDictionary> *)listAllStationsDictionary;
+- (BFTask<APIDictionary> *)increaseClickCountForStationID:(NSString *)stationID;
 
 @end
 

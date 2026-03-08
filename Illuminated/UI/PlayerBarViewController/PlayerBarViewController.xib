@@ -134,13 +134,10 @@ IA
                     </textFieldCell>
                 </textField>
                 <stackView distribution="fill" orientation="vertical" alignment="leading" spacing="2" horizontalStackHuggingPriority="249.99998474121094" verticalStackHuggingPriority="249.99998474121094" detachesHiddenViews="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Ct6-K7-tLJ" userLabel="TrackInfoStackView">
-                    <rect key="frame" x="75" y="17" width="115" height="44"/>
+                    <rect key="frame" x="75" y="17" width="242" height="44"/>
                     <subviews>
                         <textField focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="g3Z-pj-EbQ">
-                            <rect key="frame" x="-2" y="28" width="119" height="16"/>
-                            <constraints>
-                                <constraint firstAttribute="width" constant="115" id="n4v-nd-WII"/>
-                            </constraints>
+                            <rect key="frame" x="-2" y="28" width="78" height="16"/>
                             <textFieldCell key="cell" lineBreakMode="clipping" title="Track Name" id="PkG-UH-cju">
                                 <font key="font" metaFont="systemMedium" size="13"/>
                                 <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
@@ -210,6 +207,7 @@ IA
                 <constraint firstItem="ESG-gD-635" firstAttribute="centerY" secondItem="c22-O7-iKe" secondAttribute="centerY" constant="25.5" id="H7b-bb-Ypq"/>
                 <constraint firstAttribute="bottom" secondItem="cso-Vn-14Z" secondAttribute="bottom" constant="17" id="MZs-Wd-PHG"/>
                 <constraint firstItem="I6e-1A-WvN" firstAttribute="leading" secondItem="c22-O7-iKe" secondAttribute="leading" constant="22" id="SZM-qm-so8"/>
+                <constraint firstItem="Iep-vN-JHC" firstAttribute="leading" secondItem="Ct6-K7-tLJ" secondAttribute="trailing" constant="20" id="UbB-pe-0Hs"/>
                 <constraint firstItem="uvO-Z0-veq" firstAttribute="leading" secondItem="G7n-4Y-KCD" secondAttribute="trailing" constant="27" id="Uhc-W8-nkq"/>
                 <constraint firstItem="G7n-4Y-KCD" firstAttribute="centerY" secondItem="uvO-Z0-veq" secondAttribute="centerY" id="W2w-SN-UfC"/>
                 <constraint firstItem="G7n-4Y-KCD" firstAttribute="centerY" secondItem="I6e-1A-WvN" secondAttribute="centerY" id="WIS-bV-qeS"/>

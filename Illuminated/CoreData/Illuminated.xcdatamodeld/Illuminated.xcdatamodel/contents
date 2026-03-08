@@ -33,11 +33,15 @@
     </entity>
     <entity name="RadioStation" representedClassName="RadioStation" syncable="YES">
         <attribute name="bitrate" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="clickCount" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="codec" optional="YES" attributeType="String"/>
         <attribute name="country" optional="YES" attributeType="String"/>
         <attribute name="countryCode" optional="YES" attributeType="String"/>
+        <attribute name="favicon" optional="YES" attributeType="String"/>
+        <attribute name="homepage" optional="YES" attributeType="String"/>
         <attribute name="name" optional="YES" attributeType="String"/>
         <attribute name="serverID" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="serverIDFallback" optional="YES" attributeType="String"/>
         <attribute name="stationID" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
         <attribute name="url" optional="YES" attributeType="String"/>
         <attribute name="urlResolved" optional="YES" attributeType="String"/>

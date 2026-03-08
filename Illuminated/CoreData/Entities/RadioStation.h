@@ -24,6 +24,10 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nullable, nonatomic, copy) NSString *countryCode;
 @property (nullable, nonatomic, copy) NSString *codec;
 @property (nullable, nonatomic, copy) NSNumber *bitrate;
+@property (nullable, nonatomic, copy) NSNumber *clickCount;
+@property (nullable, nonatomic, copy) NSString *favicon;
+@property (nullable, nonatomic, copy) NSString *homepage;
+@property (nullable, nonatomic, copy) NSString *serverIDFallback;
 
 @end
 

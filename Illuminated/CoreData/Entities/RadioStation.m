@@ -23,5 +23,9 @@
 @dynamic countryCode;
 @dynamic codec;
 @dynamic bitrate;
+@dynamic clickCount;
+@dynamic favicon;
+@dynamic homepage;
+@dynamic serverIDFallback;
 
 @end

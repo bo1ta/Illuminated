@@ -17,6 +17,17 @@
   }];
 }
 
++ (BFTask *)increaseClickCountForStationID:(NSString *)stationID {
+  return [[[self client] increaseClickCountForStationID:stationID] continueWithBlock:^id(BFTask<APIDictionary> *task) {
+    if (task.error) {
+      NSLog(@"Error increasing click count for station");
+    } else {
+      NSLog(@"All good!");
+    }
+    return nil;
+  }];
+}
+
 + (RadioBrowserClient *)client {
   return [[RadioBrowserClient alloc] init];
 }

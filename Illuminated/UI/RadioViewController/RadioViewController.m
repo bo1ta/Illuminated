@@ -8,10 +8,10 @@
 #import "RadioViewController.h"
 #import "RBStation.h"
 #import "RadioBrowserClient.h"
-#import <AVFoundation/AVFoundation.h>
 #import "RadioService.h"
 #import "RadioStation.h"
 #import "RadioStationDataStore.h"
+#import "PlayerBarViewController.h"
 
 #pragma mark - Constants
 
@@ -20,6 +20,15 @@ static RadioColumn const RadioColumnName = @"NameColumn";
 static RadioColumn const RadioColumnCountry = @"CountryColumn";
 static RadioColumn const RadioColumnCodec = @"CodecColumn";
 static RadioColumn const RadioColumnBitrate = @"BitrateColumn";
+
+NSString *const RadioStationTitleDidChangeNotification = @"RadioStreamTitleDidChangeNotification";
+NSString *const RadioStationDidChangeNotification = @"RadioStationDidChangeNotification";
+NSString *const RadioStationWillStartPlayingNotification = @"RadioStationWillStartPlayingNotification";
+
+NSString *const RadioStationTitleUserInfoKey = @"RadioStationTitleUserInfoKey";
+NSString *const RadioStationStreamTitleUserInfoKey = @"RadioStationStreamTitleUserInfoKey";
+
+NSString *const RadioStreamMetadataIcyIdentifier = @"icy/StreamTitle";
 
 #pragma mark - Private Interface
 
@@ -30,7 +39,10 @@ static RadioColumn const RadioColumnBitrate = @"BitrateColumn";
 @property(nonatomic, strong) RadioBrowserClient *radioClient;
 @property(strong, nullable) AVPlayer *streamPlayer;
 @property(strong, nullable) id timeObserver;
+@property(strong, nullable) AVPlayerItemMetadataOutput *metadataOutput;
 @property(nonatomic, strong) NSFetchedResultsController *fetchedResultsController;
+
+@property(nonatomic, assign) BOOL isPlaying;
 
 @property(nonatomic, strong) RadioStation *currentRadioStation;
 
@@ -44,6 +56,8 @@ static RadioColumn const RadioColumnBitrate = @"BitrateColumn";
   self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
   if (self) {
     _radioClient = [[RadioBrowserClient alloc] init];
+    _fetchedResultsController = [RadioStationDataStore fetchedResultsController];
+    _isPlaying = NO;
   }
   return self;
 }
@@ -59,7 +73,20 @@ static RadioColumn const RadioColumnBitrate = @"BitrateColumn";
   self.view.translatesAutoresizingMaskIntoConstraints = YES;
   
   [self setupFetchedResultsController];
+  [self setupObservers];
   [self loadData];
+}
+
+- (void)setupObservers {
+  NSNotificationCenter *center = [NSNotificationCenter defaultCenter];
+  [center addObserver:self
+             selector:@selector(stopRadioStream)
+                 name:PlaybackSourceDidChangeToLibraryNotification
+               object:nil];
+  [center addObserver:self
+             selector:@selector(togglePlayPause)
+                 name:PlaybackDidToggleNotification
+               object:nil];
 }
 
 - (void)loadData {
@@ -69,9 +96,7 @@ static RadioColumn const RadioColumnBitrate = @"BitrateColumn";
     } else {
       RadioStation *station = task.result.firstObject;
       if (station) {
-        NSLog(@"Station with URL: %@", station.url);
-        NSURL *url = [NSURL URLWithString:station.url];
-        [self playStreamURL:url];
+        [self playRadioStation:station];
       }
     }
     return nil;
@@ -79,8 +104,7 @@ static RadioColumn const RadioColumnBitrate = @"BitrateColumn";
 }
 
 - (void)setupFetchedResultsController {
-  _fetchedResultsController = [RadioStationDataStore fetchedResultsController];
-  _fetchedResultsController.delegate = self;
+  self.fetchedResultsController.delegate = self;
   
   NSError *error = nil;
   if (![self.fetchedResultsController performFetch:&error]) {
@@ -88,9 +112,96 @@ static RadioColumn const RadioColumnBitrate = @"BitrateColumn";
   }
 }
 
-- (void)playStreamURL:(NSURL *)url {
-  self.streamPlayer = [[AVPlayer alloc] initWithURL:url];
+- (void)playRadioStation:(RadioStation *)radioStation {
+  NSURL *url = [NSURL URLWithString:radioStation.url];
+  
+  AVPlayerItem *playerItem = [AVPlayerItem playerItemWithURL:url];
+  [self setupMetadataOutputForPlayerItem:playerItem];
+  
+  self.streamPlayer = [AVPlayer playerWithPlayerItem:playerItem];
+  [self addPlayerObservers];
   [self.streamPlayer play];
+  
+  if (radioStation.serverIDFallback) {
+    [RadioService increaseClickCountForStationID:radioStation.serverIDFallback];
+  }
+  
+  self.currentRadioStation = radioStation;
+}
+
+- (void)togglePlayPause {
+    if (!self.streamPlayer) return;
+    
+    if (self.isPlaying) {
+        [self.streamPlayer pause];
+    } else {
+        [self.streamPlayer play];
+    }
+    self.isPlaying = !self.isPlaying;
+}
+
+- (void)stopRadioStream {
+  if (self.streamPlayer) {
+    AVPlayerItem *playerItem = self.streamPlayer.currentItem;
+    if (playerItem && self.metadataOutput) {
+      [playerItem removeOutput:self.metadataOutput];
+    }
+    
+    [self removePlayerObservers];
+    [self.streamPlayer pause];
+    self.streamPlayer = nil;
+    self.metadataOutput = nil;
+    self.isPlaying = NO;
+  }
+}
+
+#pragma mark - Observers
+
+- (void)addPlayerObservers {
+  [self.streamPlayer addObserver:self
+                      forKeyPath:@"status"
+                         options:NSKeyValueObservingOptionNew
+                         context:nil];
+}
+
+- (void)removePlayerObservers {
+  @try {
+    [self.streamPlayer removeObserver:self forKeyPath:@"status"];
+  } @catch (NSException *exception) {
+    NSLog(@"RemovePlayerObservers Exception: Failed removing observer. Maybe it wasn't added?");
+  }
+}
+
+- (void)observeValueForKeyPath:(NSString *)keyPath
+                      ofObject:(id)object
+                        change:(NSDictionary *)change
+                       context:(void *)context {
+    if (object == self.streamPlayer && [keyPath isEqualToString:@"status"]) {
+        if (self.streamPlayer.status == AVPlayerStatusFailed) {
+            [self handleStreamFailure];
+        } else if (self.streamPlayer.status == AVPlayerStatusReadyToPlay) {
+          self.isPlaying = YES;
+          dispatch_async(dispatch_get_main_queue(), ^{
+            [[NSNotificationCenter defaultCenter] postNotificationName:RadioStationStreamTitleUserInfoKey object:nil userInfo:@{RadioStationTitleUserInfoKey: self.currentRadioStation.name}];
+          });
+        }
+    }
+}
+
+- (void)handleStreamFailure {
+    [self stopRadioStream];
+    
+    dispatch_async(dispatch_get_main_queue(), ^{
+      [self presentError:[NSError errorWithDomain:@"RadioViewControllerError" code:-100 userInfo:@{NSLocalizedDescriptionKey: @"Failed to load radio station. Please try another."}]];
+    });
+}
+
+- (void)setupMetadataOutputForPlayerItem:(AVPlayerItem *)playerItem {
+    self.metadataOutput = [[AVPlayerItemMetadataOutput alloc] initWithIdentifiers:nil];
+    
+    [self.metadataOutput setDelegate:self queue:dispatch_get_main_queue()];
+    
+    [playerItem addOutput:self.metadataOutput];
 }
 
 - (void)tableViewClicked:(id)sender {
@@ -98,7 +209,34 @@ static RadioColumn const RadioColumnBitrate = @"BitrateColumn";
     NSArray<RadioStation *> *radioStations = self.fetchedResultsController.fetchedObjects;
     RadioStation *radioStation = radioStations[self.tableView.selectedRow];
 
-    [self playStreamURL:[NSURL URLWithString:radioStation.url]];
+    [self playRadioStation:radioStation];
+  }
+}
+
+#pragma mark - AVPlayerItemMetadataOutputPushDelegate
+
+- (void)metadataOutput:(AVPlayerItemMetadataOutput *)output
+     didOutputTimedMetadataGroups:(NSArray<AVTimedMetadataGroup *> *)groups
+           fromPlayerItemTrack:(AVPlayerItemTrack *)track {
+    
+    for (AVTimedMetadataGroup *group in groups) {
+        for (AVMetadataItem *item in group.items) {
+            [self processMetadataItem:item];
+        }
+    }
+}
+
+- (void)processMetadataItem:(AVMetadataItem *)item {
+  NSLog(@"Metadata - identifier: %@, key: %@, value: %@",
+        item.identifier, item.key, item.stringValue);
+  
+  NSString *value = item.stringValue;
+  if (!value)  {
+    return;
+  }
+  
+  if ([item.identifier isEqualToString:RadioStreamMetadataIcyIdentifier]) {
+    [[NSNotificationCenter defaultCenter] postNotificationName:RadioStationStreamTitleUserInfoKey object:nil userInfo:@{RadioStationStreamTitleUserInfoKey: value}];
   }
 }
 

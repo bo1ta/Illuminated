@@ -35,9 +35,16 @@
       radioStation.country = dict[@"country"];
       radioStation.countryCode = dict[@"countrycode"];
       radioStation.codec = dict[@"codec"];
+      radioStation.favicon = dict[@"favicon"];
+      radioStation.homepage = dict[@"homepage"];
+      radioStation.serverIDFallback = dict[@"stationuuid"];
       
       if ([dict[@"bitrate"] isKindOfClass:[NSNumber class]]) {
         radioStation.bitrate = dict[@"bitrate"];
+      }
+      
+      if ([dict[@"clickcount"] isKindOfClass:[NSNumber class]]) {
+        radioStation.clickCount = dict[@"clickCount"];
       }
       
       NSString *stationIDString = dict[@"stationuuid"];
