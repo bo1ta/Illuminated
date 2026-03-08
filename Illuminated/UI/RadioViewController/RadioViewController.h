@@ -9,7 +9,7 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface RadioViewController : NSViewController
+@interface RadioViewController : NSViewController<NSTableViewDataSource, NSTableViewDelegate, NSFetchedResultsControllerDelegate>
 
 @end
 

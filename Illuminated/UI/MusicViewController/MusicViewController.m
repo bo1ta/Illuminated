@@ -48,9 +48,6 @@ NSString *const PasteboardItemTypeTrackImports = @"com.illuminated.track.import"
 #pragma mark - Implementation
 
 @implementation MusicViewController
-
-#pragma mark - Lifecycle
-
 - (void)viewDidLoad {
   [super viewDidLoad];
 

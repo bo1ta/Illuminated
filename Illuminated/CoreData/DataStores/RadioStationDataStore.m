@@ -11,6 +11,12 @@
 
 @implementation RadioStationDataStore
 
++ (NSFetchedResultsController *)fetchedResultsController {
+  return [[CoreDataStore reader] fetchedResultsControllerForEntity:EntityNameRadioStation
+                                                         predicate:nil
+                                                   sortDescriptors:nil];
+}
+
 + (BFTask *)radioStationsFromAPIDictionary:(APIDictionary)apiDictionary {
   return [[CoreDataStore writer] performWrite:^id(NSManagedObjectContext *context) {
     NSMutableArray<RadioStation *> *results = [NSMutableArray array];

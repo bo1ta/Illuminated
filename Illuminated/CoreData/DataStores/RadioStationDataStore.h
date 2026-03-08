@@ -9,12 +9,15 @@
 #import "APIDictionary.h"
 
 @class BFTask;
+@class NSFetchedResultsController;
 
 NS_ASSUME_NONNULL_BEGIN
 
 @interface RadioStationDataStore : NSObject
 
 + (BFTask *)radioStationsFromAPIDictionary:(APIDictionary)apiDictionary;
+
++ (NSFetchedResultsController *)fetchedResultsController;
 
 @end
 
