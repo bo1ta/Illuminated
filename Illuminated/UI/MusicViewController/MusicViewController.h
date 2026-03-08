@@ -19,6 +19,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property(weak) IBOutlet NSTableView *tableView;
 
 - (void)importURL:(NSURL *)url;
+- (void)importURLs:(NSArray<NSURL *> *)urls;
 
 @end
 

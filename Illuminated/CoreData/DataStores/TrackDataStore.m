@@ -23,6 +23,10 @@
                                             predicate:[NSPredicate predicateWithFormat:@"fileURL == %@", [url path]]];
 }
 
++ (BFTask<Track *> *)trackWithObjectID:(NSManagedObjectID *)objectID {
+  return [[CoreDataStore reader] fetchObjectWithID:objectID];
+}
+
 + (BFTask<BFVoid> *)incrementPlayCountForTrack:(Track *)track {
   NSManagedObjectID *objectID = track.objectID;
   return [[CoreDataStore writer] performWrite:^id(NSManagedObjectContext *context) {

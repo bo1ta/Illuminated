@@ -30,7 +30,7 @@
     if (track) {
       return task;
     }
-    return [TrackService importAudioFileAtURL:url playlist:playlist];
+    return [self importAudioFileAtURL:url playlist:playlist];
   }];
 }
 
@@ -232,6 +232,10 @@
 }
 
 + (NSURL *)resolveTrackURL:(Track *)track {
+  return [self resolveTrackURL:track securityScopeURL:nil];
+}
+
++ (NSURL *)resolveTrackURL:(Track *)track securityScopeURL:(NSURL * _Nullable * _Nullable)securityScopeURL {
   if (!track.urlBookmark) {
     return nil;
   }
@@ -243,6 +247,9 @@
     return nil;
   } else {
     [resolvedURL startAccessingSecurityScopedResource];
+    if (securityScopeURL) {
+      *securityScopeURL = resolvedURL;
+    }
 
     NSNumber *isDirectory = nil;
     [resolvedURL getResourceValue:&isDirectory forKey:NSURLIsDirectoryKey error:nil];

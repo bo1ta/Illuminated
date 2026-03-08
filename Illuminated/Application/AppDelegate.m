@@ -7,6 +7,7 @@
 
 #import "AppDelegate.h"
 #import "CoreDataStore.h"
+#import "FileExtensionHelper.h"
 #import "MainWindowController.h"
 
 @interface AppDelegate ()
@@ -64,7 +65,22 @@
   return YES;
 }
 
-- (void)importAudioURL:(NSURL *)audioURL bookmarkData:(NSData *)bookmarkData {
+- (IBAction)openDocument:(id)sender {
+  NSOpenPanel *panel = [NSOpenPanel openPanel];
+  panel.canChooseFiles = YES;
+  panel.canChooseDirectories = YES;
+  panel.allowsMultipleSelection = YES;
+  panel.allowedContentTypes = [FileExtensionHelper audioUTTypes];
+  panel.message = @"Select a folder or a track to";
+  panel.prompt = @"Add";
+
+  __weak AppDelegate *weakSelf = self;
+  [panel beginSheetModalForWindow:self.mainWindowController.window completionHandler:^(NSModalResponse result) {
+    if (weakSelf && result == NSModalResponseOK && self.mainWindowController && panel.URLs.count > 0) {
+      [weakSelf.mainWindowController openAudioFileURLs:[panel.URLs copy]];
+      [[NSDocumentController sharedDocumentController] noteNewRecentDocumentURL:panel.URLs.firstObject];
+    }
+  }];
 }
 
 @end

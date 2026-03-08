@@ -8,15 +8,15 @@
 #import "FileBrowserLocationDataStore.h"
 #import "BFTask.h"
 #import "CoreDataStore.h"
+#import "FileBrowserItem.h"
 #import "FileBrowserLocation.h"
 
 @implementation FileBrowserLocationDataStore
 
 + (BFTask<NSArray<FileBrowserLocation *> *> *)allFileBrowserLocations {
   return [[CoreDataStore reader] allObjectsForEntity:EntityNameFileBrowserLocation
-                                            matching:nil
-                                     sortDescriptors:@[ [NSSortDescriptor sortDescriptorWithKey:@"displayOrder"
-                                                                                      ascending:YES] ]];
+                                             matching:nil
+                                     sortDescriptors:nil];
 }
 
 + (BFTask<FileBrowserLocation *> *)createWithDisplayName:(NSString *)displayName
@@ -29,6 +29,18 @@
     fileBrowserLocation.originalPath = originalPath;
     fileBrowserLocation.dateAdded = [NSDate date];
 
+    return fileBrowserLocation;
+  }];
+}
+
++ (BFTask *)createFromFileBrowserItem:(FileBrowserItem *)fileBrowserItem {
+  return [[CoreDataStore writer] performWrite:^id(NSManagedObjectContext *context) {
+    FileBrowserLocation *fileBrowserLocation = [context insertNewObjectForEntityName:EntityNameFileBrowserLocation];
+    fileBrowserLocation.displayName = fileBrowserItem.displayName;
+    fileBrowserLocation.bookmarkData = fileBrowserItem.bookmarkData;
+    fileBrowserLocation.originalPath = [fileBrowserItem.url absoluteString];
+    fileBrowserLocation.dateAdded = [NSDate date];
+    
     return fileBrowserLocation;
   }];
 }

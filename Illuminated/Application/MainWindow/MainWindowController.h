@@ -15,6 +15,7 @@ extern NSString *const ToolbarSearchUserInfo;
 @interface MainWindowController : NSWindowController
 
 - (void)openAudioFileURL:(NSURL *)url;
+- (void)openAudioFileURLs:(NSArray<NSURL *> *)urls;
 
 @end
 

@@ -18,6 +18,8 @@ NS_ASSUME_NONNULL_BEGIN
 
 + (BFTask<BFVoid> *)incrementPlayCountForTrack:(Track *)track;
 
++ (BFTask<Track *> *)trackWithObjectID:(NSManagedObjectID *)objectID;
+
 + (Track *)insertTrackWithTitle:(NSString *)title
                         fileURL:(NSString *)fileURL
                     urlBookmark:(nullable NSData *)urlBookmark

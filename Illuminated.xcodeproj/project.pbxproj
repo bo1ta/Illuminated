@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		5018B8192F392F6400BF5954 /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5018B8182F392F6400BF5954 /* OpenGL.framework */; };
 		505DCD242F312D1A00E187C2 /* libtag.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 505DCD232F312D1A00E187C2 /* libtag.a */; };
+		5066523A2F5CB9DD00D2CDE8 /* libz.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 506652392F5CB9DD00D2CDE8 /* libz.tbd */; };
 		50C4AED72F39416F00057698 /* libprojectM-4.4.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 50C4AED62F39416F00057698 /* libprojectM-4.4.dylib */; };
 		50C4AED92F3941A900057698 /* libprojectM-4.4.dylib in CopyFiles */ = {isa = PBXBuildFile; fileRef = 50C4AED82F3941A900057698 /* libprojectM-4.4.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		50C4AEE12F39458600057698 /* libprojectM-4-playlist.4.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 50C4AEE02F39458600057698 /* libprojectM-4-playlist.4.dylib */; };
@@ -43,6 +44,7 @@
 		5018B8182F392F6400BF5954 /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = System/Library/Frameworks/OpenGL.framework; sourceTree = SDKROOT; };
 		505A7A2D2F1C4E6D00984897 /* Illuminated.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Illuminated.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		505DCD232F312D1A00E187C2 /* libtag.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libtag.a; path = Frameworks/libtag.a; sourceTree = "<group>"; };
+		506652392F5CB9DD00D2CDE8 /* libz.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libz.tbd; path = usr/lib/libz.tbd; sourceTree = SDKROOT; };
 		50C4AED62F39416F00057698 /* libprojectM-4.4.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libprojectM-4.4.dylib"; path = "Frameworks/projectM/lib/libprojectM-4.4.dylib"; sourceTree = "<group>"; };
 		50C4AED82F3941A900057698 /* libprojectM-4.4.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libprojectM-4.4.dylib"; path = "Frameworks/projectM/lib/libprojectM-4.4.dylib"; sourceTree = "<group>"; };
 		50C4AEE02F39458600057698 /* libprojectM-4-playlist.4.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libprojectM-4-playlist.4.dylib"; path = "Frameworks/playlist/lib/libprojectM-4-playlist.4.dylib"; sourceTree = "<group>"; };
@@ -75,6 +77,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5066523A2F5CB9DD00D2CDE8 /* libz.tbd in Frameworks */,
 				5018B8192F392F6400BF5954 /* OpenGL.framework in Frameworks */,
 				50C4AEE12F39458600057698 /* libprojectM-4-playlist.4.dylib in Frameworks */,
 				50C4AED72F39416F00057698 /* libprojectM-4.4.dylib in Frameworks */,
@@ -88,6 +91,7 @@
 		504098F42F25A01B001077D9 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				506652392F5CB9DD00D2CDE8 /* libz.tbd */,
 				50C4AEE02F39458600057698 /* libprojectM-4-playlist.4.dylib */,
 				5018B8182F392F6400BF5954 /* OpenGL.framework */,
 				505DCD232F312D1A00E187C2 /* libtag.a */,
@@ -346,9 +350,9 @@
 				GCC_WARN_UNUSED_VARIABLE = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				HEADER_SEARCH_PATHS = (
-					/opt/homebrew/include/taglib,
 					"$(SRCROOT)/Frameworks/projectM/include",
 					"$(SRCROOT)/Frameworks/playlist/include",
+					/opt/homebrew/include/taglib,
 				);
 				INFOPLIST_FILE = Illuminated/Info.plist;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
@@ -360,8 +364,6 @@
 					/opt/homebrew/lib,
 				);
 				LIBRARY_SEARCH_PATHS = (
-					/opt/homebrew/include/taglib,
-					/opt/homebrew/Cellar/taglib/2.1.1/lib,
 					"$(PROJECT_DIR)",
 					"$(PROJECT_DIR)/Frameworks",
 					"$(PROJECT_DIR)/Frameworks/projectM/lib",
@@ -405,9 +407,9 @@
 				GCC_WARN_UNUSED_VARIABLE = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				HEADER_SEARCH_PATHS = (
-					/opt/homebrew/include/taglib,
 					"$(SRCROOT)/Frameworks/projectM/include",
 					"$(SRCROOT)/Frameworks/playlist/include",
+					/opt/homebrew/include/taglib,
 				);
 				INFOPLIST_FILE = Illuminated/Info.plist;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
@@ -419,8 +421,6 @@
 					/opt/homebrew/lib,
 				);
 				LIBRARY_SEARCH_PATHS = (
-					/opt/homebrew/include/taglib,
-					/opt/homebrew/Cellar/taglib/2.1.1/lib,
 					"$(PROJECT_DIR)",
 					"$(PROJECT_DIR)/Frameworks",
 					"$(PROJECT_DIR)/Frameworks/projectM/lib",

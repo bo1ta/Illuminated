@@ -137,7 +137,7 @@ NSString *const PasteboardItemTypeTrackImport = @"com.illuminated.track.import";
     }
   }
 
-  BOOL hasScope = [securityScopedURL startAccessingSecurityScopedResource];
+  BOOL hasScope = (securityScopedURL != nil);
 
   __weak typeof(self) weakSelf = self;
 
@@ -148,7 +148,7 @@ NSString *const PasteboardItemTypeTrackImport = @"com.illuminated.track.import";
         if (task.error) {
           [strongSelf presentError:task.error];
           if (hasScope) {
-            [securityScopedURL stopAccessingSecurityScopedResource];
+            [BookmarkResolver releaseAccessedURL:securityScopedURL];
           }
           return nil;
         }
@@ -158,7 +158,7 @@ NSString *const PasteboardItemTypeTrackImport = @"com.illuminated.track.import";
         [strongSelf.outlineView expandItem:item];
 
         if (hasScope) {
-          [securityScopedURL stopAccessingSecurityScopedResource];
+          [BookmarkResolver releaseAccessedURL:securityScopedURL];
         }
         return nil;
       }];
