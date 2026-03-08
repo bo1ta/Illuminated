@@ -14,7 +14,7 @@ extern NSString *const BookmarkResolverErrorDomain;
 typedef NS_ENUM(NSInteger, PlaybackManagerErrorCode) {
   BookmarkResolverErrorDomainStaleData = 1000,
   BookmarkResolverErrorDomainResolvingFailed = 1001,
-  BookmarkResolverErrorDomainBookmarkDataCreationFailed = 1001
+  BookmarkResolverErrorDomainBookmarkDataCreationFailed = 1002
 };
 
 #pragma mark - BookmarkResolver

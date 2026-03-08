@@ -51,15 +51,16 @@
 
 - (void)setupNotifications {
   [[NSNotificationCenter defaultCenter] addObserver:self
-                                           selector:@selector(handleNotificationCoalesced)
-                                               name:NSManagedObjectContextObjectsDidChangeNotification
+                                           selector:@selector(handleNotificationCoalesced:)
+                                               name:NSManagedObjectContextDidSaveNotification
                                              object:[self writerDerivedStorage]];
 }
 
-- (void)handleNotificationCoalesced {
-  [NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(handleNotificationCoalesced) object:nil];
-
-  [self performSelector:@selector(handleNotification) withObject:nil afterDelay:0.3];
+- (void)handleNotificationCoalesced:(NSNotification *)notification {
+  dispatch_async(dispatch_get_main_queue(), ^{
+    [NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(handleNotification) object:nil];
+    [self performSelector:@selector(handleNotification) withObject:nil afterDelay:0.3];
+  });
 }
 
 - (void)handleNotification {

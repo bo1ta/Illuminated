@@ -16,13 +16,13 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface FileBrowserService : NSObject
 
-- (BFTask<NSArray<FileBrowserItem *> *> *)contentsOfDirectory:(NSURL *)directoryURL bookmarkData:(NSData *)bookmarkData;
++ (BFTask<NSArray<FileBrowserItem *> *> *)contentsOfDirectory:(NSURL *)directoryURL bookmarkData:(NSData *)bookmarkData;
 
-- (BFTask<NSArray<FileBrowserItem *> *> *)allFileBrowserItems;
++ (BFTask<NSArray<FileBrowserItem *> *> *)allFileBrowserItems;
 
-- (BFTask<FileBrowserItem *> *)createFileBrowserItemFromLocation:(FileBrowserLocation *)fileBrowserLocation;
++ (BFTask<FileBrowserItem *> *)createFileBrowserItemFromLocation:(FileBrowserLocation *)fileBrowserLocation;
 
-- (BFTask<FileBrowserItem *> *)createFileBrowserItemWithURL:(NSURL *)url;
++ (BFTask<FileBrowserItem *> *)createFileBrowserItemWithURL:(NSURL *)url;
 
 @end
 

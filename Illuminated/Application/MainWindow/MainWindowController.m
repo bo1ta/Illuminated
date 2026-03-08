@@ -171,4 +171,8 @@ NSString *const ToolbarSearchUserInfo = @"ToolbarSearch";
   [self.contentTabViewController.musicViewController importURL:url];
 }
 
+- (void)openAudioFileURLs:(NSArray<NSURL *> *)urls {
+  [self.contentTabViewController.musicViewController importURLs:urls];
+}
+
 @end

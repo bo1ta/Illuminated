@@ -29,6 +29,7 @@ static const NSTimeInterval kProgressTimerInterval = 0.5;
 @property(strong) AVAudioEngine *engine;
 @property(strong) AVAudioPlayerNode *playerNode;
 @property(strong) AVAudioFile *currentFile;
+@property(strong, nullable) NSURL *currentSecurityScopeURL;
 
 @property(strong, nonatomic) TrackQueue *queue;
 
@@ -38,8 +39,6 @@ static const NSTimeInterval kProgressTimerInterval = 0.5;
 @property(atomic, assign) NSInteger playbackGeneration;
 
 @property(nonatomic, copy) AudioBufferCallback audioBufferCallback;
-
-@property(strong) NSURL *activeSecurityScopedURL;
 
 @property(readwrite, assign, getter=isPlaying) BOOL playing;
 
@@ -82,10 +81,9 @@ static const NSTimeInterval kProgressTimerInterval = 0.5;
 
 - (void)dealloc {
   [self.engine.mainMixerNode removeTapOnBus:0];
-
-  if (self.activeSecurityScopedURL) {
-    [self.activeSecurityScopedURL stopAccessingSecurityScopedResource];
-    self.activeSecurityScopedURL = nil;
+  
+  if (self.currentSecurityScopeURL) {
+    [self.currentSecurityScopeURL stopAccessingSecurityScopedResource];
   }
 }
 
@@ -133,12 +131,8 @@ static const NSTimeInterval kProgressTimerInterval = 0.5;
 - (void)playTrack:(Track *)track {
   NSParameterAssert(track);
 
-  if (self.activeSecurityScopedURL) {
-    [self.activeSecurityScopedURL stopAccessingSecurityScopedResource];
-    self.activeSecurityScopedURL = nil;
-  }
-
-  NSURL *url = [TrackService resolveTrackURL:track];
+  NSURL *securityScopeURL = nil;
+  NSURL *url = [TrackService resolveTrackURL:track securityScopeURL:&securityScopeURL];
   if (!url) {
     [self.queue setCurrentTrack:track];
     [self playNext];
@@ -149,13 +143,21 @@ static const NSTimeInterval kProgressTimerInterval = 0.5;
   AVAudioFile *newFile = [[AVAudioFile alloc] initForReading:url error:&error];
   if (!newFile) {
     NSLog(@"PlaybackManager: Error loading track with url: %@. Error: %@", url, error);
+    if (securityScopeURL) {
+      [securityScopeURL stopAccessingSecurityScopedResource];
+    }
     return;
   }
 
   self.playbackGeneration++;
   [self.playerNode stop];
 
+  if (self.currentSecurityScopeURL) {
+    [self.currentSecurityScopeURL stopAccessingSecurityScopedResource];
+  }
+  
   self.currentFile = newFile;
+  self.currentSecurityScopeURL = securityScopeURL;
   self.seekOffset = 0;
 
   [self.engine connect:self.playerNode to:self.engine.mainMixerNode format:self.currentFile.processingFormat];
@@ -185,6 +187,10 @@ static const NSTimeInterval kProgressTimerInterval = 0.5;
   } else {
     self.playing = NO;
     [self.progressTimer invalidate];
+    if (self.currentSecurityScopeURL) {
+      [self.currentSecurityScopeURL stopAccessingSecurityScopedResource];
+      self.currentSecurityScopeURL = nil;
+    }
   }
 }
 
@@ -258,6 +264,10 @@ static const NSTimeInterval kProgressTimerInterval = 0.5;
   [self.playerNode stop];
   self.playing = NO;
   [self.progressTimer invalidate];
+  if (self.currentSecurityScopeURL) {
+    [self.currentSecurityScopeURL stopAccessingSecurityScopedResource];
+    self.currentSecurityScopeURL = nil;
+  }
 }
 
 #pragma mark - AudioBufferCallback

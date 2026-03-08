@@ -18,6 +18,8 @@ NS_ASSUME_NONNULL_BEGIN
 
 + (BFTask<BFVoid> *)incrementPlayCountForTrack:(Track *)track;
 
++ (BFTask<Track *> *)trackWithObjectID:(NSManagedObjectID *)objectID;
+
 + (Track *)insertTrackWithTitle:(NSString *)title
                         fileURL:(NSString *)fileURL
                     urlBookmark:(nullable NSData *)urlBookmark
@@ -36,6 +38,14 @@ NS_ASSUME_NONNULL_BEGIN
 + (NSFetchedResultsController *)fetchedResultsController;
 
 + (BFTask *)deleteTrackWithObjectID:(NSManagedObjectID *)trackObjectID;
+
++ (BFTask *)updateBPMForTrackWithFilePath:(NSString *)filePath bpm:(float)bpm;
+
++ (BFTask *)updateURLBookmarkForTrackWithObjectID:(NSManagedObjectID *)objectID
+                                      urlBookmark:(NSData *)urlBookmark;
+
++ (BFTask *)updateWaveformPathForTrackWithObjectID:(NSManagedObjectID *)objectID
+                                      waveformPath:(NSString *)waveformPath;
 
 + (BFTask *)updateTrackWithObjectID:(NSManagedObjectID *)trackObjectID
                           withTitle:(NSString *)title

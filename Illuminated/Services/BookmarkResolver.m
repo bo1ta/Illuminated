@@ -39,15 +39,32 @@ NSString *const MusicFolderBookmarkKey = @"MusicFolderBookmark";
 }
 
 + (NSData *)bookmarkForURL:(NSURL *)url error:(NSError **)error {
+  BOOL accessedSecurityScope = [url startAccessingSecurityScopedResource];
   NSError *bookmarkError = nil;
-  NSData *bookmark = [url bookmarkDataWithOptions:NSURLBookmarkCreationWithSecurityScope
+  NSURLBookmarkCreationOptions options = NSURLBookmarkCreationWithSecurityScope;
+#if __MAC_OS_X_VERSION_MAX_ALLOWED >= 101300
+  options |= NSURLBookmarkCreationSecurityScopeAllowOnlyReadAccess;
+#endif
+
+  NSData *bookmark = [url bookmarkDataWithOptions:options
                    includingResourceValuesForKeys:nil
                                     relativeToURL:nil
                                             error:&bookmarkError];
+  if (accessedSecurityScope) {
+    [url stopAccessingSecurityScopedResource];
+  }
+
   if (bookmarkError) {
-    *error = [NSError errorWithDomain:BookmarkResolverErrorDomain
-                                 code:BookmarkResolverErrorDomainBookmarkDataCreationFailed
-                             userInfo:@{NSLocalizedDescriptionKey : @"Track has stale data"}];
+    NSLog(@"Raw error: %@", bookmarkError);
+    NSLog(@"Code: %ld domain: %@", bookmarkError.code, bookmarkError.domain);
+    NSLog(@"User info: %@", bookmarkError.userInfo);
+    
+    NSString *errorMessage = [NSString stringWithFormat:@"Error bookmarking track: %@", bookmarkError.localizedDescription];
+    if (error) {
+      *error = [NSError errorWithDomain:BookmarkResolverErrorDomain
+                                   code:BookmarkResolverErrorDomainBookmarkDataCreationFailed
+                               userInfo:@{NSLocalizedDescriptionKey : errorMessage}];
+    }
     return nil;
   }
 

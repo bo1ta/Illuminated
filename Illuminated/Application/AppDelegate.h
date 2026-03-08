@@ -12,4 +12,6 @@
 
 @property(readonly, strong) NSPersistentContainer *persistentContainer;
 
+- (IBAction)openDocument:(id)sender;
+
 @end

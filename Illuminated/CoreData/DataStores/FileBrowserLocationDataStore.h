@@ -8,6 +8,7 @@
 #import <Foundation/Foundation.h>
 
 @class FileBrowserLocation;
+@class FileBrowserItem;
 @class BFTask<__covariant ResultType>;
 
 @interface FileBrowserLocationDataStore : NSObject
@@ -17,5 +18,7 @@
 + (BFTask<FileBrowserLocation *> *)createWithDisplayName:(NSString *)displayName
                                             bookmarkData:(NSData *)bookmarkData
                                             originalPath:(NSString *)originalPath;
+
++ (BFTask *)createFromFileBrowserItem:(FileBrowserItem *)fileBrowserItem;
 
 @end

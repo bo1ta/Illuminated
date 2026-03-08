@@ -10,7 +10,9 @@
 #import "Artist.h"
 #import "BFExecutor.h"
 #import "BFTask.h"
+#import "FileBrowserService.h"
 #import "FilesSidebarViewController.h"
+#import "FileExtensionHelper.h"
 #import "MainWindowController.h"
 #import "MetadataEditorViewController.h"
 #import "PlaybackManager.h"
@@ -206,15 +208,13 @@ NSString *const PasteboardItemTypeTrackImports = @"com.illuminated.track.import"
     }
   }
 
-  NSSet *audioExtensions = [NSSet setWithArray:@[ @"mp3", @"m4a", @"wav", @"aiff", @"flac", @"aac", @"ogg", @"wma" ]];
-
   NSMutableArray<NSURL *> *resolvedURLs = [NSMutableArray array];
 
   for (NSURL *url in fileURLs) {
     NSURL *standardURL = [url filePathURL];
     NSString *extension = [standardURL.pathExtension lowercaseString];
 
-    if ([audioExtensions containsObject:extension]) {
+    if ([FileExtensionHelper isAudioFileExtension:extension]) {
       [resolvedURLs addObject:standardURL];
     }
   }
@@ -415,15 +415,47 @@ NSString *const PasteboardItemTypeTrackImports = @"com.illuminated.track.import"
 }
 
 - (void)importURLs:(NSArray<NSURL *> *)urls {
-  [TrackService importAudioFilesAtURLs:urls withPlaylist:self.currentPlaylist];
+  if (urls.count == 1) {
+    [self importURL:[urls firstObject]];
+  } else {
+    NSMutableArray<NSURL *> *accessedURLs = [NSMutableArray array];
+    for (NSURL *url in urls) {
+      BOOL hasSecurityScope = [url startAccessingSecurityScopedResource];
+      if (hasSecurityScope) {
+        [accessedURLs addObject:url];
+      }
+    }
+
+    [[TrackService importAudioFilesAtURLs:urls withPlaylist:nil] continueOnMainThreadWithBlock:^id(BFTask *task) {
+      for (NSURL *accessedURL in accessedURLs) {
+        [accessedURL stopAccessingSecurityScopedResource];
+      }
+
+      if (task.error) {
+        NSLog(@"Error importing url: %@", task.error.localizedDescription);
+      } else {
+        
+      }
+      return nil;
+    }];
+  }
 }
 
 - (void)importURL:(NSURL *)url {
-  [[TrackService findOrInsertByURL:url
+  BOOL hasSecurityScope = [url startAccessingSecurityScopedResource];
+
+  [[[TrackService findOrInsertByURL:url
                           playlist:self.currentPlaylist] continueWithSuccessBlock:^id(BFTask<Track *> *task) {
-    Track *track = task.result;
-    if (track) {
-      [[PlaybackManager sharedManager] playTrack:track];
+    return [TrackDataStore trackWithObjectID:task.result.objectID];
+  }] continueWithBlock:^id(BFTask *task) {
+    if (hasSecurityScope) {
+      [url stopAccessingSecurityScopedResource];
+    }
+
+    if (task.error) {
+      NSLog(@"Error importing url: %@", task.error.localizedDescription);
+    } else {
+      [[PlaybackManager sharedManager] playTrack:task.result];
     }
     return nil;
   }];
