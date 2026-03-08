@@ -124,10 +124,13 @@ NSString *const ToolbarSearchUserInfo = @"ToolbarSearch";
     NSToolbarItem *item = [[NSToolbarItem alloc] initWithItemIdentifier:itemIdentifier];
 
     self.tabSegmentedControl = [[NSSegmentedControl alloc] initWithFrame:NSMakeRect(0, 0, 220, 24)];
-    [self.tabSegmentedControl setSegmentCount:2];
+    
+    [self.tabSegmentedControl setSegmentCount:3];
     [self.tabSegmentedControl setLabel:@"Music" forSegment:0];
-    [self.tabSegmentedControl setLabel:@"Visualizer" forSegment:1];
+    [self.tabSegmentedControl setLabel:@"Radio" forSegment:1];
+    [self.tabSegmentedControl setLabel:@"Visualizer" forSegment:2];
     [self.tabSegmentedControl setSelectedSegment:0]; // start on Music
+    
     self.tabSegmentedControl.target = self;
     self.tabSegmentedControl.action = @selector(tabSegmentChanged:);
 
@@ -148,6 +151,9 @@ NSString *const ToolbarSearchUserInfo = @"ToolbarSearch";
   if (index == 0) {
     [self.searchField setHidden:NO];
     [self.contentTabViewController switchToMusic];
+  } else if (index == 1) {
+    [self.searchField setHidden:YES];
+    [self.contentTabViewController switchToRadio];
   } else {
     [self.searchField setHidden:YES];
     [self.contentTabViewController switchToVizualizer];

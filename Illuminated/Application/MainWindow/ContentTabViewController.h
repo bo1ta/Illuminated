@@ -9,14 +9,16 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-@class MusicViewController, VizualizationViewController;
+@class MusicViewController, VizualizationViewController, RadioViewController;
 
 @interface ContentTabViewController : NSViewController
 
 @property(nonatomic, strong) MusicViewController *musicViewController;
+@property(nonatomic, strong) RadioViewController *radioViewController;
 @property(nonatomic, nullable, strong) VizualizationViewController *vizualizationViewController;
 
 - (void)switchToMusic;
+- (void)switchToRadio;
 - (void)switchToVizualizer;
 
 @end
