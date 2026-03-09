@@ -406,8 +406,6 @@ static const NSTimeInterval kProgressTimerInterval = 0.5;
   return self.seekOffset + currentTime;
 }
 
-
-
 - (NSTimeInterval)duration {
   if (!self.currentFile) return 0;
   return (NSTimeInterval)self.currentFile.length / self.currentFile.processingFormat.sampleRate;

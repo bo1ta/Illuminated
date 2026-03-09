@@ -16,7 +16,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface RadioStationDataStore : NSObject
 
-+ (BFTask *)radioStationsFromAPIDictionary:(APIDictionary)apiDictionary;
++ (BFTask *)radioStationsFromAPIDictionaries:(NSArray<APIDictionary> *)dictionaries;
 
 + (BFTask *)updateIsFavoriteForRadioWithObjectID:(NSManagedObjectID *)objectID
                                       isFavorite:(BOOL)isFavorite;

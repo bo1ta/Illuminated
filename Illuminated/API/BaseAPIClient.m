@@ -38,11 +38,15 @@
 }
 
 - (BFTask *)GET:(NSString *)path parameters:(NSDictionary *)parameters {
-  return [self requestWithMethod:BaseAPIClientMethodGET path:path parameters:parameters];
+  return [self requestWithMethod:BaseAPIClientMethodGET
+                            path:path
+                      parameters:parameters];
 }
 
 - (BFTask *)POST:(NSString *)path parameters:(NSDictionary *)parameters {
-  return [self requestWithMethod:BaseAPIClientMethodPOST path:path parameters:parameters];
+  return [self requestWithMethod:BaseAPIClientMethodPOST
+                            path:path
+                      parameters:parameters];
 }
 
 #pragma mark - Private Helpers
@@ -50,7 +54,9 @@
 - (BFTask<id> *)requestWithMethod:(BaseAPIClientMethod)method
                              path:(NSString *)path
                        parameters:(NSDictionary *)parameters {
-  NSMutableURLRequest *request = [self buildRequestWithMethod:method path:path parameters:parameters];
+  NSMutableURLRequest *request = [self buildRequestWithMethod:method
+                                                         path:path
+                                                   parameters:parameters];
   
   BFTaskCompletionSource *source = [BFTaskCompletionSource taskCompletionSource];
   

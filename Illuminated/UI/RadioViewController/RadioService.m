@@ -12,8 +12,8 @@
 @implementation RadioService
 
 + (BFTask *)getRadioStations {
-  return [[[self client] listAllStationsDictionary] continueWithSuccessBlock:^id (BFTask<APIDictionary> *task) {
-    return [RadioStationDataStore radioStationsFromAPIDictionary:task.result];
+  return [[[self client] getRadioStations] continueWithSuccessBlock:^id (BFTask<NSArray<APIDictionary> *> *task) {
+    return [RadioStationDataStore radioStationsFromAPIDictionaries:task.result];
   }];
 }
 

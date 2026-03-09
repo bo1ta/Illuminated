@@ -9,7 +9,6 @@
 #import "BFTask.h"
 #import "APIDictionary.h"
 
-
 NS_ASSUME_NONNULL_BEGIN
 
 @class RBStation;
@@ -18,9 +17,8 @@ NS_ASSUME_NONNULL_BEGIN
 
 + (NSString *)baseURL;
 
-- (BFTask<NSArray<RBStation *> *> *)searchStations:(NSString *)term;
-- (BFTask<NSArray<RBStation *> *> *)listAllStations;
-- (BFTask<APIDictionary> *)listAllStationsDictionary;
+- (BFTask<NSArray<APIDictionary> *> *)searchStations:(NSString *)term;
+- (BFTask<NSArray<APIDictionary> *> *)getRadioStations;
 - (BFTask<APIDictionary> *)increaseClickCountForStationID:(NSString *)stationID;
 
 @end

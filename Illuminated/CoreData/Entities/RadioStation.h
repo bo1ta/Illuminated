@@ -9,6 +9,8 @@
 #import <Foundation/Foundation.h>
 #import <CoreData/CoreData.h>
 
+@class RadioStationTag;
+
 NS_ASSUME_NONNULL_BEGIN
 
 @interface RadioStation : NSManagedObject
@@ -29,6 +31,16 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nullable, nonatomic, copy) NSString *homepage;
 @property (nullable, nonatomic, copy) NSString *serverIDFallback;
 @property (nonatomic) BOOL isFavorite;
+@property (nullable, nonatomic, retain) NSSet<RadioStationTag *> *tags;
+
+@end
+
+@interface RadioStation (CoreDataGeneratedAccessors)
+
+- (void)addTagsObject:(RadioStationTag *)value;
+- (void)removeTagsObject:(RadioStationTag *)value;
+- (void)addTags:(NSSet<RadioStationTag *> *)values;
+- (void)removeTags:(NSSet<RadioStationTag *> *)values;
 
 @end
 

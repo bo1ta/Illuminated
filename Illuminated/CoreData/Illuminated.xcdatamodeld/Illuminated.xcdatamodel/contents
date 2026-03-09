@@ -46,6 +46,11 @@
         <attribute name="stationID" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
         <attribute name="url" optional="YES" attributeType="String"/>
         <attribute name="urlResolved" optional="YES" attributeType="String"/>
+        <relationship name="tags" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="RadioStationTag" inverseName="radioStations" inverseEntity="RadioStationTag"/>
+    </entity>
+    <entity name="RadioStationTag" representedClassName="RadioStationTag" syncable="YES">
+        <attribute name="name" optional="YES" attributeType="String"/>
+        <relationship name="radioStations" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="RadioStation" inverseName="tags" inverseEntity="RadioStation"/>
     </entity>
     <entity name="Track" representedClassName="Track" syncable="YES">
         <attribute name="bitrate" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>

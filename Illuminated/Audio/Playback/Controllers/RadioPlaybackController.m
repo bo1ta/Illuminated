@@ -8,6 +8,7 @@
 #import "RadioPlaybackController.h"
 #import "RadioStation.h"
 #import "RadioService.h"
+#import <AVFoundation/AVFoundation.h>
 #import "RadioStation+PlaybackItem.h"
 
 static NSString *const RadioStreamMetadataIcyIdentifier = @"icy/StreamTitle";

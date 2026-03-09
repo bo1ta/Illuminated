@@ -17,6 +17,7 @@ EntityName const EntityNameTrack = @"Track";
 EntityName const EntityNamePlaylist = @"Playlist";
 EntityName const EntityNameFileBrowserLocation = @"FileBrowserLocation";
 EntityName const EntityNameRadioStation = @"RadioStation";
+EntityName const EntityNameRadioStationTag = @"RadioStationTag";
 
 #pragma mark - CoreDataStore
 

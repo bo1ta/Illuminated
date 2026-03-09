@@ -126,7 +126,7 @@ NSString *const ToolbarSearchUserInfo = @"ToolbarSearch";
     self.tabSegmentedControl = [[NSSegmentedControl alloc] initWithFrame:NSMakeRect(0, 0, 220, 24)];
     
     [self.tabSegmentedControl setSegmentCount:3];
-    [self.tabSegmentedControl setLabel:@"Music" forSegment:0];
+    [self.tabSegmentedControl setLabel:@"Library" forSegment:0];
     [self.tabSegmentedControl setLabel:@"Radio" forSegment:1];
     [self.tabSegmentedControl setLabel:@"Visualizer" forSegment:2];
     [self.tabSegmentedControl setSelectedSegment:0]; // start on Music

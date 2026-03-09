@@ -28,7 +28,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property(nonatomic, assign) float volume;
 @property(nonatomic, readonly, nullable) NSURL *currentPlaybackURL;
 
-#pragma mark - Track-specific properties (will be 0/nil for radio)
+#pragma mark - Track-specific properties
 
 @property(nonatomic, readonly) double progress;
 @property(nonatomic, readonly) NSTimeInterval currentTime;
@@ -53,7 +53,7 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)togglePlayPause;
 - (void)stop;
 
-#pragma mark - Track-specific actions (no-op for radio)
+#pragma mark - Track-specific actions
 
 - (void)seekToProgress:(double)progress;
 - (void)seekToTime:(NSTimeInterval)time;

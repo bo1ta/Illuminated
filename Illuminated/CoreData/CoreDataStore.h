@@ -22,6 +22,7 @@ extern EntityName const EntityNameTrack;
 extern EntityName const EntityNamePlaylist;
 extern EntityName const EntityNameFileBrowserLocation;
 extern EntityName const EntityNameRadioStation;
+extern EntityName const EntityNameRadioStationTag;
 
 #pragma mark - CoreDataStore Interface
 

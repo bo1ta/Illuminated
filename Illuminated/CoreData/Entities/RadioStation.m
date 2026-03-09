@@ -28,5 +28,6 @@
 @dynamic homepage;
 @dynamic serverIDFallback;
 @dynamic isFavorite;
+@dynamic tags;
 
 @end
