@@ -6,13 +6,13 @@
 //
 
 #import "RadioViewController.h"
+#import "AppPlaybackManager.h"
 #import "PlayerBarViewController.h"
 #import "RadioBrowserClient.h"
+#import "RadioPlaybackController.h"
 #import "RadioService.h"
 #import "RadioStation.h"
-#import "AppPlaybackManager.h"
 #import "RadioStationDataStore.h"
-#import "RadioPlaybackController.h"
 #import "RadioStationTag.h"
 
 #pragma mark - Constants
@@ -27,7 +27,10 @@ static RadioColumn const RadioColumnFavorite = @"FavoriteColumn";
 
 #pragma mark - Private Interface
 
-@interface RadioViewController ()<NSTableViewDataSource, NSTableViewDelegate, NSFetchedResultsControllerDelegate, AVPlayerItemMetadataOutputPushDelegate>
+@interface RadioViewController ()<NSTableViewDataSource,
+                                  NSTableViewDelegate,
+                                  NSFetchedResultsControllerDelegate,
+                                  AVPlayerItemMetadataOutputPushDelegate>
 
 @property(weak) IBOutlet NSTableView *tableView;
 @property(nonatomic, strong) NSFetchedResultsController *fetchedResultsController;
@@ -141,8 +144,7 @@ static RadioColumn const RadioColumnFavorite = @"FavoriteColumn";
 
   RadioStation *station = self.fetchedResultsController.fetchedObjects[row];
   if (station) {
-    [RadioStationDataStore updateIsFavoriteForRadioWithObjectID:station.objectID
-                                                     isFavorite:!station.isFavorite];
+    [RadioStationDataStore updateIsFavoriteForRadioWithObjectID:station.objectID isFavorite:!station.isFavorite];
   }
 }
 
@@ -245,9 +247,9 @@ static RadioColumn const RadioColumnFavorite = @"FavoriteColumn";
 - (void)tableView:(NSTableView *)tableView didClickTableColumn:(NSTableColumn *)tableColumn {
   NSString *columnIdentifier = tableColumn.identifier;
   NSMutableArray<NSSortDescriptor *> *sortDescriptors = [NSMutableArray array];
-  
+
   NSArray<NSSortDescriptor *> *existingDescriptors = [self.fetchedResultsController.fetchRequest.sortDescriptors copy];
-  
+
   if ([columnIdentifier isEqualToString:RadioColumnName]) {
     [sortDescriptors
         addObject:[NSSortDescriptor sortDescriptorWithKey:@"name"
@@ -276,15 +278,15 @@ static RadioColumn const RadioColumnFavorite = @"FavoriteColumn";
   } else {
     return;
   }
-  
+
   self.fetchedResultsController.fetchRequest.sortDescriptors = sortDescriptors;
-  
+
   NSError *error = nil;
   if (![self.fetchedResultsController performFetch:&error]) {
     NSLog(@"RadioViewController: Error performing fetch request. Error: %@", error);
     return;
   }
-  
+
   [self.tableView reloadData];
 }
 

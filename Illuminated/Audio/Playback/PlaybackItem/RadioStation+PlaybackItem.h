@@ -8,6 +8,6 @@
 #import "PlaybackItem.h"
 #import "RadioStation.h"
 
-@interface RadioStation (PlaybackItem) <PlaybackItem>
+@interface RadioStation (PlaybackItem)<PlaybackItem>
 
 @end

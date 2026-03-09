@@ -6,22 +6,22 @@
 //
 
 #import "MusicViewController.h"
-#import "AppPlaybackManager.h"
 #import "Album.h"
+#import "AppPlaybackManager.h"
 #import "Artist.h"
 #import "BFExecutor.h"
 #import "BFTask.h"
 #import "FileBrowserService.h"
-#import "FilesSidebarViewController.h"
 #import "FileExtensionHelper.h"
+#import "FilesSidebarViewController.h"
 #import "MainWindowController.h"
 #import "MetadataEditorViewController.h"
-#import "TrackPlaybackController.h"
 #import "Playlist.h"
 #import "PlaylistDataStore.h"
 #import "PlaylistsSidebarViewController.h"
 #import "Track.h"
 #import "TrackDataStore.h"
+#import "TrackPlaybackController.h"
 #import "TrackService.h"
 
 #pragma mark - Constants
@@ -409,7 +409,6 @@ NSString *const PasteboardItemTypeTrackImports = @"com.illuminated.track.import"
 
     [[AppPlaybackManager sharedManager] updateQueue:tracks];
     [[AppPlaybackManager sharedManager] playTrack:track];
-    
   }
 }
 
@@ -433,7 +432,6 @@ NSString *const PasteboardItemTypeTrackImports = @"com.illuminated.track.import"
       if (task.error) {
         NSLog(@"Error importing url: %@", task.error.localizedDescription);
       } else {
-        
       }
       return nil;
     }];
@@ -444,7 +442,7 @@ NSString *const PasteboardItemTypeTrackImports = @"com.illuminated.track.import"
   BOOL hasSecurityScope = [url startAccessingSecurityScopedResource];
 
   [[[TrackService findOrInsertByURL:url
-                          playlist:self.currentPlaylist] continueWithSuccessBlock:^id(BFTask<Track *> *task) {
+                           playlist:self.currentPlaylist] continueWithSuccessBlock:^id(BFTask<Track *> *task) {
     return [TrackDataStore trackWithObjectID:task.result.objectID];
   }] continueWithBlock:^id(BFTask *task) {
     if (hasSecurityScope) {

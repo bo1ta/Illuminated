@@ -6,8 +6,8 @@
 //
 //
 
-#import <Foundation/Foundation.h>
 #import <CoreData/CoreData.h>
+#import <Foundation/Foundation.h>
 
 @class RadioStation;
 
@@ -17,8 +17,8 @@ NS_ASSUME_NONNULL_BEGIN
 
 + (NSFetchRequest<RadioStationTag *> *)fetchRequest NS_SWIFT_NAME(fetchRequest());
 
-@property (nullable, nonatomic, copy) NSString *name;
-@property (nullable, nonatomic, retain) NSSet<RadioStation *> *radioStations;
+@property(nullable, nonatomic, copy) NSString *name;
+@property(nullable, nonatomic, retain) NSSet<RadioStation *> *radioStations;
 
 @end
 

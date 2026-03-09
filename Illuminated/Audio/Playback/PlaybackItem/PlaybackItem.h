@@ -14,7 +14,7 @@ typedef NS_ENUM(NSInteger, PlaybackItemType) {
 
 NS_ASSUME_NONNULL_BEGIN
 
-@protocol PlaybackItem <NSObject>
+@protocol PlaybackItem<NSObject>
 
 @property(nonatomic, readonly) NSString *displayTitle;
 @property(nonatomic, readonly) NSString *subtitle;

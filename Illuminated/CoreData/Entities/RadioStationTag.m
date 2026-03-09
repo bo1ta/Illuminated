@@ -17,5 +17,4 @@
 @dynamic name;
 @dynamic radioStations;
 
-
 @end

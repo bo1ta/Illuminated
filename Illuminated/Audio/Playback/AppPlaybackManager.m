@@ -6,8 +6,8 @@
 //
 
 #import "AppPlaybackManager.h"
-#import "TrackPlaybackController.h"
 #import "RadioPlaybackController.h"
+#import "TrackPlaybackController.h"
 
 @interface AppPlaybackManager ()
 
@@ -26,9 +26,7 @@
 + (AppPlaybackManager *)sharedManager {
   static AppPlaybackManager *instance = nil;
   static dispatch_once_t onceToken;
-  dispatch_once(&onceToken, ^{
-    instance = [[self alloc] init];
-  });
+  dispatch_once(&onceToken, ^{ instance = [[self alloc] init]; });
   return instance;
 }
 
@@ -38,7 +36,7 @@
     _trackController = [TrackPlaybackController sharedManager];
     _radioController = [[RadioPlaybackController alloc] init];
     _volume = 0.5;
-            
+
     [self setupObservations];
   }
   return self;
@@ -52,40 +50,22 @@
 
 - (void)setupObservations {
   __weak typeof(self) weakSelf = self;
-  
-  NSArray *controllers = @[self.trackController, self.radioController];
-  NSArray *keyPaths = @[@"isPlaying", @"currentItem"];
-  
+
+  NSArray *controllers = @[ self.trackController, self.radioController ];
+  NSArray *keyPaths = @[ @"isPlaying", @"currentItem" ];
+
   for (id controller in controllers) {
     for (NSString *keyPath in keyPaths) {
-      [controller addObserver:self
-                   forKeyPath:keyPath
-                      options:NSKeyValueObservingOptionNew
-                      context:nil];
+      [controller addObserver:self forKeyPath:keyPath options:NSKeyValueObservingOptionNew context:nil];
     }
-    
+
     if ([controller isKindOfClass:[TrackPlaybackController class]]) {
-      [controller addObserver:self
-                   forKeyPath:@"progress"
-                      options:NSKeyValueObservingOptionNew
-                      context:nil];
-      [controller addObserver:self
-                   forKeyPath:@"currentTime"
-                      options:NSKeyValueObservingOptionNew
-                      context:nil];
-      [controller addObserver:self
-                   forKeyPath:@"duration"
-                      options:NSKeyValueObservingOptionNew
-                      context:nil];
-      [controller addObserver:self
-                   forKeyPath:@"isSeekable"
-                      options:NSKeyValueObservingOptionNew
-                      context:nil];
+      [controller addObserver:self forKeyPath:@"progress" options:NSKeyValueObservingOptionNew context:nil];
+      [controller addObserver:self forKeyPath:@"currentTime" options:NSKeyValueObservingOptionNew context:nil];
+      [controller addObserver:self forKeyPath:@"duration" options:NSKeyValueObservingOptionNew context:nil];
+      [controller addObserver:self forKeyPath:@"isSeekable" options:NSKeyValueObservingOptionNew context:nil];
     } else if ([controller isKindOfClass:[RadioPlaybackController class]]) {
-      [controller addObserver:self
-                   forKeyPath:@"currentStreamTitle"
-                      options:NSKeyValueObservingOptionNew
-                      context:nil];
+      [controller addObserver:self forKeyPath:@"currentStreamTitle" options:NSKeyValueObservingOptionNew context:nil];
     }
   }
 }
@@ -101,7 +81,7 @@
 }
 
 - (void)cleanUpObservers {
-  for (NSObject *controller in @[self.trackController, self.radioController]) {
+  for (NSObject *controller in @[ self.trackController, self.radioController ]) {
     @try {
       [controller removeObserver:self forKeyPath:@"isPlaying"];
       [controller removeObserver:self forKeyPath:@"currentItem"];
@@ -109,7 +89,7 @@
       [controller removeObserver:self forKeyPath:@"currentTime"];
       [controller removeObserver:self forKeyPath:@"duration"];
       [controller removeObserver:self forKeyPath:@"isSeekable"];
-      
+
       if ([controller isKindOfClass:[RadioPlaybackController class]]) {
         [controller removeObserver:self forKeyPath:@"currentStreamTitle"];
         [controller removeObserver:self forKeyPath:@"currentStation"];
@@ -209,7 +189,7 @@
   if (item.type == PlaybackItemTypeTrack) {
     [self playTrack:(Track *)item];
   } else {
-    [self playRadioStation: (RadioStation *)item];
+    [self playRadioStation:(RadioStation *)item];
   }
 }
 
@@ -245,9 +225,9 @@
   if (self.activeController == self.radioController) {
     [self.radioController stop];
   }
-  
+
   self.activeController = self.trackController;
-  
+
   [self.trackController setVolume:self.volume];
   [self.trackController playTrack:track];
 }
@@ -262,9 +242,9 @@
   if (self.activeController == self.trackController) {
     [self.trackController stop];
   }
-  
+
   self.activeController = self.radioController;
-  
+
   [self.radioController setVolume:self.volume];
   [self.radioController playStation:station];
 }

@@ -100,7 +100,7 @@
   panel.canChooseFiles = YES;
   panel.canChooseDirectories = NO;
   panel.allowsMultipleSelection = NO;
-  panel.allowedContentTypes = @[UTTypeImage];
+  panel.allowedContentTypes = @[ UTTypeImage ];
   panel.message = @"Select an image for the album artwork";
   panel.prompt = @"Select";
   panel.title = @"Choose Cover Art";
@@ -123,7 +123,7 @@
 
 - (void)loadArtworkFromURL:(NSURL *)imageURL {
   NSImage *selectedImage = [[NSImage alloc] initWithContentsOfURL:imageURL];
-  
+
   if (!selectedImage) {
     NSAlert *alert = [[NSAlert alloc] init];
     alert.messageText = @"Invalid Image";
@@ -132,24 +132,23 @@
     [alert beginSheetModalForWindow:self.view.window completionHandler:nil];
     return;
   }
-  
-  NSImage *displayImage = [self resizeImage:selectedImage
-                                     toSize:self.artworkImageView.bounds.size];
-  
+
+  NSImage *displayImage = [self resizeImage:selectedImage toSize:self.artworkImageView.bounds.size];
+
   self.artworkImageView.image = displayImage;
   self.selectedDisplayImage = displayImage;
 }
 
 - (NSImage *)resizeImage:(NSImage *)sourceImage toSize:(NSSize)size {
   NSImage *resizedImage = [[NSImage alloc] initWithSize:size];
-  
+
   [resizedImage lockFocus];
   [sourceImage drawInRect:NSMakeRect(0, 0, size.width, size.height)
                  fromRect:NSZeroRect
                 operation:NSCompositingOperationCopy
                  fraction:1.0];
   [resizedImage unlockFocus];
-  
+
   return resizedImage;
 }
 

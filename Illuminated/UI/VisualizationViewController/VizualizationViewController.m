@@ -6,8 +6,8 @@
 //
 
 #import "VizualizationViewController.h"
-#import "TrackPlaybackController.h"
 #import "ProjectMView.h"
+#import "TrackPlaybackController.h"
 
 @interface VizualizationViewController ()
 

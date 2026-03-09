@@ -58,8 +58,9 @@ NSString *const MusicFolderBookmarkKey = @"MusicFolderBookmark";
     NSLog(@"Raw error: %@", bookmarkError);
     NSLog(@"Code: %ld domain: %@", bookmarkError.code, bookmarkError.domain);
     NSLog(@"User info: %@", bookmarkError.userInfo);
-    
-    NSString *errorMessage = [NSString stringWithFormat:@"Error bookmarking track: %@", bookmarkError.localizedDescription];
+
+    NSString *errorMessage =
+        [NSString stringWithFormat:@"Error bookmarking track: %@", bookmarkError.localizedDescription];
     if (error) {
       *error = [NSError errorWithDomain:BookmarkResolverErrorDomain
                                    code:BookmarkResolverErrorDomainBookmarkDataCreationFailed

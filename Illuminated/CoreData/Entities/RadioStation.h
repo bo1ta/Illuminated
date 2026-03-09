@@ -6,8 +6,8 @@
 //
 //
 
-#import <Foundation/Foundation.h>
 #import <CoreData/CoreData.h>
+#import <Foundation/Foundation.h>
 
 @class RadioStationTag;
 
@@ -17,21 +17,21 @@ NS_ASSUME_NONNULL_BEGIN
 
 + (NSFetchRequest<RadioStation *> *)fetchRequest NS_SWIFT_NAME(fetchRequest());
 
-@property (nullable, nonatomic, copy) NSString *name;
-@property (nullable, nonatomic, copy) NSString *url;
-@property (nullable, nonatomic, copy) NSString *urlResolved;
-@property (nullable, nonatomic, copy) NSUUID *stationID;
-@property (nullable, nonatomic, copy) NSUUID *serverID;
-@property (nullable, nonatomic, copy) NSString *country;
-@property (nullable, nonatomic, copy) NSString *countryCode;
-@property (nullable, nonatomic, copy) NSString *codec;
-@property (nullable, nonatomic, copy) NSNumber *bitrate;
-@property (nullable, nonatomic, copy) NSNumber *clickCount;
-@property (nullable, nonatomic, copy) NSString *favicon;
-@property (nullable, nonatomic, copy) NSString *homepage;
-@property (nullable, nonatomic, copy) NSString *serverIDFallback;
-@property (nonatomic) BOOL isFavorite;
-@property (nullable, nonatomic, retain) NSSet<RadioStationTag *> *tags;
+@property(nullable, nonatomic, copy) NSString *name;
+@property(nullable, nonatomic, copy) NSString *url;
+@property(nullable, nonatomic, copy) NSString *urlResolved;
+@property(nullable, nonatomic, copy) NSUUID *stationID;
+@property(nullable, nonatomic, copy) NSUUID *serverID;
+@property(nullable, nonatomic, copy) NSString *country;
+@property(nullable, nonatomic, copy) NSString *countryCode;
+@property(nullable, nonatomic, copy) NSString *codec;
+@property(nullable, nonatomic, copy) NSNumber *bitrate;
+@property(nullable, nonatomic, copy) NSNumber *clickCount;
+@property(nullable, nonatomic, copy) NSString *favicon;
+@property(nullable, nonatomic, copy) NSString *homepage;
+@property(nullable, nonatomic, copy) NSString *serverIDFallback;
+@property(nonatomic) BOOL isFavorite;
+@property(nullable, nonatomic, retain) NSSet<RadioStationTag *> *tags;
 
 @end
 

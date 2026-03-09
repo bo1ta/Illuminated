@@ -7,13 +7,13 @@
 
 #import "FilesSidebarViewController.h"
 #import "AppDelegate.h"
-#import "BFTask.h"
 #import "AppPlaybackManager.h"
+#import "BFTask.h"
 #import "BookmarkResolver.h"
 #import "FileBrowserItem.h"
 #import "FileBrowserService.h"
-#import "TrackPlaybackController.h"
 #import "Track.h"
+#import "TrackPlaybackController.h"
 #import "TrackService.h"
 
 NSString *const PasteboardItemTypeTrackImport = @"com.illuminated.track.import";
@@ -101,7 +101,8 @@ NSString *const PasteboardItemTypeTrackImport = @"com.illuminated.track.import";
 #pragma mark - Data Loading
 
 - (void)addLocationURL:(NSURL *)url {
-  [[FileBrowserService createFileBrowserItemWithURL:url] continueOnMainThreadWithBlock:^id(BFTask<FileBrowserItem *> *task) {
+  [[FileBrowserService createFileBrowserItemWithURL:url]
+      continueOnMainThreadWithBlock:^id(BFTask<FileBrowserItem *> *task) {
         if (task.error) {
           [self presentError:task.error];
           return nil;
@@ -113,7 +114,8 @@ NSString *const PasteboardItemTypeTrackImport = @"com.illuminated.track.import";
 }
 
 - (void)loadRootLocations {
-  [[FileBrowserService allFileBrowserItems] continueOnMainThreadWithBlock:^id(BFTask<NSArray<FileBrowserItem *> *> *task) {
+  [[FileBrowserService allFileBrowserItems]
+      continueOnMainThreadWithBlock:^id(BFTask<NSArray<FileBrowserItem *> *> *task) {
         if (task.error) {
           [self presentError:task.error];
           return nil;
@@ -139,7 +141,8 @@ NSString *const PasteboardItemTypeTrackImport = @"com.illuminated.track.import";
 
   __weak typeof(self) weakSelf = self;
 
-  [[FileBrowserService contentsOfDirectory:directoryURL bookmarkData:bookmarkData] continueOnMainThreadWithBlock:^id(BFTask<NSArray<FileBrowserItem *> *> *task) {
+  [[FileBrowserService contentsOfDirectory:directoryURL bookmarkData:bookmarkData]
+      continueOnMainThreadWithBlock:^id(BFTask<NSArray<FileBrowserItem *> *> *task) {
         __strong typeof(weakSelf) strongSelf = weakSelf;
 
         if (task.error) {

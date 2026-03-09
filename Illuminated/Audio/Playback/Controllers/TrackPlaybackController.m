@@ -7,13 +7,13 @@
 //
 
 #import "TrackPlaybackController.h"
-#import "BookmarkResolver.h"
-#import "Track.h"
 #import "Album.h"
+#import "BookmarkResolver.h"
+#import "Track+PlaybackItem.h"
+#import "Track.h"
 #import "TrackQueue.h"
 #import "TrackService.h"
 #import <AVFoundation/AVFoundation.h>
-#import "Track+PlaybackItem.h"
 #import <Foundation/Foundation.h>
 
 #pragma mark - Constants
@@ -82,7 +82,7 @@ static const NSTimeInterval kProgressTimerInterval = 0.5;
 
 - (void)dealloc {
   [self.engine.mainMixerNode removeTapOnBus:0];
-  
+
   if (self.currentSecurityScopeURL) {
     [self.currentSecurityScopeURL stopAccessingSecurityScopedResource];
   }
@@ -168,11 +168,10 @@ static const NSTimeInterval kProgressTimerInterval = 0.5;
   if (self.currentSecurityScopeURL) {
     [self.currentSecurityScopeURL stopAccessingSecurityScopedResource];
   }
-  
+
   self.currentFile = newFile;
   self.currentSecurityScopeURL = securityScopeURL;
   self.seekOffset = 0;
-  
 
   [self.engine connect:self.playerNode to:self.engine.mainMixerNode format:self.currentFile.processingFormat];
 
@@ -187,7 +186,7 @@ static const NSTimeInterval kProgressTimerInterval = 0.5;
   [self scheduleFileAndPlay];
 
   [self.queue setCurrentTrack:track];
-  
+
   [self startProgressTimer];
   [self notifyDidChangeTrack:track];
 
@@ -284,7 +283,7 @@ static const NSTimeInterval kProgressTimerInterval = 0.5;
   }
 }
 
-- (void)pause { 
+- (void)pause {
   [self.playerNode pause];
 }
 

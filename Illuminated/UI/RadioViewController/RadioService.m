@@ -12,7 +12,7 @@
 @implementation RadioService
 
 + (BFTask *)getRadioStations {
-  return [[[self client] getRadioStations] continueWithSuccessBlock:^id (BFTask<NSArray<APIDictionary> *> *task) {
+  return [[[self client] getRadioStations] continueWithSuccessBlock:^id(BFTask<NSArray<APIDictionary> *> *task) {
     return [RadioStationDataStore radioStationsFromAPIDictionaries:task.result];
   }];
 }

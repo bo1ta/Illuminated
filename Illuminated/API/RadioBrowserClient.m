@@ -14,14 +14,11 @@
 }
 
 - (instancetype)init {
-    self = [super init];
-    if (self) {
-        self.defaultHeaders = @{
-            @"Content-Type": @"application/json",
-            @"User-Agent": @"Illuminated/1.0"
-        };
-    }
-    return self;
+  self = [super init];
+  if (self) {
+    self.defaultHeaders = @{@"Content-Type" : @"application/json", @"User-Agent" : @"Illuminated/1.0"};
+  }
+  return self;
 }
 
 - (BFTask<NSArray<APIDictionary> *> *)getRadioStations {
@@ -34,7 +31,7 @@
 }
 
 - (BFTask<NSArray<APIDictionary> *> *)searchStations:(NSString *)term {
-  return [self GET:@"/json/stations/byname" parameters:@{@"name": term}];
+  return [self GET:@"/json/stations/byname" parameters:@{@"name" : term}];
 }
 
 @end

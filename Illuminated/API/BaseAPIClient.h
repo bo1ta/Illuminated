@@ -12,13 +12,13 @@ NS_ASSUME_NONNULL_BEGIN
 @class BFTask;
 
 typedef NS_ENUM(NSInteger, BaseAPIClientMethod) {
-    BaseAPIClientMethodGET,
-    BaseAPIClientMethodPOST,
+  BaseAPIClientMethodGET,
+  BaseAPIClientMethodPOST,
 };
 
 @interface BaseAPIClient : NSObject
 
-@property (class, readonly) NSString *baseURL;
+@property(class, readonly) NSString *baseURL;
 
 @property(nonatomic) NSURLSessionConfiguration *sessionConfiguration;
 @property(nonatomic) NSTimeInterval timeoutInterval;

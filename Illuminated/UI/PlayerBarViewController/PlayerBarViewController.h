@@ -8,8 +8,8 @@
 #import <Cocoa/Cocoa.h>
 
 typedef NS_ENUM(NSInteger, PlaybackSource) {
-    PlaybackSourceRadio,
-    PlaybackSourceLibrary,
+  PlaybackSourceRadio,
+  PlaybackSourceLibrary,
 };
 
 extern NSString *const PlaybackSourceDidChangeToLibraryNotification;

@@ -5,10 +5,10 @@
 //  Created by Alexandru Solomon on 09.03.2026.
 //
 
-#import <Cocoa/Cocoa.h>
 #import "PlaybackItem.h"
+#import <Cocoa/Cocoa.h>
 
-@protocol PlaybackController <NSObject>
+@protocol PlaybackController<NSObject>
 
 @property(nonatomic, readonly) BOOL isPlaying;
 @property(nullable, nonatomic, readonly) id<PlaybackItem> currentItem;

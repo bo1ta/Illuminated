@@ -7,8 +7,8 @@
 
 #import "ContentTabViewController.h"
 #import "MusicViewController.h"
-#import "VizualizationViewController.h"
 #import "RadioViewController.h"
+#import "VizualizationViewController.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -50,7 +50,7 @@ NS_ASSUME_NONNULL_BEGIN
     [self.vizualizationViewController removeFromParentViewController];
     self.vizualizationViewController = nil;
   }
-  
+
   if (self.radioViewController) {
     [self.radioViewController.view removeFromSuperview];
     [self.radioViewController removeFromParentViewController];
@@ -70,15 +70,15 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (void)switchToRadio {
   if (self.radioViewController.view.superview) return;
-  
+
   [self.musicViewController.view removeFromSuperview];
   [self.musicViewController removeFromParentViewController];
-  
+
   self.radioViewController = [[RadioViewController alloc] initWithNibName:@"RadioViewController" bundle:nil];
   [self addChildViewController:self.radioViewController];
   [self.view addSubview:self.radioViewController.view];
   self.radioViewController.view.translatesAutoresizingMaskIntoConstraints = NO;
-  
+
   [NSLayoutConstraint activateConstraints:@[
     [self.radioViewController.view.topAnchor constraintEqualToAnchor:self.view.topAnchor],
     [self.radioViewController.view.bottomAnchor constraintEqualToAnchor:self.view.bottomAnchor],

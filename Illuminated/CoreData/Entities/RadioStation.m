@@ -11,7 +11,7 @@
 @implementation RadioStation
 
 + (NSFetchRequest<RadioStation *> *)fetchRequest {
-	return [NSFetchRequest fetchRequestWithEntityName:@"RadioStation"];
+  return [NSFetchRequest fetchRequestWithEntityName:@"RadioStation"];
 }
 
 @dynamic name;

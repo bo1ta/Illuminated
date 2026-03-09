@@ -7,10 +7,10 @@
 
 #import "AppDelegate.h"
 #import "CoreDataStore.h"
-#import "TrackPlaybackController.h"
 #import "FileExtensionHelper.h"
 #import "MainWindowController.h"
 #import "Track.h"
+#import "TrackPlaybackController.h"
 
 @interface AppDelegate ()
 
@@ -79,15 +79,15 @@
   panel.prompt = @"Open";
 
   __weak AppDelegate *weakSelf = self;
-  [panel beginSheetModalForWindow:self.mainWindowController.window completionHandler:^(NSModalResponse result) {
-    
-    NSURL *selectedFileURL = panel.URLs.firstObject;
-    
-    if (weakSelf && result == NSModalResponseOK && self.mainWindowController && selectedFileURL) {
-      [weakSelf.mainWindowController openAudioFileURL:selectedFileURL];
-      [[NSDocumentController sharedDocumentController] noteNewRecentDocumentURL:selectedFileURL];
-    }
-  }];
+  [panel beginSheetModalForWindow:self.mainWindowController.window
+                completionHandler:^(NSModalResponse result) {
+                  NSURL *selectedFileURL = panel.URLs.firstObject;
+
+                  if (weakSelf && result == NSModalResponseOK && self.mainWindowController && selectedFileURL) {
+                    [weakSelf.mainWindowController openAudioFileURL:selectedFileURL];
+                    [[NSDocumentController sharedDocumentController] noteNewRecentDocumentURL:selectedFileURL];
+                  }
+                }];
 }
 
 - (IBAction)open:(id)sender {
@@ -100,11 +100,12 @@
   panel.prompt = @"Import";
 
   __weak AppDelegate *weakSelf = self;
-  [panel beginSheetModalForWindow:self.mainWindowController.window completionHandler:^(NSModalResponse result) {
-    if (weakSelf && result == NSModalResponseOK && self.mainWindowController && panel.URLs.count > 0) {
-      [weakSelf.mainWindowController openAudioFileURLs:[panel.URLs copy]];
-    }
-  }];
+  [panel beginSheetModalForWindow:self.mainWindowController.window
+                completionHandler:^(NSModalResponse result) {
+                  if (weakSelf && result == NSModalResponseOK && self.mainWindowController && panel.URLs.count > 0) {
+                    [weakSelf.mainWindowController openAudioFileURLs:[panel.URLs copy]];
+                  }
+                }];
 }
 
 - (IBAction)showInFinderAction:(id)sender {

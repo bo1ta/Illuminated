@@ -14,9 +14,7 @@
 @implementation FileBrowserLocationDataStore
 
 + (BFTask<NSArray<FileBrowserLocation *> *> *)allFileBrowserLocations {
-  return [[CoreDataStore reader] allObjectsForEntity:EntityNameFileBrowserLocation
-                                             matching:nil
-                                     sortDescriptors:nil];
+  return [[CoreDataStore reader] allObjectsForEntity:EntityNameFileBrowserLocation matching:nil sortDescriptors:nil];
 }
 
 + (BFTask<FileBrowserLocation *> *)createWithDisplayName:(NSString *)displayName
@@ -40,7 +38,7 @@
     fileBrowserLocation.bookmarkData = fileBrowserItem.bookmarkData;
     fileBrowserLocation.originalPath = [fileBrowserItem.url absoluteString];
     fileBrowserLocation.dateAdded = [NSDate date];
-    
+
     return fileBrowserLocation;
   }];
 }

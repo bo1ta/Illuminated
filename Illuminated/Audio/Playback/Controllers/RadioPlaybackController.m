@@ -6,14 +6,14 @@
 //
 
 #import "RadioPlaybackController.h"
-#import "RadioStation.h"
 #import "RadioService.h"
-#import <AVFoundation/AVFoundation.h>
 #import "RadioStation+PlaybackItem.h"
+#import "RadioStation.h"
+#import <AVFoundation/AVFoundation.h>
 
 static NSString *const RadioStreamMetadataIcyIdentifier = @"icy/StreamTitle";
 
-@interface RadioPlaybackController () <AVPlayerItemMetadataOutputPushDelegate>
+@interface RadioPlaybackController ()<AVPlayerItemMetadataOutputPushDelegate>
 
 @property(strong, nullable) AVPlayer *streamPlayer;
 @property(strong, nullable) AVPlayerItemMetadataOutput *metadataOutput;
@@ -59,34 +59,35 @@ static NSString *const RadioStreamMetadataIcyIdentifier = @"icy/StreamTitle";
   if (!station || !station.url) {
     self.lastError = [NSError errorWithDomain:@"RadioPlaybackController"
                                          code:-1
-                                     userInfo:@{NSLocalizedDescriptionKey: @"Invalid station URL"}];
+                                     userInfo:@{NSLocalizedDescriptionKey : @"Invalid station URL"}];
     return;
   }
-  
+
   [self stop];
-  
+
   NSURL *url = [NSURL URLWithString:station.url];
   if (!url) {
-    self.lastError = [NSError errorWithDomain:@"RadioPlaybackController"
-                                         code:-2
-                                     userInfo:@{NSLocalizedDescriptionKey: @"Could not create URL from station URL string"}];
+    self.lastError =
+        [NSError errorWithDomain:@"RadioPlaybackController"
+                            code:-2
+                        userInfo:@{NSLocalizedDescriptionKey : @"Could not create URL from station URL string"}];
     return;
   }
-  
+
   AVPlayerItem *playerItem = [AVPlayerItem playerItemWithURL:url];
   [self setupMetadataOutputForPlayerItem:playerItem];
-  
+
   self.streamPlayer = [AVPlayer playerWithPlayerItem:playerItem];
   [self addPlayerObservers];
-  
+
   [self.streamPlayer setVolume:self.volume];
   [self.streamPlayer play];
-  
+
   self.currentStation = station;
   self.currentStreamTitle = nil;
   self.lastError = nil;
   self.isPlaying = YES;
-  
+
   if (station.serverIDFallback) {
     [RadioService increaseClickCountForStationID:station.serverIDFallback];
   }
@@ -120,27 +121,26 @@ static NSString *const RadioStreamMetadataIcyIdentifier = @"icy/StreamTitle";
     if (playerItem && self.metadataOutput) {
       [playerItem removeOutput:self.metadataOutput];
     }
-    
+
     [self removePlayerObservers];
-    
+
     [self.streamPlayer pause];
     self.streamPlayer = nil;
     self.metadataOutput = nil;
   }
-  
+
   self.isPlaying = NO;
   self.currentStation = nil;
   self.currentStreamTitle = nil;
 }
 
-- (void)play { 
+- (void)play {
   [self resume];
 }
 
 - (NSURL *)currentPlaybackURL {
   return self.currentItem.playbackURL;
 }
-
 
 #pragma mark - Private Methods
 
@@ -151,10 +151,7 @@ static NSString *const RadioStreamMetadataIcyIdentifier = @"icy/StreamTitle";
 }
 
 - (void)addPlayerObservers {
-  [self.streamPlayer addObserver:self
-                      forKeyPath:@"status"
-                         options:NSKeyValueObservingOptionNew
-                         context:nil];
+  [self.streamPlayer addObserver:self forKeyPath:@"status" options:NSKeyValueObservingOptionNew context:nil];
 }
 
 - (void)removePlayerObservers {
@@ -168,19 +165,18 @@ static NSString *const RadioStreamMetadataIcyIdentifier = @"icy/StreamTitle";
 - (void)handleStreamFailure {
   self.lastError = [NSError errorWithDomain:@"RadioPlaybackController"
                                        code:-100
-                                   userInfo:@{NSLocalizedDescriptionKey: @"Failed to load radio stream"}];
+                                   userInfo:@{NSLocalizedDescriptionKey : @"Failed to load radio stream"}];
   [self stop];
 }
 
 - (void)processMetadataItem:(AVMetadataItem *)item {
-  NSLog(@"Radio metadata - identifier: %@, key: %@, value: %@",
-        item.identifier, item.key, item.stringValue);
-  
+  NSLog(@"Radio metadata - identifier: %@, key: %@, value: %@", item.identifier, item.key, item.stringValue);
+
   NSString *value = item.stringValue;
   if (!value) {
     return;
   }
-  
+
   if ([item.identifier isEqualToString:RadioStreamMetadataIcyIdentifier]) {
     self.currentStreamTitle = value;
     NSLog(@"All good here");
@@ -197,10 +193,10 @@ static NSString *const RadioStreamMetadataIcyIdentifier = @"icy/StreamTitle";
                       ofObject:(id)object
                         change:(NSDictionary *)change
                        context:(void *)context {
-  
+
   if (object == self.streamPlayer && [keyPath isEqualToString:@"status"]) {
     AVPlayerStatus status = self.streamPlayer.status;
-    
+
     if (status == AVPlayerStatusFailed) {
       [self handleStreamFailure];
     } else if (status == AVPlayerStatusReadyToPlay) {
@@ -212,9 +208,9 @@ static NSString *const RadioStreamMetadataIcyIdentifier = @"icy/StreamTitle";
 #pragma mark - AVPlayerItemMetadataOutputPushDelegate
 
 - (void)metadataOutput:(AVPlayerItemMetadataOutput *)output
-didOutputTimedMetadataGroups:(NSArray<AVTimedMetadataGroup *> *)groups
-   fromPlayerItemTrack:(AVPlayerItemTrack *)track {
-  
+    didOutputTimedMetadataGroups:(NSArray<AVTimedMetadataGroup *> *)groups
+             fromPlayerItemTrack:(AVPlayerItemTrack *)track {
+
   for (AVTimedMetadataGroup *group in groups) {
     for (AVMetadataItem *item in group.items) {
       [self processMetadataItem:item];
