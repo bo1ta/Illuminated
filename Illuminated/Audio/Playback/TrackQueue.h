@@ -13,7 +13,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface TrackQueue : NSObject
 
-@property(readonly, nonatomic) Track *currentTrack;
+@property(readonly, nonatomic, nullable) Track *currentTrack;
 @property(readonly, nonatomic) NSArray<Track *> *tracks;
 
 - (void)setTracks:(NSArray<Track *> *)tracks;

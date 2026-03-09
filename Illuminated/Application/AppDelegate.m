@@ -7,7 +7,7 @@
 
 #import "AppDelegate.h"
 #import "CoreDataStore.h"
-#import "PlaybackManager.h"
+#import "TrackPlaybackController.h"
 #import "FileExtensionHelper.h"
 #import "MainWindowController.h"
 #import "Track.h"
@@ -108,7 +108,7 @@
 }
 
 - (IBAction)showInFinderAction:(id)sender {
-  Track *currentTrack = [[PlaybackManager sharedManager] currentTrack];
+  Track *currentTrack = [[TrackPlaybackController sharedManager] currentTrack];
   if (currentTrack) {
     NSURL *url = [NSURL fileURLWithPath:currentTrack.fileURL];
     [[NSWorkspace sharedWorkspace] activateFileViewerSelectingURLs:@[ url ]];

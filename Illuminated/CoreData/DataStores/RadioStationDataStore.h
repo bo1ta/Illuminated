@@ -10,12 +10,16 @@
 
 @class BFTask;
 @class NSFetchedResultsController;
+@class NSManagedObjectID;
 
 NS_ASSUME_NONNULL_BEGIN
 
 @interface RadioStationDataStore : NSObject
 
 + (BFTask *)radioStationsFromAPIDictionary:(APIDictionary)apiDictionary;
+
++ (BFTask *)updateIsFavoriteForRadioWithObjectID:(NSManagedObjectID *)objectID
+                                      isFavorite:(BOOL)isFavorite;
 
 + (NSFetchedResultsController *)fetchedResultsController;
 

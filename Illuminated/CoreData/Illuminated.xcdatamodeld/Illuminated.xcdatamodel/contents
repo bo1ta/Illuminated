@@ -39,6 +39,7 @@
         <attribute name="countryCode" optional="YES" attributeType="String"/>
         <attribute name="favicon" optional="YES" attributeType="String"/>
         <attribute name="homepage" optional="YES" attributeType="String"/>
+        <attribute name="isFavorite" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
         <attribute name="name" optional="YES" attributeType="String"/>
         <attribute name="serverID" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
         <attribute name="serverIDFallback" optional="YES" attributeType="String"/>

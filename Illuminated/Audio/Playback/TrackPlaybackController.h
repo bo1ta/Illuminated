@@ -1,5 +1,5 @@
 //
-//  PlaybackManager.h
+//  TrackPlaybackController.h
 //  Illuminated
 //
 //  Created by Alexandru Solomon on 22.01.2026.
@@ -7,6 +7,7 @@
 
 #import "AVFoundation/AVFoundation.h"
 #import "Cocoa/Cocoa.h"
+#import "PlaybackController.h"
 
 @class Track;
 
@@ -24,12 +25,12 @@ typedef void (^AudioBufferCallback)(const float *monoData, AVAudioFrameCount len
 
 #pragma mark - PlaybackManager Interface
 
-@interface PlaybackManager : NSObject
+@interface TrackPlaybackController : NSObject<PlaybackController>
 
 + (instancetype)sharedManager;
 
 @property(strong, readonly, nullable) Track *currentTrack;
-@property(assign, readonly, getter=isPlaying) BOOL playing;
+@property(assign, readonly, getter=isPlaying) BOOL isPlaying;
 @property(assign, readonly) NSTimeInterval currentTime;
 @property(assign, readonly) NSTimeInterval duration;
 @property(nonatomic, assign) float volume;

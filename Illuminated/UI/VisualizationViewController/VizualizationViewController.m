@@ -6,7 +6,7 @@
 //
 
 #import "VizualizationViewController.h"
-#import "PlaybackManager.h"
+#import "TrackPlaybackController.h"
 #import "ProjectMView.h"
 
 @interface VizualizationViewController ()
@@ -60,7 +60,7 @@
 - (void)viewDidDisappear {
   [super viewDidDisappear];
 
-  [[PlaybackManager sharedManager] unregisterAudioBufferCallback];
+  [[TrackPlaybackController sharedManager] unregisterAudioBufferCallback];
 }
 
 - (void)dealloc {
@@ -76,7 +76,7 @@
 - (void)registerForAudioBufferChanges {
   __weak typeof(self) weakSelf = self;
 
-  [[PlaybackManager sharedManager]
+  [[TrackPlaybackController sharedManager]
       registerAudioBufferCallback:^(const float *_Nonnull monoData, AVAudioFrameCount length) {
         __strong typeof(weakSelf) strongSelf = weakSelf;
 

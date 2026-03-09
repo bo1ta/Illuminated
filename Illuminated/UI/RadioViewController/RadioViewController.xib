@@ -127,7 +127,7 @@
                                             </tableCellView>
                                         </prototypeCellViews>
                                     </tableColumn>
-                                    <tableColumn identifier="BitrateColumn" width="99.5" minWidth="40" maxWidth="1000" id="xpx-5P-SIg">
+                                    <tableColumn identifier="BitrateColumn" width="100" minWidth="40" maxWidth="1000" id="xpx-5P-SIg">
                                         <tableHeaderCell key="headerCell" lineBreakMode="truncatingTail" borderStyle="border" title="Bitrate">
                                             <color key="textColor" name="headerTextColor" catalog="System" colorSpace="catalog"/>
                                             <color key="backgroundColor" name="headerColor" catalog="System" colorSpace="catalog"/>
@@ -140,11 +140,11 @@
                                         <tableColumnResizingMask key="resizingMask" resizeWithTable="YES" userResizable="YES"/>
                                         <prototypeCellViews>
                                             <tableCellView id="w6S-hj-UE5">
-                                                <rect key="frame" x="370" y="0.0" width="97" height="24"/>
+                                                <rect key="frame" x="370" y="0.0" width="100" height="24"/>
                                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                                 <subviews>
                                                     <textField focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="8BW-HY-LDW">
-                                                        <rect key="frame" x="0.0" y="4" width="97" height="16"/>
+                                                        <rect key="frame" x="0.0" y="4" width="100" height="16"/>
                                                         <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMinY="YES" flexibleMaxY="YES"/>
                                                         <textFieldCell key="cell" lineBreakMode="truncatingTail" sendsActionOnEndEditing="YES" title="Table View Cell" id="cXQ-Nb-mQh">
                                                             <font key="font" usesAppearanceFont="YES"/>
@@ -156,6 +156,24 @@
                                                 <connections>
                                                     <outlet property="textField" destination="8BW-HY-LDW" id="ma2-0N-ZCv"/>
                                                 </connections>
+                                            </tableCellView>
+                                        </prototypeCellViews>
+                                    </tableColumn>
+                                    <tableColumn identifier="FavoriteColumn" width="100" minWidth="40" maxWidth="1000" id="Ebi-b8-hY3">
+                                        <tableHeaderCell key="headerCell" lineBreakMode="truncatingTail" borderStyle="border" title="Favorite">
+                                            <color key="textColor" name="headerTextColor" catalog="System" colorSpace="catalog"/>
+                                            <color key="backgroundColor" name="headerColor" catalog="System" colorSpace="catalog"/>
+                                        </tableHeaderCell>
+                                        <textFieldCell key="dataCell" lineBreakMode="truncatingTail" selectable="YES" editable="YES" title="Text Cell" id="GDg-Dy-RsF">
+                                            <font key="font" metaFont="system"/>
+                                            <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                                            <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                        </textFieldCell>
+                                        <tableColumnResizingMask key="resizingMask" resizeWithTable="YES" userResizable="YES"/>
+                                        <prototypeCellViews>
+                                            <tableCellView id="ApP-TE-ojR">
+                                                <rect key="frame" x="487" y="0.0" width="97" height="24"/>
+                                                <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                             </tableCellView>
                                         </prototypeCellViews>
                                     </tableColumn>

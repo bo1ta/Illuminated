@@ -6,6 +6,7 @@
 //
 
 #import "MusicViewController.h"
+#import "AppPlaybackManager.h"
 #import "Album.h"
 #import "Artist.h"
 #import "BFExecutor.h"
@@ -15,7 +16,7 @@
 #import "FileExtensionHelper.h"
 #import "MainWindowController.h"
 #import "MetadataEditorViewController.h"
-#import "PlaybackManager.h"
+#import "TrackPlaybackController.h"
 #import "Playlist.h"
 #import "PlaylistDataStore.h"
 #import "PlaylistsSidebarViewController.h"
@@ -134,7 +135,7 @@ NSString *const PasteboardItemTypeTrackImports = @"com.illuminated.track.import"
 }
 
 - (void)selectCurrentTrack {
-  _currentTrack = [[PlaybackManager sharedManager] currentTrack];
+  _currentTrack = [[AppPlaybackManager sharedManager] currentTrack];
 
   if (!self.currentTrack) {
     return;
@@ -145,7 +146,7 @@ NSString *const PasteboardItemTypeTrackImports = @"com.illuminated.track.import"
   [TrackDataStore incrementPlayCountForTrack:self.currentTrack];
 
   if (self.currentTrack.bpm <= 0) {
-    NSURL *currentURL = [[PlaybackManager sharedManager] currentPlaybackURL];
+    NSURL *currentURL = [[AppPlaybackManager sharedManager] currentPlaybackURL];
     [BFTask taskFromExecutor:[BFExecutor defaultExecutor]
                    withBlock:^id { return [TrackService analyzeBPMForTrackURL:currentURL]; }];
   }
@@ -406,8 +407,9 @@ NSString *const PasteboardItemTypeTrackImports = @"com.illuminated.track.import"
     NSArray<Track *> *tracks = self.fetchedResultsController.fetchedObjects;
     Track *track = tracks[self.tableView.selectedRow];
 
-    [[PlaybackManager sharedManager] updateQueue:tracks];
-    [[PlaybackManager sharedManager] playTrack:track];
+    [[AppPlaybackManager sharedManager] updateQueue:tracks];
+    [[AppPlaybackManager sharedManager] playTrack:track];
+    
   }
 }
 
@@ -452,7 +454,7 @@ NSString *const PasteboardItemTypeTrackImports = @"com.illuminated.track.import"
     if (task.error) {
       NSLog(@"Error importing url: %@", task.error.localizedDescription);
     } else {
-      [[PlaybackManager sharedManager] playTrack:task.result];
+      [[AppPlaybackManager sharedManager] playTrack:task.result];
     }
     return nil;
   }];

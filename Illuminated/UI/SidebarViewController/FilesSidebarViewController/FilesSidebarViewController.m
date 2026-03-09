@@ -8,10 +8,11 @@
 #import "FilesSidebarViewController.h"
 #import "AppDelegate.h"
 #import "BFTask.h"
+#import "AppPlaybackManager.h"
 #import "BookmarkResolver.h"
 #import "FileBrowserItem.h"
 #import "FileBrowserService.h"
-#import "PlaybackManager.h"
+#import "TrackPlaybackController.h"
 #import "Track.h"
 #import "TrackService.h"
 
@@ -207,7 +208,7 @@ NSString *const PasteboardItemTypeTrackImport = @"com.illuminated.track.import";
   [[TrackService findOrInsertByURL:item.url
                       bookmarkData:item.bookmarkData] continueOnMainThreadWithBlock:^id(BFTask<Track *> *task) {
     Track *track = task.result;
-    [[PlaybackManager sharedManager] playTrack:track];
+    [[AppPlaybackManager sharedManager] playTrack:track];
     return nil;
   }];
 }

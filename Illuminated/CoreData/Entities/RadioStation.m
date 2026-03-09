@@ -27,5 +27,6 @@
 @dynamic favicon;
 @dynamic homepage;
 @dynamic serverIDFallback;
+@dynamic isFavorite;
 
 @end

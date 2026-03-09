@@ -117,7 +117,7 @@ IA
                         <real value="3.4028234663852886e+38"/>
                     </customSpacing>
                 </stackView>
-                <textField focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="I6e-1A-WvN">
+                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="I6e-1A-WvN">
                     <rect key="frame" x="20" y="95" width="31" height="13"/>
                     <textFieldCell key="cell" lineBreakMode="clipping" title="Label" id="ZxY-gh-JyR">
                         <font key="font" textStyle="footnote" name=".SFNS-Regular"/>
@@ -125,7 +125,7 @@ IA
                         <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                     </textFieldCell>
                 </textField>
-                <textField focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="uvO-Z0-veq">
+                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="uvO-Z0-veq">
                     <rect key="frame" x="750" y="95" width="32" height="13"/>
                     <textFieldCell key="cell" lineBreakMode="clipping" title="Label" id="Fjl-is-T6w">
                         <font key="font" textStyle="footnote" name=".SFNS-Regular"/>
@@ -136,7 +136,7 @@ IA
                 <stackView distribution="fill" orientation="vertical" alignment="leading" spacing="2" horizontalStackHuggingPriority="249.99998474121094" verticalStackHuggingPriority="249.99998474121094" detachesHiddenViews="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Ct6-K7-tLJ" userLabel="TrackInfoStackView">
                     <rect key="frame" x="75" y="17" width="242" height="44"/>
                     <subviews>
-                        <textField focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="g3Z-pj-EbQ">
+                        <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="g3Z-pj-EbQ">
                             <rect key="frame" x="-2" y="28" width="78" height="16"/>
                             <textFieldCell key="cell" lineBreakMode="clipping" title="Track Name" id="PkG-UH-cju">
                                 <font key="font" metaFont="systemMedium" size="13"/>
@@ -144,7 +144,7 @@ IA
                                 <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                             </textFieldCell>
                         </textField>
-                        <textField focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="qab-q3-5Ya">
+                        <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="qab-q3-5Ya">
                             <rect key="frame" x="-2" y="13" width="62" height="13"/>
                             <textFieldCell key="cell" lineBreakMode="clipping" title="Artist Name" id="MDE-4p-Fgj">
                                 <font key="font" metaFont="system" size="10"/>
@@ -152,7 +152,7 @@ IA
                                 <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                             </textFieldCell>
                         </textField>
-                        <textField focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="KG0-K8-NhX">
+                        <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="KG0-K8-NhX">
                             <rect key="frame" x="-2" y="0.0" width="42" height="11"/>
                             <textFieldCell key="cell" lineBreakMode="clipping" title="120 bpm" id="6sg-pN-0Pz">
                                 <font key="font" metaFont="miniSystem"/>

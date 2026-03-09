@@ -17,6 +17,17 @@
                                                    sortDescriptors:nil];
 }
 
++ (BFTask *)updateIsFavoriteForRadioWithObjectID:(NSManagedObjectID *)objectID
+                                      isFavorite:(BOOL)isFavorite {
+  return [[CoreDataStore writer] performWrite:^id(NSManagedObjectContext *context) {
+    RadioStation *radioStation = [context objectWithID:objectID];
+    if (radioStation) {
+      radioStation.isFavorite = isFavorite;
+    }
+    return nil;
+  }];
+}
+
 + (BFTask *)radioStationsFromAPIDictionary:(APIDictionary)apiDictionary {
   return [[CoreDataStore writer] performWrite:^id(NSManagedObjectContext *context) {
     NSMutableArray<RadioStation *> *results = [NSMutableArray array];

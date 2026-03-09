@@ -28,6 +28,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nullable, nonatomic, copy) NSString *favicon;
 @property (nullable, nonatomic, copy) NSString *homepage;
 @property (nullable, nonatomic, copy) NSString *serverIDFallback;
+@property (nonatomic) BOOL isFavorite;
 
 @end
 
