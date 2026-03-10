@@ -2,10 +2,6 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>LASTFM_API_KEY</key>
-	<string>$(LASTFM_API_KEY)</string>
-	<key>LASTFM_API_SECRET</key>
-	<string>$(LASTFM_API_SECRET)</string>
 	<key>CFBundleDocumentTypes</key>
 	<array>
 		<dict>
@@ -114,6 +110,10 @@
 			</array>
 		</dict>
 	</array>
+	<key>LASTFM_API_KEY</key>
+	<string>$(LASTFM_API_KEY)</string>
+	<key>LASTFM_SECRET_KEY</key>
+	<string>$(LASTFM_SECRET_KEY)</string>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsArbitraryLoadsForMedia</key>

@@ -27,7 +27,12 @@ typedef NS_ENUM(NSInteger, BaseAPIClientMethod) {
 @property(nonatomic) NSURLSession *session;
 
 - (BFTask *)GET:(NSString *)path parameters:(nullable NSDictionary *)parameters;
+
+- (BFTask *)POST:(NSString *)path body:(NSDictionary *)body parameters:(NSDictionary *)parameters;
+
 - (BFTask *)POST:(NSString *)path parameters:(nullable NSDictionary *)parameters;
+
+- (NSArray<NSURLQueryItem *> *)queryItemsFromDictionary:(NSDictionary *)dictionary;
 
 @end
 

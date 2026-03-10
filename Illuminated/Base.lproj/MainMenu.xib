@@ -32,11 +32,16 @@
                                 </connections>
                             </menuItem>
                             <menuItem isSeparatorItem="YES" id="VOq-y0-SEH"/>
-                            <menuItem title="Preferences…" keyEquivalent="," id="BOF-NM-1cW"/>
                             <menuItem isSeparatorItem="YES" id="wFC-TO-SCJ"/>
                             <menuItem title="Services" id="NMo-om-nkz">
                                 <modifierMask key="keyEquivalentModifierMask"/>
                                 <menu key="submenu" title="Services" systemMenu="services" id="hz9-B4-Xy5"/>
+                            </menuItem>
+                            <menuItem title="Connect to Last.fm..." id="BOF-NM-1cW">
+                                <modifierMask key="keyEquivalentModifierMask"/>
+                                <connections>
+                                    <action selector="connectToLastFMAction:" target="Voe-Tx-rLC" id="6oE-ka-X76"/>
+                                </connections>
                             </menuItem>
                             <menuItem isSeparatorItem="YES" id="4je-JR-u6R"/>
                             <menuItem title="Hide Illuminated" keyEquivalent="h" id="Olw-nP-bQN">

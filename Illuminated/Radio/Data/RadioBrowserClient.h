@@ -6,8 +6,9 @@
 //
 
 #import "APIDictionary.h"
-#import "BFTask.h"
 #import "BaseAPIClient.h"
+
+@class BFTask<__covariant ResultType>;
 
 NS_ASSUME_NONNULL_BEGIN
 

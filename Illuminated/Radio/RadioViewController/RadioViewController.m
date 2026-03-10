@@ -12,6 +12,7 @@
 #import "RadioPlaybackController.h"
 #import "RadioService.h"
 #import "RadioStation.h"
+#import "BFTask.h"
 #import "RadioStationDataStore.h"
 #import "RadioStationTag.h"
 

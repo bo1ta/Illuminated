@@ -11,6 +11,9 @@
 #import "MainWindowController.h"
 #import "Track.h"
 #import "TrackPlaybackController.h"
+#import "BFTask.h"
+#import "LastFMClient.h"
+#import "LFMAuthManager.h"
 
 @interface AppDelegate ()
 
@@ -113,6 +116,59 @@
   if (currentTrack) {
     NSURL *url = [NSURL fileURLWithPath:currentTrack.fileURL];
     [[NSWorkspace sharedWorkspace] activateFileViewerSelectingURLs:@[ url ]];
+  }
+}
+
+- (IBAction)connectToLastFMAction:(id)sender {
+  if ([[LFMAuthManager sharedManager] isAuthenticated]) {
+    NSLog(@"LastFM already logged in!");
+    return;
+  }
+  
+  [[[[LastFMClient alloc] init] fetchAuthToken] continueOnMainThreadWithBlock:^id _Nullable(BFTask * _Nonnull task) {
+    if (task.result) {
+      [self openAuthorizationPageWithToken:task.result];
+    } else {
+      NSLog(@"Error fetching auth token %@", task.error.localizedDescription);
+    }
+    return nil;
+  }];
+}
+
+- (void)openAuthorizationPageWithToken:(NSString *)token {
+  NSURL *authURL = [[[LastFMClient alloc] init] getAuthorizationURLWithToken:token];
+
+    [[NSWorkspace sharedWorkspace] openURL:authURL];
+    
+  [self showAuthorizationInstructionsWithToken:token];
+}
+
+- (void)showAuthorizationInstructionsWithToken:(NSString *)token {
+    NSAlert *alert = [[NSAlert alloc] init];
+    alert.messageText = @"Connect to Last.fm";
+    alert.informativeText = @"Your browser will open to authorize this app.\n\n"
+                             "1. Log in to Last.fm if needed\n"
+                             "2. Click 'Yes, allow access'\n"
+                             "3. Return to this app and click 'Continue'";
+    
+    [alert addButtonWithTitle:@"Continue"];
+    [alert addButtonWithTitle:@"Cancel"];
+    
+    NSModalResponse response = [alert runModal];
+    
+  if (response == NSAlertFirstButtonReturn) {
+    [[[[LastFMClient alloc] init] fetchSessionWithToken:token] continueWithBlock:^id _Nullable(BFTask * _Nonnull task) {
+      if (task.result) {
+        [[LFMAuthManager sharedManager] setCurrentSession:task.result];
+        NSLog(@"All good in the hood boyo! Session: %@", task.result);
+      } else {
+        NSLog(@"Error %@", task.error.localizedDescription);
+      }
+      return nil;
+    }];
+  } else {
+    // User cancelled
+//    self.currentToken = nil;
   }
 }
 

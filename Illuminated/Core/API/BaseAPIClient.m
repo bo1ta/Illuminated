@@ -35,20 +35,25 @@
   return _session;
 }
 
-- (BFTask *)GET:(NSString *)path parameters:(NSDictionary *)parameters {
-  return [self requestWithMethod:BaseAPIClientMethodGET path:path parameters:parameters];
+- (BFTask *)GET:(NSString *)path parameters:(nullable NSDictionary *)parameters {
+  return [self requestWithMethod:BaseAPIClientMethodGET path:path parameters:parameters body:nil];
 }
 
-- (BFTask *)POST:(NSString *)path parameters:(NSDictionary *)parameters {
-  return [self requestWithMethod:BaseAPIClientMethodPOST path:path parameters:parameters];
+- (BFTask *)POST:(NSString *)path parameters:(nullable NSDictionary *)parameters {
+  return [self requestWithMethod:BaseAPIClientMethodPOST path:path parameters:parameters body:nil];
+}
+
+- (BFTask *)POST:(NSString *)path body:(NSDictionary *)body parameters:(NSDictionary *)parameters {
+  return [self requestWithMethod:BaseAPIClientMethodPOST path:path parameters:parameters body:body];
 }
 
 #pragma mark - Private Helpers
 
 - (BFTask<id> *)requestWithMethod:(BaseAPIClientMethod)method
                              path:(NSString *)path
-                       parameters:(NSDictionary *)parameters {
-  NSMutableURLRequest *request = [self buildRequestWithMethod:method path:path parameters:parameters];
+                       parameters:(NSDictionary *)parameters
+                             body:(NSDictionary *)body {
+  NSMutableURLRequest *request = [self buildRequestWithMethod:method path:path body:body parameters:parameters];
 
   BFTaskCompletionSource *source = [BFTaskCompletionSource taskCompletionSource];
 
@@ -85,10 +90,15 @@
 
 - (NSMutableURLRequest *)buildRequestWithMethod:(BaseAPIClientMethod)method
                                            path:(NSString *)path
-                                     parameters:(NSDictionary *)parameters {
+                                           body:(nullable NSDictionary *)body
+                                     parameters:(nullable NSDictionary *)parameters {
 
   NSString *urlString = [NSString stringWithFormat:@"%@%@", [[self class] baseURL], path];
   NSURLComponents *components = [NSURLComponents componentsWithString:urlString];
+  
+  if (parameters) {
+    components.queryItems = [self queryItemsFromDictionary:parameters];
+  }
 
   NSMutableURLRequest *request = [NSMutableURLRequest new];
   request.timeoutInterval = self.timeoutInterval;
@@ -100,15 +110,12 @@
   switch (method) {
   case BaseAPIClientMethodGET:
     request.HTTPMethod = @"GET";
-    if (parameters) {
-      components.queryItems = [self queryItemsFromDictionary:parameters];
-    }
     break;
 
   case BaseAPIClientMethodPOST:
     request.HTTPMethod = @"POST";
-    if (parameters) {
-      request.HTTPBody = [NSJSONSerialization dataWithJSONObject:parameters options:0 error:nil];
+    if (body) {
+      request.HTTPBody = [NSJSONSerialization dataWithJSONObject:body options:0 error:nil];
     }
     break;
   }
