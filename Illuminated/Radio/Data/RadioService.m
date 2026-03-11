@@ -13,17 +13,16 @@
 @implementation RadioService
 
 + (BFTask *)getRadioStations {
-  return [[[self client] getRadioStations] continueWithSuccessBlock:^id(BFTask<NSArray<APIDictionary> *> *task) {
+  return [[self.client getRadioStations] continueWithSuccessBlock:^id(BFTask<NSArray<APIDictionary> *> *task) {
     return [RadioStationDataStore radioStationsFromAPIDictionaries:task.result];
   }];
 }
 
 + (BFTask *)increaseClickCountForStationID:(NSString *)stationID {
-  return [[[self client] increaseClickCountForStationID:stationID] continueWithBlock:^id(BFTask<APIDictionary> *task) {
+  BFTask *task = [self.client increaseClickCountForStationID:stationID];
+  return [task continueWithBlock:^id(BFTask<APIDictionary> *task) {
     if (task.error) {
-      NSLog(@"Error increasing click count for station");
-    } else {
-      NSLog(@"All good!");
+      NSLog(@"Error increasing click count for station: %@", task.error.localizedDescription);
     }
     return nil;
   }];

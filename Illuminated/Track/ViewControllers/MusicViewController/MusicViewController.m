@@ -14,7 +14,6 @@
 #import "FileBrowserService.h"
 #import "FileExtensionHelper.h"
 #import "FilesSidebarViewController.h"
-#import "MainWindowController.h"
 #import "MetadataEditorViewController.h"
 #import "Playlist.h"
 #import "PlaylistDataStore.h"
@@ -94,45 +93,9 @@ NSString *const PasteboardItemTypeTrackImports = @"com.illuminated.track.import"
                                            selector:@selector(sidebarSelectionDidChange:)
                                                name:SidebarSelectionItemDidChange
                                              object:nil];
-
-  [[NSNotificationCenter defaultCenter] addObserver:self
-                                           selector:@selector(toolbarSearchDidChange:)
-                                               name:ToolbarSearchDidChangeNotification
-                                             object:nil];
 }
 
-- (void)toolbarSearchDidChange:(NSNotification *)notification {
-  NSString *searchText = notification.userInfo[ToolbarSearchUserInfo];
-  NSMutableArray *predicates = [NSMutableArray array];
 
-  if (searchText.length > 0) {
-    NSPredicate *searchPredicate = [NSPredicate
-        predicateWithFormat:@"title CONTAINS[cd] %@ OR artist.name CONTAINS[cd] %@ OR album.title CONTAINS[cd] %@",
-                            searchText,
-                            searchText,
-                            searchText];
-    [predicates addObject:searchPredicate];
-  } else {
-    [self updateFetchedResultsControllerForCurrentPlaylist];
-    return;
-  }
-
-  if (self.currentPlaylist != nil) {
-    [predicates addObject:[NSPredicate predicateWithFormat:@"ANY playlists == %@", self.currentPlaylist]];
-  } else if (self.currentAlbum != nil) {
-    [predicates addObject:[NSPredicate predicateWithFormat:@"album == %@", self.currentAlbum]];
-  }
-
-  NSPredicate *finalPredicate = nil;
-  if (predicates.count > 0) {
-    finalPredicate = [NSCompoundPredicate andPredicateWithSubpredicates:predicates];
-  }
-
-  self.fetchedResultsController.fetchRequest.predicate = finalPredicate;
-  [self.fetchedResultsController performFetch:nil];
-
-  [self.tableView reloadData];
-}
 
 - (void)selectCurrentTrack {
   _currentTrack = [[AppPlaybackManager sharedManager] currentTrack];
@@ -228,11 +191,25 @@ NSString *const PasteboardItemTypeTrackImports = @"com.illuminated.track.import"
   return YES;
 }
 
-#pragma mark - NSFetchedResultsControllerDelegate
+#pragma mark - NSFetchedResultsController
 
 - (void)controllerDidChangeContent:(NSFetchedResultsController *)controller {
   [self.tableView reloadData];
   [self selectRowForTrack:self.currentTrack scroll:NO];
+}
+
+- (void)updateFetchedResultsControllerForCurrentPlaylist {
+  NSPredicate *predicate = nil;
+  if (self.currentPlaylist != nil) {
+    predicate = [NSPredicate predicateWithFormat:@"ANY playlists == %@", self.currentPlaylist];
+  } else if (self.currentAlbum != nil) {
+    predicate = [NSPredicate predicateWithFormat:@"album == %@", self.currentAlbum];
+  }
+
+  self.fetchedResultsController.fetchRequest.predicate = predicate;
+  [self.fetchedResultsController performFetch:nil];
+
+  [self reloadData];
 }
 
 #pragma mark - NSTableViewDataSource
@@ -353,64 +330,7 @@ NSString *const PasteboardItemTypeTrackImports = @"com.illuminated.track.import"
   return NO;
 }
 
-- (void)reloadData {
-  [self.tableView reloadData];
-  [self selectRowForTrack:self.currentTrack scroll:NO];
-}
-
-#pragma mark - Private Helpers
-
-- (void)selectRowForTrack:(Track *)track scroll:(BOOL)scroll {
-  if (track == nil) {
-    [self.tableView deselectAll:nil];
-    return;
-  }
-
-  NSUInteger rowIndex = [self.fetchedResultsController.fetchedObjects
-      indexOfObjectPassingTest:^BOOL(Track *obj, NSUInteger _, BOOL *stop) {
-        BOOL matches = [obj.objectID isEqual:track.objectID];
-        if (matches) {
-          *stop = YES;
-        }
-        return matches;
-      }];
-
-  if (rowIndex == NSNotFound) {
-    [self.tableView deselectAll:nil];
-    return;
-  }
-
-  NSIndexSet *row = [NSIndexSet indexSetWithIndex:rowIndex];
-  [self.tableView selectRowIndexes:row byExtendingSelection:NO];
-
-  if (scroll) {
-    [self.tableView scrollRowToVisible:(NSInteger)rowIndex];
-  }
-}
-
-- (void)updateFetchedResultsControllerForCurrentPlaylist {
-  NSPredicate *predicate = nil;
-  if (self.currentPlaylist != nil) {
-    predicate = [NSPredicate predicateWithFormat:@"ANY playlists == %@", self.currentPlaylist];
-  } else if (self.currentAlbum != nil) {
-    predicate = [NSPredicate predicateWithFormat:@"album == %@", self.currentAlbum];
-  }
-
-  self.fetchedResultsController.fetchRequest.predicate = predicate;
-  [self.fetchedResultsController performFetch:nil];
-
-  [self reloadData];
-}
-
-- (void)tableViewClicked:(id)sender {
-  if (self.tableView.selectedRow >= 0) {
-    NSArray<Track *> *tracks = self.fetchedResultsController.fetchedObjects;
-    Track *track = tracks[self.tableView.selectedRow];
-
-    [[AppPlaybackManager sharedManager] updateQueue:tracks];
-    [[AppPlaybackManager sharedManager] playTrack:track];
-  }
-}
+#pragma mark - Public methods
 
 - (void)importURLs:(NSArray<NSURL *> *)urls {
   if (urls.count == 1) {
@@ -441,8 +361,8 @@ NSString *const PasteboardItemTypeTrackImports = @"com.illuminated.track.import"
 - (void)importURL:(NSURL *)url {
   BOOL hasSecurityScope = [url startAccessingSecurityScopedResource];
 
-  [[[TrackService findOrInsertByURL:url
-                           playlist:self.currentPlaylist] continueWithSuccessBlock:^id(BFTask<Track *> *task) {
+  BFTask *task = [TrackService findOrInsertByURL:url playlist:self.currentPlaylist];
+  [[task continueWithSuccessBlock:^id(BFTask<Track *> *task) {
     return [TrackDataStore trackWithObjectID:task.result.objectID];
   }] continueWithBlock:^id(BFTask *task) {
     if (hasSecurityScope) {
@@ -458,6 +378,38 @@ NSString *const PasteboardItemTypeTrackImports = @"com.illuminated.track.import"
   }];
 }
 
+- (void)searchQuery:(NSString *)query {
+  NSMutableArray *predicates = [NSMutableArray array];
+
+  if (query.length > 0) {
+    NSPredicate *searchPredicate = [NSPredicate
+        predicateWithFormat:@"title CONTAINS[cd] %@ OR artist.name CONTAINS[cd] %@ OR album.title CONTAINS[cd] %@",
+                                    query,
+                                    query,
+                                    query];
+    [predicates addObject:searchPredicate];
+  } else {
+    [self updateFetchedResultsControllerForCurrentPlaylist];
+    return;
+  }
+
+  if (self.currentPlaylist != nil) {
+    [predicates addObject:[NSPredicate predicateWithFormat:@"ANY playlists == %@", self.currentPlaylist]];
+  } else if (self.currentAlbum != nil) {
+    [predicates addObject:[NSPredicate predicateWithFormat:@"album == %@", self.currentAlbum]];
+  }
+
+  NSPredicate *finalPredicate = nil;
+  if (predicates.count > 0) {
+    finalPredicate = [NSCompoundPredicate andPredicateWithSubpredicates:predicates];
+  }
+
+  self.fetchedResultsController.fetchRequest.predicate = finalPredicate;
+  [self.fetchedResultsController performFetch:nil];
+
+  [self.tableView reloadData];
+}
+
 #pragma mark - Right-Click Menu
 
 - (BOOL)validateMenuItem:(NSMenuItem *)menuItem {
@@ -466,6 +418,8 @@ NSString *const PasteboardItemTypeTrackImports = @"com.illuminated.track.import"
   }
   return YES;
 }
+
+#pragma mark - IBActions
 
 - (IBAction)editMetadataAction:(id)sender {
   Track *selectedTrack = [self getClickedTrack];
@@ -491,36 +445,14 @@ NSString *const PasteboardItemTypeTrackImports = @"com.illuminated.track.import"
   }
 }
 
-- (nullable Track *)getClickedTrack {
-  NSInteger clickedRow = [self.tableView clickedRow];
-  if (clickedRow < 0) {
-    return nil;
-  }
-
-  return [self.fetchedResultsController.fetchedObjects objectAtIndex:clickedRow];
-}
-
-- (NSArray<Track *> *)getSelectedTracks {
-  NSIndexSet *selectedRows = [self.tableView selectedRowIndexes];
-  NSMutableArray<Track *> *tracks = [NSMutableArray array];
-
-  [selectedRows enumerateIndexesUsingBlock:^(NSUInteger idx, BOOL *_) {
-    Track *track = [self.fetchedResultsController.fetchedObjects objectAtIndex:idx];
-    if (track) {
-      [tracks addObject:track];
-    }
-  }];
-
-  return tracks;
-}
-
 - (IBAction)removeFromPlaylistAction:(id)sender {
   Track *track = [self getClickedTrack];
   if (!track || !self.currentPlaylist) {
     return;
   }
 
-  [[PlaylistDataStore removeFromPlaylist:self.currentPlaylist track:track] continueWithBlock:^id(BFTask<BFVoid> *task) {
+  BFTask *task = [PlaylistDataStore removeFromPlaylist:self.currentPlaylist track:track];
+  [task continueWithBlock:^id(BFTask<BFVoid> *task) {
     if (task.error) {
       NSLog(@"Error removing track from playlist: %@", task.error);
     }
@@ -549,6 +481,74 @@ NSString *const PasteboardItemTypeTrackImports = @"com.illuminated.track.import"
       return nil;
     }];
   }
+}
+
+#pragma mark - Private helpers
+
+- (void)reloadData {
+  [self.tableView reloadData];
+  [self selectRowForTrack:self.currentTrack scroll:NO];
+}
+
+- (void)selectRowForTrack:(Track *)track scroll:(BOOL)scroll {
+  if (track == nil) {
+    [self.tableView deselectAll:nil];
+    return;
+  }
+
+  NSUInteger rowIndex = [self.fetchedResultsController.fetchedObjects
+      indexOfObjectPassingTest:^BOOL(Track *obj, NSUInteger _, BOOL *stop) {
+        BOOL matches = [obj.objectID isEqual:track.objectID];
+        if (matches) {
+          *stop = YES;
+        }
+        return matches;
+      }];
+
+  if (rowIndex == NSNotFound) {
+    [self.tableView deselectAll:nil];
+    return;
+  }
+
+  NSIndexSet *row = [NSIndexSet indexSetWithIndex:rowIndex];
+  [self.tableView selectRowIndexes:row byExtendingSelection:NO];
+
+  if (scroll) {
+    [self.tableView scrollRowToVisible:(NSInteger)rowIndex];
+  }
+}
+
+- (void)tableViewClicked:(id)sender {
+  if (self.tableView.selectedRow >= 0) {
+    NSArray<Track *> *tracks = self.fetchedResultsController.fetchedObjects;
+    Track *track = tracks[self.tableView.selectedRow];
+
+    [[AppPlaybackManager sharedManager] updateQueue:tracks];
+    [[AppPlaybackManager sharedManager] playTrack:track];
+  }
+}
+
+- (nullable Track *)getClickedTrack {
+  NSInteger clickedRow = [self.tableView clickedRow];
+  if (clickedRow < 0) {
+    return nil;
+  }
+
+  return [self.fetchedResultsController.fetchedObjects objectAtIndex:clickedRow];
+}
+
+- (NSArray<Track *> *)getSelectedTracks {
+  NSIndexSet *selectedRows = [self.tableView selectedRowIndexes];
+  NSMutableArray<Track *> *tracks = [NSMutableArray array];
+
+  [selectedRows enumerateIndexesUsingBlock:^(NSUInteger idx, BOOL *_) {
+    Track *track = [self.fetchedResultsController.fetchedObjects objectAtIndex:idx];
+    if (track) {
+      [tracks addObject:track];
+    }
+  }];
+
+  return tracks;
 }
 
 @end

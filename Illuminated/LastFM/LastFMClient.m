@@ -9,6 +9,9 @@
 #import <CommonCrypto/CommonDigest.h>
 #import "BFTask.h"
 #import "LastFMSession.h"
+#import "Track.h"
+#import "Album.h"
+#import "Artist.h"
 
 @implementation LastFMClient
 
@@ -32,7 +35,7 @@
   NSString *apiSignature = [self generateAPISignatureWithParams:params secret:secret];
   params[@"api_sig"] = apiSignature;
   
-  return [[self POST:@"" parameters:params] continueWithSuccessBlock:^id _Nullable(BFTask * _Nonnull task) {
+  return [[self GET:@"" parameters:params] continueWithSuccessBlock:^id _Nullable(BFTask * _Nonnull task) {
     NSDictionary *dict = task.result;
     NSString *token = dict[@"token"];
     if (token) {
@@ -63,14 +66,13 @@
     @"method" : @"auth.getsession",
     @"api_key": apiKey,
     @"token": token,
-//    @"format": @"json"
   } mutableCopy];
   
   NSString *apiSignature = [self generateAPISignatureWithParams:params secret:secret];
   params[@"api_sig"] = apiSignature;
   params[@"format"] = @"json";
   
-  return [[self POST:@"" parameters:params] continueWithSuccessBlock:^id _Nullable(BFTask * _Nonnull task) {
+  return [[self GET:@"" parameters:params] continueWithSuccessBlock:^id _Nullable(BFTask * _Nonnull task) {
     NSDictionary *dict = task.result;
     NSDictionary *session = dict[@"session"];
     
@@ -83,6 +85,70 @@
     
     return [BFTask taskWithResult:[[LastFMSession alloc] initWithName:name sessionKey:key isSubscriber:isSubscriber]];
   }];
+}
+
+- (BFTask *)updateNowPlayingForTrack:(Track *)track withSession:(LastFMSession *)session {
+  if (!track.title || !track.artist.name) {
+    return [BFTask taskWithError:[NSError errorWithDomain:@"LastFMClient" code:-100 userInfo:@{NSLocalizedDescriptionKey : @"LastFM updateNowPlaying cannot be called with invalid track title or artist name"}]];
+  }
+  
+  NSString *apiKey = [self getAPIKey];
+  NSString *secret = [self sharedSecret];
+  if (!apiKey || !secret) {
+    return [BFTask taskWithError:[NSError errorWithDomain:@"LastFMClient" code:-100 userInfo:@{NSLocalizedDescriptionKey : @"LastFM API Keys not found"}]];
+  }
+  
+  NSString *token = session.sessionKey;
+  NSMutableDictionary *body = [@{
+    @"method" : @"track.updateNowPlaying",
+    @"api_key": apiKey,
+    @"artist": track.artist.name,
+    @"track": track.title,
+    @"sk": token
+  } mutableCopy];
+  
+  if (track.album.title) {
+    body[@"album"] = track.album.title;
+  }
+  
+  NSString *apiSignature = [self generateAPISignatureWithParams:body secret:secret];
+  body[@"api_sig"] = apiSignature;
+  body[@"format"] = @"json";
+  
+  return [self POSTFormEncoded:@"" body:body];
+}
+
+- (BFTask *)scrobbleTrack:(Track *)track startedAt:(NSDate *)startDate withSession:(LastFMSession *)session {
+  if (!track.title || !track.artist.name) {
+    return [BFTask taskWithError:[NSError errorWithDomain:@"LastFMClient" code:-100
+                                                 userInfo:@{NSLocalizedDescriptionKey: @"LastFM scrobble cannot be called with invalid track title or artist name"}]];
+  }
+  
+  NSString *apiKey = [self getAPIKey];
+  NSString *secret = [self sharedSecret];
+  if (!apiKey || !secret) {
+    return [BFTask taskWithError:[NSError errorWithDomain:@"LastFMClient" code:-100
+                                                 userInfo:@{NSLocalizedDescriptionKey: @"LastFM API Keys not found"}]];
+  }
+  
+  NSMutableDictionary *body = [@{
+    @"method"    : @"track.scrobble",
+    @"api_key"   : apiKey,
+    @"artist"    : track.artist.name,
+    @"track"     : track.title,
+    @"timestamp" : [@((NSInteger)[startDate timeIntervalSince1970]) stringValue],
+    @"sk"        : session.sessionKey
+  } mutableCopy];
+  
+  if (track.album.title) {
+    body[@"album"] = track.album.title;
+  }
+  
+  NSString *apiSignature = [self generateAPISignatureWithParams:body secret:secret];
+  body[@"api_sig"] = apiSignature;
+  body[@"format"]  = @"json";
+  
+  return [self POSTFormEncoded:@"" body:body];
 }
 
 #pragma mark - Private Helpers

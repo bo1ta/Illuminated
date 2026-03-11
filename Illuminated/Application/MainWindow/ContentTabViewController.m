@@ -13,6 +13,9 @@
 NS_ASSUME_NONNULL_BEGIN
 
 @interface ContentTabViewController ()
+
+@property(nonatomic, strong) id activeViewController;
+
 @property(nonatomic, strong) NSTabViewController *tabViewController;
 @property(nonatomic, strong) NSTabViewItem *visualizationTabItem;
 @property(nonatomic, assign) BOOL hasLoadedVisualizer;
@@ -33,6 +36,8 @@ NS_ASSUME_NONNULL_BEGIN
   [self addChildViewController:self.musicViewController];
   [self.view addSubview:self.musicViewController.view];
   self.musicViewController.view.translatesAutoresizingMaskIntoConstraints = NO;
+  
+  self.activeViewController = self.musicViewController;
 
   [NSLayoutConstraint activateConstraints:@[
     [self.musicViewController.view.topAnchor constraintEqualToAnchor:self.view.topAnchor],
@@ -43,6 +48,8 @@ NS_ASSUME_NONNULL_BEGIN
 }
 
 - (void)switchToMusic {
+  self.activeViewController = self.musicViewController;
+
   if (self.musicViewController.view.superview) return;
 
   if (self.vizualizationViewController) {
@@ -59,6 +66,7 @@ NS_ASSUME_NONNULL_BEGIN
   [self addChildViewController:self.musicViewController];
   [self.view addSubview:self.musicViewController.view];
   self.musicViewController.view.translatesAutoresizingMaskIntoConstraints = NO;
+  
 
   [NSLayoutConstraint activateConstraints:@[
     [self.musicViewController.view.topAnchor constraintEqualToAnchor:self.view.topAnchor],
@@ -69,6 +77,8 @@ NS_ASSUME_NONNULL_BEGIN
 }
 
 - (void)switchToRadio {
+  self.activeViewController = self.radioViewController;
+
   if (self.radioViewController.view.superview) return;
 
   [self.musicViewController.view removeFromSuperview];
@@ -104,6 +114,14 @@ NS_ASSUME_NONNULL_BEGIN
     [self.vizualizationViewController.view.leadingAnchor constraintEqualToAnchor:self.view.leadingAnchor],
     [self.vizualizationViewController.view.trailingAnchor constraintEqualToAnchor:self.view.trailingAnchor]
   ]];
+}
+
+- (void)searchQuery:(NSString *)query {
+  if (self.activeViewController == self.musicViewController) {
+    [self.musicViewController searchQuery:query];
+  } else if (self.activeViewController == self.radioViewController) {
+    
+  }
 }
 
 @end

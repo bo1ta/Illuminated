@@ -21,6 +21,8 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)importURL:(NSURL *)url;
 - (void)importURLs:(NSArray<NSURL *> *)urls;
 
+- (void)searchQuery:(NSString *)query;
+
 @end
 
 NS_ASSUME_NONNULL_END

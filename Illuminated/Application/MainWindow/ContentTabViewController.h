@@ -21,6 +21,8 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)switchToRadio;
 - (void)switchToVizualizer;
 
+- (void)searchQuery:(NSString *)query;
+
 @end
 
 NS_ASSUME_NONNULL_END

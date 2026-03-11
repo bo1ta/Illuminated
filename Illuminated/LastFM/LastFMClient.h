@@ -10,6 +10,7 @@
 
 @class BFTask<__covariant ResultType>;
 @class LastFMSession;
+@class Track;
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -20,6 +21,10 @@ NS_ASSUME_NONNULL_BEGIN
 - (nullable NSURL *)getAuthorizationURLWithToken:(NSString *)token;
 
 - (BFTask<LastFMSession *> *)fetchSessionWithToken:(NSString *)token;
+
+- (BFTask *)updateNowPlayingForTrack:(Track *)track withSession:(LastFMSession *)session;
+
+- (BFTask *)scrobbleTrack:(Track *)track startedAt:(NSDate *)startDate withSession:(LastFMSession *)session;
 
 @end
 

@@ -175,6 +175,10 @@ static NSTimeInterval const kScrubberResetDelay = 0.1;
   self.trackTitle.stringValue = manager.currentTitle ?: @"";
   self.artistName.stringValue = manager.currentItem.subtitle ?: @"";
   self.trackArtwork.image = manager.currentItem.artworkImage;
+  
+  if (manager.currentTrack.bpm) {
+    self.bpmLabel.floatValue = manager.currentTrack.bpm;
+  }
 }
 
 - (void)updatePlayPauseButton {

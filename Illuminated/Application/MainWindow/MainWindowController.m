@@ -13,12 +13,8 @@
 #import "PlaylistsSidebarViewController.h"
 #import "SidebarViewController.h"
 
-NSString *const ToolbarSearchDidChangeNotification = @"ToolbarSearchDidChangeNotification";
-NSString *const ToolbarSearchUserInfo = @"ToolbarSearch";
-
 @interface MainWindowController ()<NSToolbarDelegate, NSSearchFieldDelegate>
 
-@property(strong) MusicViewController *musicViewController;
 @property(strong) PlayerBarViewController *playerBarViewController;
 @property(strong) NSSplitViewController *splitViewController;
 @property(nonatomic, strong) NSSearchField *searchField;
@@ -166,9 +162,7 @@ NSString *const ToolbarSearchUserInfo = @"ToolbarSearch";
 
 - (void)searchFieldDidChange:(NSSearchField *)sender {
   NSString *searchText = sender.stringValue;
-  [[NSNotificationCenter defaultCenter] postNotificationName:ToolbarSearchDidChangeNotification
-                                                      object:nil
-                                                    userInfo:@{ToolbarSearchUserInfo : searchText}];
+  [self.contentTabViewController searchQuery:searchText];
 }
 
 #pragma mark - Open URL
