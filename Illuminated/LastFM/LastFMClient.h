@@ -5,8 +5,8 @@
 //  Created by Alexandru Solomon on 10.03.2026.
 //
 
-#import <Cocoa/Cocoa.h>
 #import "BaseAPIClient.h"
+#import <Cocoa/Cocoa.h>
 
 @class BFTask<__covariant ResultType>;
 @class LastFMSession;

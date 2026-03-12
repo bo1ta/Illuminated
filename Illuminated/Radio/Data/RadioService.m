@@ -6,8 +6,8 @@
 //
 
 #import "RadioService.h"
-#import "RadioBrowserClient.h"
 #import "BFTask.h"
+#import "RadioBrowserClient.h"
 #import "RadioStationDataStore.h"
 
 @implementation RadioService

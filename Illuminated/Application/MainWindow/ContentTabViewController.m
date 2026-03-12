@@ -36,7 +36,7 @@ NS_ASSUME_NONNULL_BEGIN
   [self addChildViewController:self.musicViewController];
   [self.view addSubview:self.musicViewController.view];
   self.musicViewController.view.translatesAutoresizingMaskIntoConstraints = NO;
-  
+
   self.activeViewController = self.musicViewController;
 
   [NSLayoutConstraint activateConstraints:@[
@@ -66,7 +66,6 @@ NS_ASSUME_NONNULL_BEGIN
   [self addChildViewController:self.musicViewController];
   [self.view addSubview:self.musicViewController.view];
   self.musicViewController.view.translatesAutoresizingMaskIntoConstraints = NO;
-  
 
   [NSLayoutConstraint activateConstraints:@[
     [self.musicViewController.view.topAnchor constraintEqualToAnchor:self.view.topAnchor],
@@ -120,7 +119,6 @@ NS_ASSUME_NONNULL_BEGIN
   if (self.activeViewController == self.musicViewController) {
     [self.musicViewController searchQuery:query];
   } else if (self.activeViewController == self.radioViewController) {
-    
   }
 }
 

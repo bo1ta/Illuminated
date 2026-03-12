@@ -32,15 +32,14 @@
 + (BFTask *)radioStationsFromAPIDictionaries:(NSArray<APIDictionary> *)dictionaries {
   return [[CoreDataStore writer] performWrite:^id(NSManagedObjectContext *context) {
     NSMutableArray<RadioStation *> *results = [NSMutableArray array];
-    
+
     for (NSDictionary *dict in dictionaries) {
       if (!dict[@"url"]) {
         continue;
       }
-      
+
       NSPredicate *predicate = [self predicateForDictionary:dict];
-      RadioStation *radioStation = [context findOrInsertObjectForEntityName:EntityNameRadioStation
-                                                                  predicate:predicate];
+      RadioStation *radioStation = [context findOrInsertObjectForEntityName:EntityNameRadioStation predicate:predicate];
       radioStation.url = dict[@"url"];
       radioStation.name = dict[@"name"];
       radioStation.urlResolved = dict[@"url_resolved"];
@@ -50,15 +49,15 @@
       radioStation.favicon = dict[@"favicon"];
       radioStation.homepage = dict[@"homepage"];
       radioStation.serverIDFallback = dict[@"stationuuid"];
-      
+
       if ([dict[@"bitrate"] isKindOfClass:[NSNumber class]]) {
         radioStation.bitrate = dict[@"bitrate"];
       }
-      
+
       if ([dict[@"clickcount"] isKindOfClass:[NSNumber class]]) {
         radioStation.clickCount = dict[@"clickCount"];
       }
-      
+
       if ([dict[@"tags"] isKindOfClass:[NSString class]] && [dict[@"tags"] length] > 0) {
         NSArray<NSString *> *tags = [dict[@"tags"] componentsSeparatedByString:@","];
         for (NSString *tagName in tags) {
@@ -72,23 +71,23 @@
           break;
         }
       }
-      
+
       NSString *stationIDString = dict[@"stationuuid"];
       NSUUID *stationID = [[NSUUID alloc] initWithUUIDString:stationIDString];
       if (stationID) {
         radioStation.stationID = stationID;
       }
-      
+
       NSString *serverIDString = [dict[@"serveruuid"] copy];
       if ([serverIDString isKindOfClass:[NSNull class]]) {
         radioStation.serverID = [NSUUID UUID];
       } else {
         radioStation.serverID = [[NSUUID alloc] initWithUUIDString:serverIDString];
       }
-      
+
       [results addObject:radioStation];
     }
-    
+
     return results;
   }];
 }
@@ -104,12 +103,12 @@
   if (stationID) {
     return [NSPredicate predicateWithFormat:@"stationID == %@", stationID];
   }
-  
+
   NSString *stationURLString = dictionary[@"url"];
   if (stationURLString) {
     return [NSPredicate predicateWithFormat:@"url == %@", stationURLString];
   }
-  
+
   return nil;
 }
 
@@ -121,11 +120,11 @@
                                                               predicate:[NSPredicate predicateWithFormat:@"name == nil"]
                                                         sortDescriptors:nil];
     NSLog(@"Found %i tags", (unsigned int)tags.count);
-    
+
     for (RadioStationTag *tag in tags) {
       [context deleteObject:tag];
     }
-    
+
     return nil;
   }];
 }

@@ -9,7 +9,7 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface LastFMSession : NSObject <NSSecureCoding>
+@interface LastFMSession : NSObject<NSSecureCoding>
 
 @property(nonatomic, strong) NSString *name;
 @property(nonatomic, strong) NSString *sessionKey;

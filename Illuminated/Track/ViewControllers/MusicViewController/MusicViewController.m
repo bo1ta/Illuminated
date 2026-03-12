@@ -95,8 +95,6 @@ NSString *const PasteboardItemTypeTrackImports = @"com.illuminated.track.import"
                                              object:nil];
 }
 
-
-
 - (void)selectCurrentTrack {
   _currentTrack = [[AppPlaybackManager sharedManager] currentTrack];
 
@@ -384,9 +382,9 @@ NSString *const PasteboardItemTypeTrackImports = @"com.illuminated.track.import"
   if (query.length > 0) {
     NSPredicate *searchPredicate = [NSPredicate
         predicateWithFormat:@"title CONTAINS[cd] %@ OR artist.name CONTAINS[cd] %@ OR album.title CONTAINS[cd] %@",
-                                    query,
-                                    query,
-                                    query];
+                            query,
+                            query,
+                            query];
     [predicates addObject:searchPredicate];
   } else {
     [self updateFetchedResultsControllerForCurrentPlaylist];

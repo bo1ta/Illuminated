@@ -14,8 +14,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface ScrobbleTracker : NSObject
 
-- (instancetype)initWithLastFMClient:(LastFMClient *)client
-                             session:(LastFMSession *)session;
+- (instancetype)initWithLastFMClient:(LastFMClient *)client session:(LastFMSession *)session;
 
 - (void)start;
 

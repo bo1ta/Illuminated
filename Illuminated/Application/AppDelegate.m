@@ -6,16 +6,16 @@
 //
 
 #import "AppDelegate.h"
+#import "BFTask.h"
 #import "CoreDataStore.h"
 #import "FileExtensionHelper.h"
+#import "LFMAuthManager.h"
+#import "LastFMClient.h"
+#import "LastFMSession.h"
 #import "MainWindowController.h"
+#import "ScrobbleTracker.h"
 #import "Track.h"
 #import "TrackPlaybackController.h"
-#import "BFTask.h"
-#import "LastFMClient.h"
-#import "LFMAuthManager.h"
-#import "LastFMSession.h"
-#import "ScrobbleTracker.h"
 
 @interface AppDelegate ()
 
@@ -42,9 +42,9 @@
     [self.mainWindowController openAudioFileURL:self.pendingFileURL];
     self.pendingFileURL = nil;
   }
-  
+
   self.lastFMClient = [[LastFMClient alloc] init];
-  
+
   LastFMSession *session = LFMAuthManager.sharedManager.currentSession;
   if (session) {
     [self startTrackingScrobblesForSession:session];
@@ -100,13 +100,13 @@
   __weak AppDelegate *weakSelf = self;
   [panel beginSheetModalForWindow:self.mainWindowController.window
                 completionHandler:^(NSModalResponse result) {
-    NSURL *selectedFileURL = panel.URLs.firstObject;
-    
-    if (weakSelf && result == NSModalResponseOK && self.mainWindowController && selectedFileURL) {
-      [weakSelf.mainWindowController openAudioFileURL:selectedFileURL];
-      [[NSDocumentController sharedDocumentController] noteNewRecentDocumentURL:selectedFileURL];
-    }
-  }];
+                  NSURL *selectedFileURL = panel.URLs.firstObject;
+
+                  if (weakSelf && result == NSModalResponseOK && self.mainWindowController && selectedFileURL) {
+                    [weakSelf.mainWindowController openAudioFileURL:selectedFileURL];
+                    [[NSDocumentController sharedDocumentController] noteNewRecentDocumentURL:selectedFileURL];
+                  }
+                }];
 }
 
 - (IBAction)open:(id)sender {
@@ -140,8 +140,8 @@
     NSLog(@"LastFM already logged in!");
     return;
   }
-  
-  [[[[LastFMClient alloc] init] fetchAuthToken] continueOnMainThreadWithBlock:^id _Nullable(BFTask * _Nonnull task) {
+
+  [[[[LastFMClient alloc] init] fetchAuthToken] continueOnMainThreadWithBlock:^id _Nullable(BFTask *_Nonnull task) {
     if (task.result) {
       [self openAuthorizationPageWithToken:task.result];
     } else {
@@ -156,37 +156,37 @@
 - (void)openAuthorizationPageWithToken:(NSString *)token {
   NSURL *authURL = [self.lastFMClient getAuthorizationURLWithToken:token];
 
-    [[NSWorkspace sharedWorkspace] openURL:authURL];
-    
+  [[NSWorkspace sharedWorkspace] openURL:authURL];
+
   [self showAuthorizationInstructionsWithToken:token];
 }
 
 - (void)showAuthorizationInstructionsWithToken:(NSString *)token {
-    NSAlert *alert = [[NSAlert alloc] init];
-    alert.messageText = @"Connect to Last.fm";
-    alert.informativeText = @"Your browser will open to authorize this app.\n\n"
-                             "1. Log in to Last.fm if needed\n"
-                             "2. Click 'Yes, allow access'\n"
-                             "3. Return to this app and click 'Continue'";
-    
-    [alert addButtonWithTitle:@"Continue"];
-    [alert addButtonWithTitle:@"Cancel"];
-    
-    NSModalResponse response = [alert runModal];
-    
+  NSAlert *alert = [[NSAlert alloc] init];
+  alert.messageText = @"Connect to Last.fm";
+  alert.informativeText = @"Your browser will open to authorize this app.\n\n"
+                           "1. Log in to Last.fm if needed\n"
+                           "2. Click 'Yes, allow access'\n"
+                           "3. Return to this app and click 'Continue'";
+
+  [alert addButtonWithTitle:@"Continue"];
+  [alert addButtonWithTitle:@"Cancel"];
+
+  NSModalResponse response = [alert runModal];
+
   if (response == NSAlertFirstButtonReturn) {
     BFTask *fetchSessionTask = [self.lastFMClient fetchSessionWithToken:token];
     [fetchSessionTask continueWithBlock:^id(BFTask<LastFMSession *> *task) {
       if (task.result) {
         LastFMSession *session = task.result;
-        
+
         [[LFMAuthManager sharedManager] setCurrentSession:session];
-        
+
         [self startTrackingScrobblesForSession:session];
       } else {
         NSLog(@"Error fetching LastFM session with token. Error: %@", task.error.localizedDescription);
       }
-      
+
       return nil;
     }];
   }

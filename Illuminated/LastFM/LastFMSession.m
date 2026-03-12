@@ -29,7 +29,7 @@
   return self;
 }
 
-- (void)encodeWithCoder:(nonnull NSCoder *)coder { 
+- (void)encodeWithCoder:(nonnull NSCoder *)coder {
   [coder encodeObject:self.name forKey:@"name"];
   [coder encodeObject:self.sessionKey forKey:@"sessionKey"];
   [coder encodeBool:self.isSubscriber.boolValue forKey:@"isSubscriber"];
