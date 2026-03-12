@@ -177,7 +177,7 @@ static NSTimeInterval const kScrubberResetDelay = 0.1;
   self.trackArtwork.image = manager.currentItem.artworkImage;
 
   if (manager.currentTrack.bpm) {
-    self.bpmLabel.floatValue = manager.currentTrack.bpm;
+    self.bpmLabel.stringValue = manager.currentTrack.roundedBPM.stringValue;
   }
 }
 

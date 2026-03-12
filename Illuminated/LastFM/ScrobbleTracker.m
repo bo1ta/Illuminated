@@ -19,7 +19,10 @@
 @property(nonatomic, strong) LastFMClient *lastFMClient;
 @property(nonatomic, strong) LastFMSession *session;
 @property(nonatomic, strong) NSTimer *pollingTimer;
-@property(nonatomic, strong) Track *lastScrobbledTrack;
+
+@property(nonatomic, strong, nullable) Track *lastScrobbledTrack;
+@property(nonatomic, strong, nullable) NSUUID *currentlyTrackingID;
+@property(nonatomic, strong, nullable) NSDate *trackingStartedAt;
 
 @end
 
@@ -48,20 +51,35 @@
   NSTimeInterval duration = AppPlaybackManager.sharedManager.duration;
   BOOL isPlaying = AppPlaybackManager.sharedManager.isPlaying;
 
-  if (!currentTrack || !isPlaying) return;
+  if (!currentTrack || !isPlaying) {
+    self.trackingStartedAt = nil;
+    self.currentlyTrackingID = nil;
+    return;
+  }
+  
+  if (duration < 30.0) {
+    return;
+  }
+  
+  if ([self.lastScrobbledTrack.uniqueID isEqual:currentTrack.uniqueID]) {
+    return;
+  };
+  
+  if (![self.currentlyTrackingID isEqual:currentTrack.uniqueID]) {
+    self.currentlyTrackingID = currentTrack.uniqueID;
+    self.trackingStartedAt = [NSDate date];
+  }
 
-  if ([self.lastScrobbledTrack.uniqueID isEqual:currentTrack.uniqueID]) return;
-
+  NSTimeInterval listenedSeconds = [[NSDate date] timeIntervalSinceDate:self.trackingStartedAt];
   NSTimeInterval threshold = MIN(duration * 0.5, 240.0);
 
-  if (duration < 30.0) return;
-
-  if (currentTime >= threshold) {
+  if (listenedSeconds >= threshold) {
     [self.lastFMClient scrobbleTrack:currentTrack
                            startedAt:[NSDate dateWithTimeIntervalSinceNow:-currentTime]
                          withSession:self.session];
-
     self.lastScrobbledTrack = currentTrack;
+    self.currentlyTrackingID = nil;
+    self.trackingStartedAt = nil;
   }
 }
 
