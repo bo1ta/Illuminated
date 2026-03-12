@@ -110,5 +110,14 @@
 			</array>
 		</dict>
 	</array>
+	<key>LASTFM_API_KEY</key>
+	<string>$(LASTFM_API_KEY)</string>
+	<key>LASTFM_SECRET_KEY</key>
+	<string>$(LASTFM_SECRET_KEY)</string>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoadsForMedia</key>
+		<true/>
+	</dict>
 </dict>
 </plist>

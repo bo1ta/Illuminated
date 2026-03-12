@@ -13,12 +13,8 @@
 #import "PlaylistsSidebarViewController.h"
 #import "SidebarViewController.h"
 
-NSString *const ToolbarSearchDidChangeNotification = @"ToolbarSearchDidChangeNotification";
-NSString *const ToolbarSearchUserInfo = @"ToolbarSearch";
-
 @interface MainWindowController ()<NSToolbarDelegate, NSSearchFieldDelegate>
 
-@property(strong) MusicViewController *musicViewController;
 @property(strong) PlayerBarViewController *playerBarViewController;
 @property(strong) NSSplitViewController *splitViewController;
 @property(nonatomic, strong) NSSearchField *searchField;
@@ -124,10 +120,13 @@ NSString *const ToolbarSearchUserInfo = @"ToolbarSearch";
     NSToolbarItem *item = [[NSToolbarItem alloc] initWithItemIdentifier:itemIdentifier];
 
     self.tabSegmentedControl = [[NSSegmentedControl alloc] initWithFrame:NSMakeRect(0, 0, 220, 24)];
-    [self.tabSegmentedControl setSegmentCount:2];
-    [self.tabSegmentedControl setLabel:@"Music" forSegment:0];
-    [self.tabSegmentedControl setLabel:@"Visualizer" forSegment:1];
+
+    [self.tabSegmentedControl setSegmentCount:3];
+    [self.tabSegmentedControl setLabel:@"Library" forSegment:0];
+    [self.tabSegmentedControl setLabel:@"Radio" forSegment:1];
+    [self.tabSegmentedControl setLabel:@"Visualizer" forSegment:2];
     [self.tabSegmentedControl setSelectedSegment:0]; // start on Music
+
     self.tabSegmentedControl.target = self;
     self.tabSegmentedControl.action = @selector(tabSegmentChanged:);
 
@@ -148,6 +147,9 @@ NSString *const ToolbarSearchUserInfo = @"ToolbarSearch";
   if (index == 0) {
     [self.searchField setHidden:NO];
     [self.contentTabViewController switchToMusic];
+  } else if (index == 1) {
+    [self.searchField setHidden:YES];
+    [self.contentTabViewController switchToRadio];
   } else {
     [self.searchField setHidden:YES];
     [self.contentTabViewController switchToVizualizer];
@@ -160,9 +162,7 @@ NSString *const ToolbarSearchUserInfo = @"ToolbarSearch";
 
 - (void)searchFieldDidChange:(NSSearchField *)sender {
   NSString *searchText = sender.stringValue;
-  [[NSNotificationCenter defaultCenter] postNotificationName:ToolbarSearchDidChangeNotification
-                                                      object:nil
-                                                    userInfo:@{ToolbarSearchUserInfo : searchText}];
+  [self.contentTabViewController searchQuery:searchText];
 }
 
 #pragma mark - Open URL

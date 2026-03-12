@@ -7,11 +7,15 @@
 
 #import "ContentTabViewController.h"
 #import "MusicViewController.h"
+#import "RadioViewController.h"
 #import "VizualizationViewController.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
 @interface ContentTabViewController ()
+
+@property(nonatomic, strong) id activeViewController;
+
 @property(nonatomic, strong) NSTabViewController *tabViewController;
 @property(nonatomic, strong) NSTabViewItem *visualizationTabItem;
 @property(nonatomic, assign) BOOL hasLoadedVisualizer;
@@ -33,6 +37,8 @@ NS_ASSUME_NONNULL_BEGIN
   [self.view addSubview:self.musicViewController.view];
   self.musicViewController.view.translatesAutoresizingMaskIntoConstraints = NO;
 
+  self.activeViewController = self.musicViewController;
+
   [NSLayoutConstraint activateConstraints:@[
     [self.musicViewController.view.topAnchor constraintEqualToAnchor:self.view.topAnchor],
     [self.musicViewController.view.bottomAnchor constraintEqualToAnchor:self.view.bottomAnchor],
@@ -42,12 +48,19 @@ NS_ASSUME_NONNULL_BEGIN
 }
 
 - (void)switchToMusic {
+  self.activeViewController = self.musicViewController;
+
   if (self.musicViewController.view.superview) return;
 
   if (self.vizualizationViewController) {
     [self.vizualizationViewController.view removeFromSuperview];
     [self.vizualizationViewController removeFromParentViewController];
     self.vizualizationViewController = nil;
+  }
+
+  if (self.radioViewController) {
+    [self.radioViewController.view removeFromSuperview];
+    [self.radioViewController removeFromParentViewController];
   }
 
   [self addChildViewController:self.musicViewController];
@@ -59,6 +72,27 @@ NS_ASSUME_NONNULL_BEGIN
     [self.musicViewController.view.bottomAnchor constraintEqualToAnchor:self.view.bottomAnchor],
     [self.musicViewController.view.leadingAnchor constraintEqualToAnchor:self.view.leadingAnchor],
     [self.musicViewController.view.trailingAnchor constraintEqualToAnchor:self.view.trailingAnchor]
+  ]];
+}
+
+- (void)switchToRadio {
+  self.activeViewController = self.radioViewController;
+
+  if (self.radioViewController.view.superview) return;
+
+  [self.musicViewController.view removeFromSuperview];
+  [self.musicViewController removeFromParentViewController];
+
+  self.radioViewController = [[RadioViewController alloc] initWithNibName:@"RadioViewController" bundle:nil];
+  [self addChildViewController:self.radioViewController];
+  [self.view addSubview:self.radioViewController.view];
+  self.radioViewController.view.translatesAutoresizingMaskIntoConstraints = NO;
+
+  [NSLayoutConstraint activateConstraints:@[
+    [self.radioViewController.view.topAnchor constraintEqualToAnchor:self.view.topAnchor],
+    [self.radioViewController.view.bottomAnchor constraintEqualToAnchor:self.view.bottomAnchor],
+    [self.radioViewController.view.leadingAnchor constraintEqualToAnchor:self.view.leadingAnchor],
+    [self.radioViewController.view.trailingAnchor constraintEqualToAnchor:self.view.trailingAnchor]
   ]];
 }
 
@@ -79,6 +113,13 @@ NS_ASSUME_NONNULL_BEGIN
     [self.vizualizationViewController.view.leadingAnchor constraintEqualToAnchor:self.view.leadingAnchor],
     [self.vizualizationViewController.view.trailingAnchor constraintEqualToAnchor:self.view.trailingAnchor]
   ]];
+}
+
+- (void)searchQuery:(NSString *)query {
+  if (self.activeViewController == self.musicViewController) {
+    [self.musicViewController searchQuery:query];
+  } else if (self.activeViewController == self.radioViewController) {
+  }
 }
 
 @end

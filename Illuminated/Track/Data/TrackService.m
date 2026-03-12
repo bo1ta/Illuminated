@@ -1,0 +1,307 @@
+//
+//  TrackService.m
+//  Illuminated
+//
+//  Created by Alexandru Solomon on 20.01.2026.
+//
+
+#import "TrackService.h"
+#import "Album.h"
+#import "AlbumDataStore.h"
+#import "Artist.h"
+#import "ArtistDataStore.h"
+#import "ArtworkManager.h"
+#import "BFTask.h"
+#import "BPMAnalyzer.h"
+#import "BookmarkResolver.h"
+#import "CoreDataStore.h"
+#import "MetadataExtractor.h"
+#import "Track.h"
+#import "TrackDataStore.h"
+#import "WaveformCacheManager.h"
+#import "WaveformGenerator.h"
+#import <AVFoundation/AVFoundation.h>
+
+@implementation TrackService
+
++ (BFTask<Track *> *)findOrInsertByURL:(nonnull NSURL *)url playlist:(nullable Playlist *)playlist {
+  return [[TrackDataStore trackWithURL:url] continueWithBlock:^id(BFTask<Track *> *task) {
+    Track *track = task.result;
+    if (track) {
+      return task;
+    }
+    return [self importAudioFileAtURL:url playlist:playlist];
+  }];
+}
+
++ (BFTask<Track *> *)findOrInsertByURL:(NSURL *)url bookmarkData:(NSData *)bookmarkData {
+  return [[TrackDataStore trackWithURL:url] continueWithBlock:^id(BFTask<Track *> *task) {
+    Track *track = task.result;
+    if (track) {
+      if (![track.urlBookmark isEqualToData:bookmarkData]) {
+        return [TrackDataStore updateURLBookmarkForTrackWithObjectID:track.objectID urlBookmark:bookmarkData];
+      }
+      return task;
+    }
+    return [self importAudioFileAtURL:url bookmarkData:bookmarkData];
+  }];
+}
+
++ (BFTask<Track *> *)analyzeBPMForTrackURL:(NSURL *)trackURL {
+  AVURLAsset *asset = [AVURLAsset URLAssetWithURL:trackURL options:nil];
+  return [[[[self loadAudioTrackFromAsset:asset] continueWithSuccessBlock:^id(BFTask<AVAssetTrack *> *task) {
+    return [BPMAnalyzer analyzeBPMForAssetTrack:task.result];
+  }] continueWithSuccessBlock:^id(BFTask<NSNumber *> *task) {
+    return [TrackDataStore updateBPMForTrackWithFilePath:trackURL.path bpm:task.result.floatValue];
+  }] continueWithBlock:^id(BFTask *task) {
+    if (task.error) {
+      NSLog(@"Error analyzing bpm for track: %@", task.error.localizedDescription);
+    }
+
+    return task;
+  }];
+}
+
++ (BFTask *)importAudioFilesAtURLs:(NSArray<NSURL *> *)filesURLs withPlaylist:(nullable Playlist *)playlist {
+  return [[self filterExistingURLs:filesURLs] continueWithSuccessBlock:^id(BFTask *task) {
+    NSArray<NSURL *> *urls = task.result;
+
+    NSMutableArray<BFTask *> *tasks = [NSMutableArray array];
+    for (NSURL *url in urls) {
+      NSError *error = nil;
+      NSData *bookmark = [BookmarkResolver bookmarkForURL:url error:&error];
+      if (error) {
+        [tasks addObject:[BFTask taskWithError:error]];
+        continue;
+        ;
+      }
+
+      NSDictionary *metadata = [MetadataExtractor extractMetadataFromFileAtURL:url];
+      [tasks addObject:[self saveTrackWithMetadata:metadata bookmark:bookmark fileURL:url playlist:playlist]];
+    }
+
+    return [BFTask taskForCompletionOfAllTasks:tasks];
+  }];
+}
+
++ (BFTask<NSArray<NSURL *> *> *)filterExistingURLs:(NSArray<NSURL *> *)urls {
+  return [[CoreDataStore writer] performWrite:^id(NSManagedObjectContext *context) {
+    NSMutableArray<NSURL *> *nonExisting = [NSMutableArray array];
+
+    for (NSURL *url in urls) {
+      BOOL exists = [context objectExistsForEntityName:EntityNameTrack
+                                             predicate:[NSPredicate predicateWithFormat:@"fileURL == %@", [url path]]];
+      if (!exists) {
+        [nonExisting addObject:url];
+      }
+    }
+
+    return [nonExisting copy];
+  }];
+}
+
++ (BFTask<Track *> *)importAudioFileAtURL:(NSURL *)fileURL playlist:(nullable Playlist *)playlist {
+  NSError *error = nil;
+  NSData *bookmark = [BookmarkResolver bookmarkForURL:fileURL error:&error];
+  if (error) {
+    return [BFTask taskWithError:error];
+  }
+
+  NSDictionary *metadata = [MetadataExtractor extractMetadataFromFileAtURL:fileURL];
+  return [[self saveTrackWithMetadata:metadata bookmark:bookmark fileURL:fileURL
+                             playlist:playlist] continueOnMainThreadWithBlock:^id(BFTask<Track *> *task) {
+    if (task.result) {
+      return [[CoreDataStore reader] fetchObjectWithID:task.result.objectID];
+    }
+    return task;
+  }];
+}
+
++ (BFTask *)importAudioFileAtURL:(NSURL *)fileURL bookmarkData:(NSData *)bookmarkData {
+  NSDictionary *metadata = [MetadataExtractor extractMetadataFromFileAtURL:fileURL];
+  return [[self saveTrackWithMetadata:metadata bookmark:bookmarkData fileURL:fileURL
+                             playlist:nil] continueOnMainThreadWithBlock:^id(BFTask<Track *> *task) {
+    if (task.result) {
+      return [[CoreDataStore reader] fetchObjectWithID:task.result.objectID];
+    }
+    return task;
+  }];
+}
+
+#pragma mark - Core Data Saving
+
++ (BFTask<Track *> *)saveTrackWithMetadata:(NSDictionary *)metadata
+                                  bookmark:(NSData *)bookmark
+                                   fileURL:(NSURL *)fileURL
+                                  playlist:(nullable Playlist *)playlist {
+
+  return [[CoreDataStore writer] performWrite:^id(NSManagedObjectContext *context) {
+    Artist *artist = nil;
+    NSString *artistName = metadata[@"artist"];
+    if (artistName) {
+      artist = [ArtistDataStore findOrCreateArtistWithName:artistName usingContext:context];
+    }
+
+    Album *album = nil;
+    NSString *albumName = metadata[@"album"];
+    if (albumName) {
+      album = [AlbumDataStore findOrCreateAlbumWithName:albumName artist:artist inContext:context];
+      if (!album.artworkPath) {
+        album.artworkPath = [ArtworkManager saveArtwork:metadata[@"artwork"] forUUID:album.uniqueID];
+      }
+    }
+
+    Track *track = [TrackDataStore insertTrackWithTitle:metadata[@"title"] ?: [fileURL lastPathComponent]
+                                                fileURL:[fileURL path]
+                                            urlBookmark:bookmark
+                                            trackNumber:[metadata[@"trackNumber"] intValue]
+                                               fileType:[fileURL pathExtension]
+                                                bitrate:[metadata[@"bitrate"] intValue]
+                                             sampleRate:[metadata[@"sampleRate"] intValue]
+                                               duration:[metadata[@"duration"] doubleValue]
+                                                    bpm:[metadata[@"bpm"] floatValue]
+                                                 artist:artist
+                                                  album:album
+                                              inContext:context];
+    if (playlist) {
+      [track addPlaylistsObject:playlist];
+    }
+
+    return track;
+  }];
+}
+
++ (BFTask<NSImage *> *)getWaveformForTrack:(Track *)track resolvedURL:(NSURL *)resolvedURL size:(CGSize)size {
+  if (track.waveformPath) {
+    NSImage *cachedImage = [WaveformCacheManager loadWaveformForPath:track.waveformPath];
+    if (cachedImage) {
+      return [BFTask taskWithResult:cachedImage];
+    }
+  }
+  return [[WaveformGenerator generateWaveformForTrack:track url:resolvedURL
+                                                 size:size] continueWithSuccessBlock:^id(BFTask<NSImage *> *task) {
+    NSImage *image = task.result;
+    NSString *path = [WaveformCacheManager saveWaveformImage:image forTrackUUID:track.uniqueID];
+
+    if (path) {
+      [TrackDataStore updateWaveformPathForTrackWithObjectID:track.objectID waveformPath:path];
+    }
+
+    return [BFTask taskWithResult:image];
+  }];
+}
+
++ (NSURL *)resolveTrackURL:(Track *)track {
+  return [self resolveTrackURL:track securityScopeURL:nil];
+}
+
++ (NSURL *)resolveTrackURL:(Track *)track securityScopeURL:(NSURL *_Nullable *_Nullable)securityScopeURL {
+  if (!track.urlBookmark) {
+    return nil;
+  }
+
+  NSError *error = nil;
+  NSURL *resolvedURL = [BookmarkResolver URLForBookmarkData:track.urlBookmark error:&error];
+  if (error) {
+    NSLog(@"PlaybackManager: Failed to resolve bookmark for track. Error: %@", error.localizedDescription);
+    return nil;
+  } else {
+    [resolvedURL startAccessingSecurityScopedResource];
+    if (securityScopeURL) {
+      *securityScopeURL = resolvedURL;
+    }
+
+    NSNumber *isDirectory = nil;
+    [resolvedURL getResourceValue:&isDirectory forKey:NSURLIsDirectoryKey error:nil];
+
+    if (isDirectory.boolValue) {
+      return [NSURL fileURLWithPath:track.fileURL];
+    } else {
+      return resolvedURL;
+    }
+  }
+}
+
++ (BFTask *)deleteTrack:(Track *)track {
+  if (track.waveformPath) {
+    [WaveformCacheManager removeWaveformForPath:track.waveformPath];
+  }
+  return [TrackDataStore deleteTrackWithObjectID:track.objectID];
+}
+
++ (BFTask *)deleteTracks:(NSArray<Track *> *)tracks {
+  NSMutableArray<BFTask *> *tasks = [NSMutableArray array];
+
+  for (Track *track in tracks) {
+    [tasks addObject:[self deleteTrack:track]];
+  }
+
+  return [BFTask taskForCompletionOfAllTasks:tasks];
+}
+
++ (NSImage *)loadArtworkForTrack:(Track *)track withPlaceholderSize:(CGSize)size {
+  if (track.album.artworkPath) {
+    return [ArtworkManager loadArtworkAtPath:track.album.artworkPath];
+  } else {
+    return [ArtworkManager placeholderImageWithSize:size];
+  }
+}
+
++ (BFTask *)updateTrack:(Track *)track
+              withTitle:(NSString *)title
+             artistName:(NSString *)artistName
+             albumTitle:(NSString *)albumTitle
+             albumImage:(nullable NSImage *)albumImage
+                  genre:(NSString *)genre
+                   year:(uint16_t)year {
+  NSString *artworkPath = track.album.artworkPath;
+  if (albumImage && track.album) {
+    artworkPath = [ArtworkManager saveArtworkFromImage:albumImage forUUID:track.album.uniqueID];
+  }
+
+  return [[TrackDataStore updateTrackWithObjectID:track.objectID
+                                        withTitle:title
+                                       artistName:artistName
+                                       albumTitle:albumTitle
+                                 albumArtworkPath:artworkPath
+                                            genre:genre
+                                             year:year] continueWithSuccessBlock:^id(BFTask *_) {
+    NSURL *url = [BookmarkResolver URLForBookmarkData:track.urlBookmark error:nil];
+    if (url) {
+      [url startAccessingSecurityScopedResource];
+      [MetadataExtractor updateMetadataAtURL:url
+                                    metadata:@{
+                                      @"title" : title,
+                                      @"artist" : artistName,
+                                      @"album" : albumTitle,
+                                      @"genre" : genre,
+                                      @"year" : [NSNumber numberWithInt:year],
+                                    }];
+      [url stopAccessingSecurityScopedResource];
+    }
+    return nil;
+  }];
+}
+
+#pragma mark - Async Wrappers
+
++ (BFTask<AVAssetTrack *> *)loadAudioTrackFromAsset:(AVURLAsset *)asset {
+  BFTaskCompletionSource *source = [BFTaskCompletionSource taskCompletionSource];
+
+  [asset loadTracksWithMediaType:AVMediaTypeAudio
+               completionHandler:^(NSArray<AVAssetTrack *> *tracks, NSError *error) {
+                 if (error) {
+                   [source setError:error];
+                 } else if (tracks.firstObject) {
+                   [source setResult:tracks.firstObject];
+                 } else {
+                   [source setError:[NSError errorWithDomain:@"ImportError"
+                                                        code:-1
+                                                    userInfo:@{NSLocalizedDescriptionKey : @"No audio track found"}]];
+                 }
+               }];
+
+  return source.task;
+}
+
+@end

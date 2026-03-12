@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		5018B8192F392F6400BF5954 /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5018B8182F392F6400BF5954 /* OpenGL.framework */; };
+		503CC5BE2F60987E00D6A9F6 /* Config.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 503CC5BD2F60987E00D6A9F6 /* Config.xcconfig */; };
 		505B3C512F5DCBEC00094463 /* libprojectM-4-playlist.4.dylib in CopyFiles */ = {isa = PBXBuildFile; fileRef = 50C4AEE02F39458600057698 /* libprojectM-4-playlist.4.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		505B3C522F5DCBEC00094463 /* libprojectM-4.4.dylib in CopyFiles */ = {isa = PBXBuildFile; fileRef = 50C4AED62F39416F00057698 /* libprojectM-4.4.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		505DCD242F312D1A00E187C2 /* libtag.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 505DCD232F312D1A00E187C2 /* libtag.a */; };
@@ -42,6 +43,7 @@
 
 /* Begin PBXFileReference section */
 		5018B8182F392F6400BF5954 /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = System/Library/Frameworks/OpenGL.framework; sourceTree = SDKROOT; };
+		503CC5BD2F60987E00D6A9F6 /* Config.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config.xcconfig; sourceTree = "<group>"; };
 		505A7A2D2F1C4E6D00984897 /* Illuminated.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Illuminated.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		505DCD232F312D1A00E187C2 /* libtag.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libtag.a; path = Frameworks/libtag.a; sourceTree = "<group>"; };
 		506652392F5CB9DD00D2CDE8 /* libz.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libz.tbd; path = usr/lib/libz.tbd; sourceTree = SDKROOT; };
@@ -101,6 +103,7 @@
 		505A7A242F1C4E6D00984897 = {
 			isa = PBXGroup;
 			children = (
+				503CC5BD2F60987E00D6A9F6 /* Config.xcconfig */,
 				505A7A2F2F1C4E6D00984897 /* Illuminated */,
 				504098F42F25A01B001077D9 /* Frameworks */,
 				505A7A2E2F1C4E6D00984897 /* Products */,
@@ -179,6 +182,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				503CC5BE2F60987E00D6A9F6 /* Config.xcconfig in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -197,6 +201,7 @@
 /* Begin XCBuildConfiguration section */
 		505A7A3E2F1C4E6F00984897 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 503CC5BD2F60987E00D6A9F6 /* Config.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ARCHS = arm64;
@@ -265,6 +270,7 @@
 		};
 		505A7A3F2F1C4E6F00984897 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 503CC5BD2F60987E00D6A9F6 /* Config.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ARCHS = arm64;
@@ -326,6 +332,7 @@
 		};
 		505A7A412F1C4E6F00984897 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 503CC5BD2F60987E00D6A9F6 /* Config.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -364,7 +371,7 @@
 					"$(PROJECT_DIR)/Frameworks/playlist/lib",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.5;
-				MARKETING_VERSION = 1.0.3;
+				MARKETING_VERSION = 1.0.4;
 				PRODUCT_BUNDLE_IDENTIFIER = com.genvera.Illuminated;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
@@ -418,7 +425,7 @@
 					"$(PROJECT_DIR)/Frameworks/playlist/lib",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.5;
-				MARKETING_VERSION = 1.0.3;
+				MARKETING_VERSION = 1.0.4;
 				PRODUCT_BUNDLE_IDENTIFIER = com.genvera.Illuminated;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;

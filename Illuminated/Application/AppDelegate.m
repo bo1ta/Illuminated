@@ -6,17 +6,24 @@
 //
 
 #import "AppDelegate.h"
+#import "BFTask.h"
 #import "CoreDataStore.h"
-#import "PlaybackManager.h"
 #import "FileExtensionHelper.h"
+#import "LFMAuthManager.h"
+#import "LastFMClient.h"
+#import "LastFMSession.h"
 #import "MainWindowController.h"
+#import "ScrobbleTracker.h"
 #import "Track.h"
+#import "TrackPlaybackController.h"
 
 @interface AppDelegate ()
 
 @property(strong) IBOutlet NSWindow *window;
-@property(strong) MainWindowController *mainWindowController;
-@property(strong) NSURL *pendingFileURL;
+@property(nonatomic, strong) MainWindowController *mainWindowController;
+@property(nonatomic, strong) NSURL *pendingFileURL;
+@property(nonatomic, strong) LastFMClient *lastFMClient;
+@property(nonatomic, strong) ScrobbleTracker *scrobbleTracker;
 
 @end
 
@@ -35,6 +42,18 @@
     [self.mainWindowController openAudioFileURL:self.pendingFileURL];
     self.pendingFileURL = nil;
   }
+
+  self.lastFMClient = [[LastFMClient alloc] init];
+
+  LastFMSession *session = LFMAuthManager.sharedManager.currentSession;
+  if (session) {
+    [self startTrackingScrobblesForSession:session];
+  }
+}
+
+- (void)startTrackingScrobblesForSession:(LastFMSession *)session {
+  self.scrobbleTracker = [[ScrobbleTracker alloc] initWithLastFMClient:self.lastFMClient session:session];
+  [self.scrobbleTracker start];
 }
 
 - (void)applicationWillTerminate:(NSNotification *)aNotification {
@@ -79,15 +98,15 @@
   panel.prompt = @"Open";
 
   __weak AppDelegate *weakSelf = self;
-  [panel beginSheetModalForWindow:self.mainWindowController.window completionHandler:^(NSModalResponse result) {
-    
-    NSURL *selectedFileURL = panel.URLs.firstObject;
-    
-    if (weakSelf && result == NSModalResponseOK && self.mainWindowController && selectedFileURL) {
-      [weakSelf.mainWindowController openAudioFileURL:selectedFileURL];
-      [[NSDocumentController sharedDocumentController] noteNewRecentDocumentURL:selectedFileURL];
-    }
-  }];
+  [panel beginSheetModalForWindow:self.mainWindowController.window
+                completionHandler:^(NSModalResponse result) {
+                  NSURL *selectedFileURL = panel.URLs.firstObject;
+
+                  if (weakSelf && result == NSModalResponseOK && self.mainWindowController && selectedFileURL) {
+                    [weakSelf.mainWindowController openAudioFileURL:selectedFileURL];
+                    [[NSDocumentController sharedDocumentController] noteNewRecentDocumentURL:selectedFileURL];
+                  }
+                }];
 }
 
 - (IBAction)open:(id)sender {
@@ -100,18 +119,76 @@
   panel.prompt = @"Import";
 
   __weak AppDelegate *weakSelf = self;
-  [panel beginSheetModalForWindow:self.mainWindowController.window completionHandler:^(NSModalResponse result) {
-    if (weakSelf && result == NSModalResponseOK && self.mainWindowController && panel.URLs.count > 0) {
-      [weakSelf.mainWindowController openAudioFileURLs:[panel.URLs copy]];
-    }
-  }];
+  [panel beginSheetModalForWindow:self.mainWindowController.window
+                completionHandler:^(NSModalResponse result) {
+                  if (weakSelf && result == NSModalResponseOK && self.mainWindowController && panel.URLs.count > 0) {
+                    [weakSelf.mainWindowController openAudioFileURLs:[panel.URLs copy]];
+                  }
+                }];
 }
 
 - (IBAction)showInFinderAction:(id)sender {
-  Track *currentTrack = [[PlaybackManager sharedManager] currentTrack];
+  Track *currentTrack = [[TrackPlaybackController sharedManager] currentTrack];
   if (currentTrack) {
     NSURL *url = [NSURL fileURLWithPath:currentTrack.fileURL];
     [[NSWorkspace sharedWorkspace] activateFileViewerSelectingURLs:@[ url ]];
+  }
+}
+
+- (IBAction)connectToLastFMAction:(id)sender {
+  if ([[LFMAuthManager sharedManager] isAuthenticated]) {
+    NSLog(@"LastFM already logged in!");
+    return;
+  }
+
+  [[[[LastFMClient alloc] init] fetchAuthToken] continueOnMainThreadWithBlock:^id _Nullable(BFTask *_Nonnull task) {
+    if (task.result) {
+      [self openAuthorizationPageWithToken:task.result];
+    } else {
+      NSLog(@"Error fetching auth token %@", task.error.localizedDescription);
+    }
+    return nil;
+  }];
+}
+
+#pragma mark - Private helpers
+
+- (void)openAuthorizationPageWithToken:(NSString *)token {
+  NSURL *authURL = [self.lastFMClient getAuthorizationURLWithToken:token];
+
+  [[NSWorkspace sharedWorkspace] openURL:authURL];
+
+  [self showAuthorizationInstructionsWithToken:token];
+}
+
+- (void)showAuthorizationInstructionsWithToken:(NSString *)token {
+  NSAlert *alert = [[NSAlert alloc] init];
+  alert.messageText = @"Connect to Last.fm";
+  alert.informativeText = @"Your browser will open to authorize this app.\n\n"
+                           "1. Log in to Last.fm if needed\n"
+                           "2. Click 'Yes, allow access'\n"
+                           "3. Return to this app and click 'Continue'";
+
+  [alert addButtonWithTitle:@"Continue"];
+  [alert addButtonWithTitle:@"Cancel"];
+
+  NSModalResponse response = [alert runModal];
+
+  if (response == NSAlertFirstButtonReturn) {
+    BFTask *fetchSessionTask = [self.lastFMClient fetchSessionWithToken:token];
+    [fetchSessionTask continueWithBlock:^id(BFTask<LastFMSession *> *task) {
+      if (task.result) {
+        LastFMSession *session = task.result;
+
+        [[LFMAuthManager sharedManager] setCurrentSession:session];
+
+        [self startTrackingScrobblesForSession:session];
+      } else {
+        NSLog(@"Error fetching LastFM session with token. Error: %@", task.error.localizedDescription);
+      }
+
+      return nil;
+    }];
   }
 }
 
