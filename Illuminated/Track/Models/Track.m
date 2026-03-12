@@ -21,6 +21,10 @@
   return @(rounded);
 }
 
+- (BOOL)fileExists {
+  return [[NSFileManager defaultManager] fileExistsAtPath:self.fileURL];
+}
+
 @dynamic uniqueID;
 @dynamic title;
 @dynamic duration;

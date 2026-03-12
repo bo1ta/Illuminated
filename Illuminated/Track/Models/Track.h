@@ -41,6 +41,8 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (NSNumber *)roundedBPM;
 
+- (BOOL)fileExists;
+
 @end
 
 @interface Track (CoreDataGeneratedAccessors)

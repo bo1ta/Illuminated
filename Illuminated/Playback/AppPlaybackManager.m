@@ -36,6 +36,8 @@
     _trackController = [TrackPlaybackController sharedManager];
     _radioController = [[RadioPlaybackController alloc] init];
     _volume = 0.5;
+    
+    _activeController = self.trackController;
 
     [self setupObservations];
   }

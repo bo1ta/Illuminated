@@ -31,6 +31,7 @@ static MusicColumn const MusicColumnSong = @"SongColumn";
 static MusicColumn const MusicColumnArtist = @"ArtistColumn";
 static MusicColumn const MusicColumnBPM = @"BPMColumn";
 static MusicColumn const MusicColumnTime = @"TimeColumn";
+static MusicColumn const MusicColumnFormat = @"FormatColumn";
 
 NSString *const PasteboardItemTypeTrackImports = @"com.illuminated.track.import";
 
@@ -242,7 +243,6 @@ NSString *const PasteboardItemTypeTrackImports = @"com.illuminated.track.import"
   }
 
   Track *track = self.fetchedResultsController.fetchedObjects[row];
-  BOOL isPlaying = self.currentTrack.objectID == track.objectID;
 
   if ([columnIdentifier isEqualToString:MusicColumnNumber]) {
     cell.textField.alignment = NSTextAlignmentCenter;
@@ -259,9 +259,23 @@ NSString *const PasteboardItemTypeTrackImports = @"com.illuminated.track.import"
   } else if ([columnIdentifier isEqualToString:MusicColumnTime]) {
     cell.textField.stringValue = [self formatTime:track.duration];
     cell.textField.alignment = NSTextAlignmentLeft;
+  } else if ([columnIdentifier isEqualToString:MusicColumnFormat]) {
+    cell.textField.stringValue = track.fileType ?: @"-";
+    cell.textField.alignment = NSTextAlignmentCenter;
   }
 
+  BOOL isPlaying = self.currentTrack.objectID == track.objectID;
   cell.textField.font = isPlaying ? [NSFont boldSystemFontOfSize:13] : [NSFont systemFontOfSize:13];
+  
+  if (!track.fileExists) {
+     cell.textField.textColor = [NSColor disabledControlTextColor];
+     cell.textField.enabled = NO;
+   } else {
+     cell.textField.textColor = [NSColor controlTextColor];
+     cell.textField.enabled = YES;
+     
+     cell.textField.font = isPlaying ? [NSFont boldSystemFontOfSize:13] : [NSFont systemFontOfSize:13];
+  }
 
   return cell;
 }
@@ -301,6 +315,11 @@ NSString *const PasteboardItemTypeTrackImports = @"com.illuminated.track.import"
     [sortDescriptors
         addObject:[NSSortDescriptor sortDescriptorWithKey:@"duration"
                                                 ascending:![self isSortDescriptorForKey:@"duration"
+                                                                       ascendingInArray:existingDescriptors]]];
+  } else if ([columnIdentifier isEqualToString:MusicColumnFormat]) {
+    [sortDescriptors
+        addObject:[NSSortDescriptor sortDescriptorWithKey:@"fileType"
+                                                ascending:![self isSortDescriptorForKey:@"fileType"
                                                                        ascendingInArray:existingDescriptors]]];
   } else if ([columnIdentifier isEqualToString:MusicColumnNumber]) {
     // do nothing here and let the empty array propagate to sort descriptors for reset
@@ -520,10 +539,18 @@ NSString *const PasteboardItemTypeTrackImports = @"com.illuminated.track.import"
   if (self.tableView.selectedRow >= 0) {
     NSArray<Track *> *tracks = self.fetchedResultsController.fetchedObjects;
     Track *track = tracks[self.tableView.selectedRow];
-
-    [[AppPlaybackManager sharedManager] updateQueue:tracks];
-    [[AppPlaybackManager sharedManager] playTrack:track];
+    
+    if (track.fileExists) {
+      [[AppPlaybackManager sharedManager] updateQueue:[self filterPlayableTracks:tracks]];
+      [[AppPlaybackManager sharedManager] playTrack:track];
+    }
   }
+}
+
+- (NSArray<Track *> *)filterPlayableTracks:(NSArray<Track *> *)tracks {
+  return [tracks filteredArrayUsingPredicate:[NSPredicate predicateWithBlock:^BOOL(id  object, NSDictionary *_) {
+    return [object fileExists];
+  }]];
 }
 
 - (nullable Track *)getClickedTrack {
