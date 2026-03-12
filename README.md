@@ -9,7 +9,8 @@ A macOS music player written in Objective-C, with real-time projectM visualizers
 
 - Plays common audio formats: MP3, M4A/AAC, WAV, FLAC, OGG, Opus, AIFF and more
 - Real-time audio-reactive visualizers powered by [projectM](https://github.com/projectM-visualizer/projectm) with 600 presets included
-- Playlist management with drag-and-drop support
+- Radio playback via Radio Browser API
+- Scrobbling and track updates for LastFM
 - Sidebar with All Music, Playlists, and Albums sections
 - File Browser for easy navigation
 - Metadata reading via [TagLib](https://taglib.org) (artist, album, cover art, etc.)
@@ -18,7 +19,7 @@ A macOS music player written in Objective-C, with real-time projectM visualizers
 ---
 
 ### Preview
-<img width="803" height="480" alt="Screenshot 2026-02-08 at 21 14 16" src="https://github.com/user-attachments/assets/c0618a6d-2695-4d4b-8a0c-3e5729ba9b66" />
+<img width="823" height="482" alt="Screenshot 2026-03-12 at 21 19 58" src="https://github.com/user-attachments/assets/af690571-95ab-4c87-bf6a-2ce42f7334c6" />
 <img width="803" height="480" alt="Screenshot 2026-02-08 at 21 25 48" src="https://github.com/user-attachments/assets/b7ed37b3-c200-40dd-ae88-bc82872c98e3" />
 <img width="803" height="480" alt="Screenshot 2026-02-08 at 21 25 59" src="https://github.com/user-attachments/assets/5a1e646c-7929-4c66-90d3-d92b2a898422" />
 
